@@ -1,0 +1,37 @@
+#include global.jsl
+
+uniform mat4 WORLD;
+uniform mat4 VIEW;
+uniform mat4 PROJ;
+uniform mat4 WVP;
+uniform mat4 WORLDIT;
+
+VERT_IN vec3 vertex_position;
+VERT_IN vec3 vertex_normal;
+VERT_IN vec2 vertex_uv;
+VERT_IN vec3 vertex_color;
+
+#define VS_PROLOGUE                                                            \
+  vec4 vp = vec4(vertex_position, 1.0);                                        \
+  vec4 vn = vec4(vertex_normal, 0.0);                                          \
+  uv = vertex_uv;                                                              \
+  vec4 worldPos = WORLD * vp;                                                  \
+  float u = vertex_uv.x;                                                       \
+  float v = vertex_uv.y;
+
+VERT_OUT float linearDepth;
+VERT_OUT vec2 uv;
+VERT_OUT vec3 vertpos;
+VERT_OUT vec3 vertnormal;
+VERT_OUT vec3 vertcolor;
+
+#if 1
+float LogDepth(float z, float w) {
+  z /= w;
+  return 2.0 * log(max(1.0e-6, z / nearPlane)) / log(farPlane / nearPlane) - 1.0;
+}
+#else
+float LogDepth(float z, float w) {
+  return z;
+}
+#endif

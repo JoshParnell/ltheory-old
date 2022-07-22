@@ -1,0 +1,41 @@
+type PerformanceWidget
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Widgets:Pair 8
+        Widgets:Text Fonts:Subheading "Frame Time" 14 Colors:Primary
+        Widgets:Text Fonts:Medium ((Round FrameTimer_GetEMA01 * 1000.0) + " ms") 14 1
+    l +=
+      Widgets:Pair 8
+        Widgets:Text Fonts:Subheading "Frame Rate" 14 Colors:Primary
+        Widgets:Text Fonts:Medium ((Round 1.0 / FrameTimer_GetEMA01) + " fps") 14 1
+    l +=
+      Widgets:Pair 8
+        Widgets:Text Fonts:Subheading "Polys Drawn" 14 Colors:Primary
+        Widgets:Text Fonts:Medium Renderer_GetPolyCount 14 1
+    l +=
+      Widgets:Pair 8
+        Widgets:Text Fonts:Subheading "Draw Calls" 14 Colors:Primary
+        Widgets:Text Fonts:Medium Renderer_GetDrawCallCount 14 1
+    l
+
+  function Void PostUpdate (Widget self)
+    self.Rebuild
+
+function Widget Create ()
+  Widgets:ListV2 2
+    Components:Backdrop 0.1 0.25 1 0
+      Components:Padding (Vec2 24 16) (Vec2 24 16)
+        Components:Expand
+          Widgets:ListH2 16
+            Components:AlignCenter
+              Components:MinSize 32
+                Widgets:Icon Icons:Scanner 1.5 * Colors:Primary
+            Components:AlignCenter
+              Widgets:Text Fonts:Default "PERFORMANCE" 20 1
+    Widgets:ScrollFrameV
+      Components:Margin 8 8
+          Components:Expand
+            ListV 4
+              Custom Widget
+                PerformanceWidget

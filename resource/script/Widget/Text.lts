@@ -1,0 +1,31 @@
+type Text
+  Font font
+  String text
+  Float size
+  Vec3 color
+
+  function HashT GetHash () text.GetHash
+
+  function Void PreDraw (Widget self)
+    var offset (Vec2 0 0.5 * (self.size.y + 0.2 * size))
+    DrawText font text self.pos + offset size color self.alpha false
+
+  function Void PrePosition (Widget self)
+    self.minSize = (GetTextSize font text size)
+    self.minSize += (Vec2 2 0)
+
+type TextGlow
+  Font font
+  String text
+  Float size
+  Vec3 color
+
+  function HashT GetHash () text.GetHash
+
+  function Void PreDraw (Widget self)
+    var offset (Vec2 0 0.5 * (self.size.y + 0.2 * size)
+    DrawTextGlow font text self.pos + offset size color self.alpha false
+
+  function Void PrePosition (Widget self)
+    self.minSize = (GetTextSize font text size)
+    self.minSize += (Vec2 2 0)

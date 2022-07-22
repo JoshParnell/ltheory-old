@@ -1,0 +1,32 @@
+#include vert.jsl
+
+VERT_OUT vec3 normal;
+VERT_OUT vec3 position;
+VERT_OUT vec4 ndcPos;
+
+VERT_OUT vec3 vertposscaled;
+VERT_OUT vec3 origin;
+VERT_OUT vec3 scale;
+
+void main() {
+  VS_PROLOGUE;
+
+  scale = vec3(length((WORLD * vec4(1, 0, 0, 0)).xyz),
+               length((WORLD * vec4(0, 1, 0, 0)).xyz),
+               length((WORLD * vec4(0, 0, 1, 0)).xyz));
+
+  origin = (WORLD * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+
+  gl_Position = WVP * vp;
+  linearDepth = gl_Position.z;
+  gl_Position.z = LogDepth(gl_Position.z, gl_Position.w);
+
+  position = worldPos.xyz;
+  ndcPos = gl_Position;
+
+  normal = normalize((WORLDIT * vn).xyz);
+
+  vertpos = vp.xyz;
+  vertnormal = vn.xyz;
+  vertposscaled = vertpos * scale;
+}

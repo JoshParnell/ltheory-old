@@ -1,0 +1,117 @@
+function Widget Align (Vec2 offset Widget widget)
+  Custom widget (Component/Align:Align offset)
+
+function Widget AlignCenter (Widget widget)
+  Custom widget (Component/Align:Align (Vec2 0.5 0.5))
+
+function Widget AlignTopCenter (Widget widget)
+  Custom widget (Component/Align:Align (Vec2 0.5 0.0))
+
+function Widget AlignTopLeft (Widget widget)
+  Custom widget (Component/Align:Align (Vec2 0.0 0.0))
+
+function Widget AlignTopRight (Widget widget)
+  Custom widget (Component/Align:Align (Vec2 1.0 0.0))
+
+function Widget AlignLeftCenter (Widget widget)
+  Custom widget (Component/Align:Align (Vec2 0.0 0.5))
+
+function Widget AlignRightCenter (Widget widget)
+  Custom widget (Component/Align:Align (Vec2 1.0 0.5))
+
+function Widget AlignBottomCenter (Widget widget)
+  Custom widget (Component/Align:Align (Vec2 0.5 1.0))
+
+function Widget AlignBottomLeft (Widget widget)
+  Custom widget (Component/Align:Align (Vec2 0.0 1.0))
+
+function Widget AlignBottomRight (Widget widget)
+  Custom widget (Component/Align:Align (Vec2 1.0 1.0))
+
+function Widget Backdrop (Vec3 color Float innerAlpha Float alpha Float bevel Widget widget)
+  Custom widget (Component/Backdrop:Backdrop color innerAlpha alpha bevel)
+
+function Widget BackdropGrid (Vec3 color Float alpha Widget widget)
+  Custom widget (Component/Backdrop:BackdropGrid color alpha)
+
+function Widget BackdropTexture (Texture texture Float alpha Widget widget)
+  Custom widget (Component/Backdrop:BackdropTexture texture alpha)
+
+function Widget CaptureKey (Widget widget)
+  Custom widget Component/Capture:CaptureKey
+
+function Widget CaptureMouse (Widget widget)
+  Custom widget Component/Capture:CaptureMouse
+
+function Widget CaptureScroll (Widget widget)
+  Custom widget Component/Capture:CaptureScroll
+
+function Widget Clickable (Data message Widget receiver Widget widget)
+  Custom widget (Component/Clickable:Clickable message receiver true false)
+
+function Widget ClickableRightRelease (Data message Widget receiver Widget widget)
+  Custom widget (Component/Clickable:Clickable message receiver false false)
+
+function Widget Draggable (Widget widget)
+  CaptureMouse
+    Custom widget (Component/Draggable:Draggable)
+
+function Widget Expand (Widget widget)
+  Custom widget (Component/Expand:Expand (Vec2 1 1))
+
+function Widget ExpandX (Widget widget)
+  Custom widget (Component/Expand:Expand (Vec2 1 0))
+
+function Widget ExpandY (Widget widget)
+  Custom widget (Component/Expand:Expand (Vec2 0 1))
+
+function Widget ExpandCustom (Vec2 factor Widget widget)
+  Custom widget (Component/Expand:Expand factor)
+
+function Widget FocusFade (Float baseAlpha Widget widget)
+  CaptureMouse
+    Custom widget (Component/FocusFade:FocusFade baseAlpha)
+
+function Widget FocusGlow (Widget widget)
+  CaptureMouse
+    Custom widget Component/FocusGlow:FocusGlow
+
+function Widget FocusPanel (Widget widget)
+  CaptureMouse
+    Custom widget Component/FocusPanel:FocusPanel
+
+function Widget FocusRebuild (Widget widget)
+  Custom widget Component/FocusRebuild:FocusRebuild
+
+function Widget Greedy (Vec2 greed Widget widget)
+  Custom widget (Component/Greedy:Greedy greed)
+
+function Widget GreedyX (Widget widget)
+  Custom widget (Component/Greedy:Greedy (Vec2 1 0))
+
+function Widget GreedyY (Widget widget)
+  Custom widget (Component/Greedy:Greedy (Vec2 0 1))
+
+function Widget Margin (Vec2 inner Vec2 outer Widget widget)
+  Custom widget (Component/Margin:Margin inner outer)
+
+function Widget MaxSize (Vec2 size Widget widget)
+  Custom widget (Component/MaxSize:MaxSize size)
+
+function Widget MinSize (Vec2 size Widget widget)
+  Custom widget (Component/MinSize:MinSize size)
+
+function Widget Named (String name Widget widget)
+  Custom widget (Component/Named:Named name)
+
+function Widget Padding (Vec2 inner Vec2 outer Widget widget)
+  Custom widget (Component/Padding:Padding inner outer)
+
+function Widget Positioned (Vec2 pos Widget widget)
+  Custom widget (Component/Positioned:Positioned pos)
+
+function Widget RedBG (Widget widget)
+  Custom widget Component/RedBG:RedBG
+
+function Widget Tooltip (Widget widget)
+  Custom widget (Component/Tooltip:Tooltip 0)

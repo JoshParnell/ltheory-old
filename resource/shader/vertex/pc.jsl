@@ -1,0 +1,15 @@
+#include vert.jsl
+
+VERT_OUT vec3 color;
+VERT_OUT vec3 position;
+
+void main() {
+  VS_PROLOGUE;
+
+  gl_Position = (PROJ * (VIEW * worldPos));
+  linearDepth = gl_Position.z;
+  gl_Position.z = LogDepth(gl_Position.z, gl_Position.w);
+
+  color = vn.xyz;
+  position = worldPos.xyz;
+}

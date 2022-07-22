@@ -1,0 +1,24 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+uniform sampler2D texture;
+
+vec3 Toroidal(vec2 st, float r1, float r2) {
+  st *= TAU;
+  vec3 fromCenter = vec3(cos(st.x), sin(st.x), 0.0);
+  vec3 outerPoint =
+    -cos(st.y) * fromCenter +
+     sin(st.y) * vec3(0.0, 0.0, 1.0);
+  return r1 * fromCenter + r2 * outerPoint;
+}
+
+void main() {
+  vec2 uvp = uv;
+  uvp.y = 1.0 - uvp.y;
+  vec3 p = 3.0 * Toroidal(uvp, 5.0, 1.0);
+  float c = mix(0.8, 1.3, pow(fsnoise(p, 8, 1.5), 2.0));
+  c -= 0.1 * noise(p.xy);
+  c = saturate(c);
+  RETURN(vec4(c, c, c, 1.0));
+}

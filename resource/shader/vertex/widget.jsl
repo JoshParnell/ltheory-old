@@ -1,0 +1,21 @@
+#include vert.jsl
+
+VERT_IN vec4 vert_attrib1;
+VERT_IN vec4 vert_attrib2;
+VERT_IN vec4 vert_attrib3;
+VERT_IN vec4 vert_attrib4;
+
+VERT_OUT vec4 attrib1;
+VERT_OUT vec4 attrib2;
+VERT_OUT vec4 attrib3;
+VERT_OUT vec4 attrib4;
+VERT_OUT vec3 position;
+
+void main() {
+  attrib1 = vert_attrib1;
+  attrib2 = vert_attrib2;
+  attrib3 = vert_attrib3;
+  attrib4 = vert_attrib4;
+  gl_Position = PROJ * vec4(vertex_position, 1.0);
+  position = vertex_position;
+}

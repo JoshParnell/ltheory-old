@@ -1,0 +1,13 @@
+#include frag.jsl
+#include math.jsl
+#include color.jsl
+
+uniform sampler2D texture;
+uniform vec3 constant;
+uniform vec3 mult;
+
+void main() {
+  vec4 c = texture2D(texture, uv);
+  RETURN(vec4(constant + mult * c.xyz, c.w));
+}
+

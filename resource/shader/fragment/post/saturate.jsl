@@ -1,0 +1,13 @@
+#include frag.jsl
+#include math.jsl
+#include color.jsl
+
+uniform sampler2D texture;
+uniform float mult;
+
+void main() {
+  vec4 c = texture2D(texture, uv);
+  float avg = (c.x + c.y + c.z) / 3.0;
+  c.xyz = vec3(avg) + mult * (c.xyz - vec3(avg));
+  RETURN(c);
+}

@@ -1,0 +1,51 @@
+type WidgetContainer
+  Player player
+
+  function List CreateChildren (Widget self)
+    var l List
+    var container (player.GetPiloting.GetContainer)
+    var font Fonts:Heading
+    l +=
+      Widgets:ListH3 8.0
+        Components:AlignCenter
+          Widgets:Text Fonts:Medium container.GetName.UpperCase 28 1
+        Components:AlignCenter
+          Components:MinSize 32
+            Widgets:Icon Icons:Assets 2.0 * Colors:Primary
+        Components:AlignCenter
+          Widgets:Text font "SYSTEM" 12 Colors:Primary
+
+    var zone player.GetPiloting.GetZone
+    var zoneName
+      switch
+        zone.IsNotNull zone.GetName
+        otherwise "Open Space"
+
+    l +=
+      Widgets:ListH3 4.0
+        Components:AlignCenter
+          Widgets:WidgetGlyph (Glyph_Circle 0 1 1 1) 16 2.0 * Colors:Primary
+        Widgets:Text Fonts:Default zoneName 16 1
+        Components:AlignCenter
+          Widgets:Text font "ZONE" 12 Colors:Primary
+
+    l +=
+      Widgets:ListH3 4.0
+        Components:AlignCenter
+          Widgets:WidgetGlyph (Glyph_Circle 0 1 1 1) 16 2.0 * Colors:Primary
+        Components:AlignCenter
+          Widgets:Text Fonts:Default "Unclaimed" 16 1
+        Components:AlignCenter
+          Widgets:Text font "SOVEREIGNTY" 12 Colors:Primary
+    l
+
+  function String GetName () "Location"
+
+  function Void PostUpdate (Widget self)
+    self.Rebuild
+
+function Widget Create (Player player)
+  ListV 2
+    Custom
+      Widget
+      WidgetContainer player

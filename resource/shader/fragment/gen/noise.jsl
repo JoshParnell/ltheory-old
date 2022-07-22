@@ -1,0 +1,12 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+void main() {
+  vec2 uvp = uv * 8.0;
+  float r = noise(vec3(uvp, 4.0));
+  float g = noise(vec3(uvp, 5.0));
+  float b = noise(vec3(uvp, 6.0));
+  float a = noise(vec3(uvp, 7.0));
+  RETURN(vec4(r, g, b, a));
+}

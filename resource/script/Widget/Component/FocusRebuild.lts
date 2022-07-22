@@ -1,0 +1,11 @@
+type FocusRebuild
+  Bool focus false
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse && (! focus)
+      focus = true
+      self.Rebuild
+
+    if (! self.focusMouse) && focus
+      focus = false
+      self.Rebuild

@@ -1,0 +1,21 @@
+type App
+  function Void Initialize ()
+    var texture (Texture2D_Create 1024 640)
+    texture.BeginDrawTo
+    DrawClear (Vec3 0.0) 1.0
+    DrawPanel 0 1024 1.0 * (Vec3 0.1 0.2 0.3) 1 1 0
+    DrawPanel 0 256 1.0 * (Vec3 0.1 0.2 0.3) 1 1 0
+    var font (Font_Get "Play/Regular.ttf")
+    var text "LAPWYVTykvAV"
+    DrawText font text (Vec2 64 200) 8.0 1 1 false
+    DrawText font text (Vec2 64 250) 2.0 1 1 false
+    DrawText font text (Vec2 64 300) 1.0 1 1 false
+    DrawText font text (Vec2 64 325) 0.75 1 1 false
+    DrawText font text (Vec2 64 350) 0.50 1 1 false
+    DrawText font text (Vec2 64 375) 0.25 1 1 false
+    texture.EndDrawTo
+    texture.SaveTo "test.bmp"
+
+function App Main ()
+  var self App
+  self

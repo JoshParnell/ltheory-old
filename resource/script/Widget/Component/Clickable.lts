@@ -1,0 +1,19 @@
+type Clickable
+  Data message
+  Widget receiver
+  Bool left
+  Bool press
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse
+      switch
+        left
+          if press && Mouse_LeftPressed
+            receiver.Send message
+          if (! press) && Mouse_LeftReleased
+            receiver.Send message
+        otherwise
+          if press && Mouse_RightPressed
+            receiver.Send message
+          if (! press) && Mouse_RightReleased
+            receiver.Send message

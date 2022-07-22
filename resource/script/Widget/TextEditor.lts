@@ -1,0 +1,44 @@
+type TextEditor
+  String path
+
+  function List CreateChildren (Widget self)
+    var file (File_Read path)
+    var lines file.SplitLines
+    var font1 (Font_Get "SourceCodePro/Bold.ttf")
+    var font2 (Font_Get "SourceCodePro/Light.ttf")
+    var l List
+    for i 0 i < lines.Size i.++
+      var line (lines.Get i)
+      l +=
+        Widgets:ListH2 0
+          Components:Expand
+            Components:MinSize (Vec2 32 0)
+              Widgets:Text font1 i + 1 14 0.2
+          Widgets:Text font2 line 14 1
+    l
+
+function Widget Create (String path)
+  Components:Backdrop 0.15 0.5 1 0
+    Components:Expand
+      Widgets:ListV2 0
+        Components:Expand
+          Components:GreedyY
+            Widgets:ListH2 0
+              Components:Expand
+                Components:GreedyX
+                  Widgets:ScrollFrameV
+                    Components:Margin 8 8
+                      ListV 2
+                        Custom Widget
+                          TextEditor path
+              Components:Expand
+                Components:GreedyX
+                  Widgets:ScrollFrameV
+                    Components:Margin 8 8
+                      ListV 2
+                        Custom Widget
+                          TextEditor path
+        Components:Expand
+          Components:Backdrop 0.1 1 1 0
+            Components:MinSize 24
+              Widget

@@ -1,0 +1,11 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+FRAG_IN float width;
+FRAG_IN float height;
+
+uniform vec2 frame;
+uniform vec2 size;
+uniform float hover;
+uniform float opacity;

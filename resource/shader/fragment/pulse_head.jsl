@@ -1,0 +1,23 @@
+#include frag.jsl
+#include lighting.jsl
+#include math.jsl
+#include noise.jsl
+
+FRAG_IN vec3 position;
+
+uniform vec3 color;
+uniform float opacity;
+
+void main() {
+  float r = length(uv);
+  float alpha = 0.0;
+  alpha += exp(-sqrt(256.0 * r));
+  alpha += exp(-sqrt(128.0 * r));
+  // alpha += exp(-8.0 * sqrt(abs(uv.x))) * exp(-64.0 * r);
+  // alpha += exp(-8.0 * sqrt(abs(uv.y))) * exp(-16.0 * r);
+  alpha *= 4.0;
+  alpha *= opacity;
+  alpha *= 1.0 - getFoginess(length(position - eye));
+  vec3 c = color;
+  RETURN(vec4(c, 1.0) * alpha);
+}

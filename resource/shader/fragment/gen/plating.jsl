@@ -1,0 +1,61 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+#output 1 vec4 fragment_color1
+
+uniform float seed;
+
+float quantize(float f, float l) {
+  return floor(f * l) / l;
+}
+
+float worley(vec2 p) {
+  vec2 c = floor(p);
+  float d1 = 100.0;
+  float d2 = 100.0;
+  float d3 = 100.0;
+  const float r = 2.0;
+  for (float xo = -r; xo <= r; ++xo) {
+    for (float yo = -r; yo <= r; ++yo) {
+      vec2 m = vec2(xo, yo);
+      vec2 n = c + m + r*(noise2(noise(c + m) + seed) - 0.5) - p;
+      float d = max(abs(n.x), abs(n.y));
+      if (d < d1) {
+        d3 = d2;
+        d2 = d1;
+        d1 = d;
+      } else if (d < d2) {
+        d3 = d2;
+        d2 = d;
+      } else if (d < d3)
+        d3 = d;
+    }
+  }
+  return d3;
+}
+
+float plating(vec2 p, int octaves) {
+  float t = 1.0;
+  for (int i = 0; i < octaves; ++i) {
+    t = min(t, worley(p));
+    p = 2.0 * p + 0.532;
+  }
+  return t;
+}
+
+void main() {
+  vec2 uvp = abs(uv - 0.5);
+  float v = 1.5;
+  float d = 1.0 - exp(-2.0 * abs(sin(4.0 * plating(uvp, 4))));
+  v *= 0.1 + 0.9 * quantize(abs(sin(3.0 + 4.0 * plating(uvp + 1.0, 5))), 2.0);
+  v *= 1.0 - exp(-16.0 * abs(sin(8.0 * plating(uvp * 4.0 + 3.0, 4))));
+
+  const float nStrength = 1.0;
+  vec3 dx = vec3(dFdx(uv.x), 0, nStrength * dFdx(v));
+  vec3 dy = vec3(0, dFdy(uv.y), nStrength * dFdy(v));
+  vec3 normal = normalize(cross(dy, dx));
+
+  fragment_color0 = vec4(saturate(v));
+  fragment_color1 = vec4(0.5 + 0.5 * normal, 1.0);
+}

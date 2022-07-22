@@ -1,0 +1,4 @@
+function Widget Create (Player player Object object)
+  Components:ExpandCustom 0.25
+    Components:AlignCenter
+      Widgets:Icon Icons:Hardpoints 2.0 * Colors:Secondary

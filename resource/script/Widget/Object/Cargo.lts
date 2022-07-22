@@ -1,0 +1,228 @@
+type CargoBadge
+  Player player
+  Object object
+  Item item
+  (Pointer Item) activeItem
+
+  function Void PreDraw (Widget self)
+    var parent self.GetParent
+    var focus parent.focusMouse
+    var selected (deref activeItem) == item
+
+    var c (? (selected 3.0 * Colors:Primary) (otherwise 1.5 * Colors:Primary))
+    var opacity (? (selected 0.5) (otherwise 0.1))
+    Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.4 * self.size c opacity
+    if focus
+      Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.5 * self.size c 1.0
+    Draw item.GetIcon self.Center 0.2 * self.size c 1.0
+
+type Cargo
+  Player player
+  Object object
+  Item item
+  (Pointer Item) activeItem
+  Float size 48
+  
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:MinSize size
+        Custom Widget
+          CargoBadge player object item activeItem
+
+    l +=
+      Components:AlignCenter
+        Widgets:ListV2 0
+          Components:AlignLeftCenter
+            Widgets:Text Fonts:Default item.GetName 16 1
+          Components:AlignLeftCenter
+            Widgets:Text Fonts:Heading
+              item.GetTypeString
+              14
+              Colors:Primary
+
+    l +=
+      Components:Expand
+        Components:GreedyX
+          Widget
+    l += 
+      Components:Margin 0 (Vec2 16 0)
+        Components:AlignCenter
+          Widgets:Text Fonts:Medium (object.GetItemCount item) 16 Colors:Primary
+    l
+
+  function HashT GetHash () item.GetHash
+
+  function Void PreDraw (Widget self)
+    var selected (deref activeItem) == item
+    var opacity (? (self.focusMouse || selected 0.75) (otherwise 0.25))
+    DrawPanel self.pos self.size 0.1 opacity 1.0 0
+    if selected
+      var half 0.5 * size
+      var h2 half + 2.0
+      Draw (Glyph_Line self.TopLeft + (Vec2 h2 0) self.TopRight - (Vec2 h2 0) 1 1) 0 1 Colors:Primary 1.0
+      Draw (Glyph_Line self.BottomLeft + (Vec2 h2 0) self.BottomRight - (Vec2 h2 0) 1 1) 0 1 Colors:Primary 1.0
+      Draw (Glyph_Arc 0 1 0.01 1 1 0.0 0.25) self.LeftCenter + (Vec2 half 0) half Colors:Primary 1.0
+      Draw (Glyph_Arc 0 1 0.01 1 1 0.5 0.25) self.RightCenter - (Vec2 half 0) half Colors:Primary 1.0
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageClick")
+      (deref activeItem) = item
+
+type CargoListContents
+  Player player
+  Object object
+  (Pointer Item) activeItem
+
+  function List CreateChildren (Widget self)
+    var l List
+    for it object.GetCargo it.HasMore it.Advance
+      var widget
+        Components:CaptureMouse
+          Components:Expand
+            ListH 8
+              Custom Widget
+                Cargo player object it.GetItem activeItem
+      l +=
+        Components:Clickable Messages:MessageClick widget widget
+    l
+
+type CargoList
+  Player player
+  Object object
+  (Pointer Item) activeItem
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      GridList:Create "CARGO"
+        Custom Widget
+          CargoListContents player object activeItem
+
+    l += 
+      Components:Padding 8 8
+        Widgets:ScrollFrameV
+          Dynamic
+            Components:Expand
+              ListV 8
+                Custom Widget
+                  CargoListContents player object activeItem
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.05 0.75 1.0 0
+
+type CargoPreview
+  Player player
+  Object object
+  Item currentItem Item
+  (Pointer Item) activeItem
+
+  function List CreateChildren (Widget self)
+    var l List
+    currentItem = (deref activeItem)
+    if currentItem.IsNotNull
+      l += (ItemInfo:Create player currentItem)
+    l
+
+  function Void PrePosition (Widget self)
+    if currentItem.IsNotNull
+      self.greed = 1
+
+  function Void PreUpdate (Widget self)
+    if currentItem != (deref activeItem)
+      self.Rebuild
+
+type PieChart
+  (Array Float) phase (Array Float)
+  (Array Float) angle (Array Float)
+
+  function Void Create (Widget self)
+    var rng (RNG_MTG 12)
+    var total 0.0
+    for i 0 i < 5 i.++
+      var slice rng.Float
+      angle += slice
+      total += slice
+
+    var cumulative 0.0
+    for i 0 i < angle.Size i.++
+      ref slice (angle.Get i)
+      slice /= total
+      phase += cumulative
+      cumulative += slice
+    @ angle
+
+  function Void PreDraw (Widget self)
+    var r 0.4 * (Min self.size.x self.size.y)
+    for i 0 i < phase.Size i.++
+      ref thisPhase (phase.Get i)
+      ref thisAngle (angle.Get i)
+      var s (Sqrt (i + 1) / (phase.Size + 1))
+
+      Draw (Glyph_Arc 0 0.5 0.5 1 1 thisPhase 0.49 * 0.5 * thisAngle) self.Center s * r Colors:Primary 0.1
+      Draw (Glyph_Arc 0 0.99 0.001 1 1 thisPhase 0.49 * 0.5 * thisAngle) self.Center s * r Colors:Primary 1.0
+      Draw
+        Glyph_LineFade self.Center - s * r * (Polar 2Pi * (thisPhase + 0.245 * thisAngle)) self.Center 1 1
+        0
+        1
+        Colors:Primary
+        1
+      Draw
+        Glyph_LineFade self.Center - s * r * (Polar 2Pi * (thisPhase - 0.245 * thisAngle)) self.Center 1 1
+        0
+        1
+        Colors:Primary
+        1
+    Draw (Glyph_Arc 0 1 0.1 1 1 0 1) self.Center 4 Colors:Primary 0.1
+
+type CargoInfo
+  Player player
+  Object object
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:MinSize 256
+        Custom Widget
+          PieChart
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.05 0.75 1 0
+
+type CargoWidget
+  Player player
+  Object object
+  Item activeItem Item
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Expand
+        Components:GreedyY
+          Widgets:ListH2 8
+            Components:Expand
+              Components:Greedy (Vec2 5 0)
+                ListV 0
+                  Custom Widget
+                    CargoList player object (address activeItem)
+            Components:Expand
+              Widgets:ListV3 8
+                Components:ExpandX
+                  Stack
+                    Custom Widget
+                      CargoPreview player object (address activeItem)
+                Widgets:EmptySpaceV
+                Components:Expand
+                  Components:Padding 16 16
+                    ListV 4
+                      Custom Widget
+                        CargoInfo player object
+    l
+
+function Widget Create (Player player Object object)
+  Components:Expand
+    Stack
+      Custom Widget
+        CargoWidget player object

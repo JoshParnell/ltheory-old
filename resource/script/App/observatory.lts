@@ -1,0 +1,89 @@
+type App
+  Object system
+  Camera camera
+
+  function Void Create (Widget self)
+    var rng (RNG_MTG 0)
+    # Create the camera
+    camera = Camera_Create
+    camera.Push
+
+    # Create the system
+    system = (Object_System (Vec3 15.012) 1200)
+    var oreType (Item_OreType 10.0 13)
+    oreType.SetName "Mercoxit"
+    system.AddResource oreType 1.0
+    # Object/System:Init system
+
+    # Create the player ship
+    var zone
+      Object_Zone system 0 (Vec3 1000) 10000 (SDF_Sphere 0 1) 1024 1.0 0.0 0.0 0.0
+    system.AddInterior zone
+
+    var stationType (Item_StationType 10000000.0 12 1.0 1.0 1.0 1.0)
+    var station stationType.Instantiate
+    station.SetName "Konryz Mining Outpost LZ-882"
+    station.SetPos 1000.0 * rng.Sphere
+    system.AddInterior station
+
+    desc "Battle"
+      var shipType1 (Item_ShipType 100000 512 1 1 1 1 1 1)
+      var shipType2 (Item_ShipType 1000000 101 1 1 1 1 1 1)
+      var shipType3 (Item_ShipType 10000000 181 1 1 1 1 1 1)
+      var shipType4 (Item_ShipType 100000000 333 1 1 1 1 1 1)
+      var ships (Array Object)
+      for i 0 i < 32 i.++
+        var ship
+          switch
+            rng.Float < 0.5
+              shipType1.Instantiate
+            rng.Float < 0.5
+              shipType2.Instantiate
+            rng.Float < 0.5
+              shipType3.Instantiate
+            otherwise
+              shipType3.Instantiate
+        ship.SetPos 10000.0 * rng.Sphere
+        system.AddInterior ship
+        var weaponType (Item_WeaponType rng.Int)
+        for j 0 j < 4 j.++
+          ship.Plug weaponType
+        ships += ship
+
+      for i 0 i < 32 i.++
+        ref ship (ships.Get i)
+        ship.PushTask (Task_Destroy (deref (ships.Get (rng.Int ships.Size))))
+
+    # desc "Miners"
+      var shipType (Item_ShipType 10000000 111 1 1 1 1 1 1)
+      var transferUnit (Item_TransferUnitType 1 1 1 1 1 1)
+      for i 0 i < 32 i.++
+        var ship shipType.Instantiate
+        ship.SetPos 5000.0 * rng.Direction
+        system.AddInterior ship
+        for j 0 j < 4 j.++
+          ship.Plug transferUnit
+        ship.PushTask (Task_Mine zone)
+
+    # Set up the UI
+    camera.SetTarget station
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += (Widget/Observatory:Create camera)
+    l
+
+  function Void PreUpdate (Widget self)
+    var dt FrameTimer_Get
+    dt = (Min dt 0.1)
+    if Key_H.Down dt *= 20.0
+
+    static paused false
+    if Key_P.Pressed paused = paused.!
+    if paused.!
+      system.Update dt
+
+function Data Main ()
+  widget:Create
+    Stack
+      Custom Widget App

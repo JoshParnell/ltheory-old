@@ -1,0 +1,16 @@
+#include vert.jsl
+
+uniform mat4 INVVIEW;
+uniform mat4 INVPROJ;
+
+VERT_OUT vec3 worldRayO;
+VERT_OUT vec3 worldRayD;
+
+void main() {
+  uv = vertex_uv;
+  gl_Position = vec4(vertex_position, 1.);
+  vec4 ray = INVPROJ * vec4(vertex_position.xy, 1., 1.);
+  ray /= ray.w;
+  worldRayO = (INVVIEW * vec4(0., 0., 0., 1.)).xyz;
+  worldRayD = (INVVIEW * ray).xyz - worldRayO;
+}

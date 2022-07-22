@@ -1,0 +1,27 @@
+#include frag.jsl
+
+uniform sampler2D texture;
+uniform float invWidth;
+uniform float invHeight;
+
+uniform float cellW;
+uniform float cellH;
+uniform float height;
+
+float h(float x, float y) {
+  return tex2D(texture, vec2(x, y)).r;
+}
+
+void main() {
+  vec2 uvp = uv;
+  float dx = h(uvp.x + invWidth, uvp.y) - h(uvp.x - invWidth, uvp.y);
+  float dy = h(uvp.x, uvp.y + invHeight) - h(uvp.x, uvp.y - invHeight);
+
+  vec3 normal = cross(
+    vec3(2.0 * cellW * invWidth, 0.0, height * dx),
+    vec3(0.0, 2.0 * cellH * invHeight, height * dy)
+  );
+
+  normal = normalize(normal);
+  RETURN(vec4(0.5 + 0.5 * normal, 1.0));
+}

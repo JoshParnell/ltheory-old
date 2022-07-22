@@ -1,0 +1,197 @@
+type MessageConfirmTransaction
+
+type Details
+  Player player
+  Object market
+  Item item
+  Bool buying
+
+  function List CreateChildren (Widget self)
+    var l List
+    var quantity (cast Int (Messages:GetLabel self "quantity"))
+
+    var remaining quantity
+    var price 0
+    var data (market.GetMarketData item)
+
+    desc "Compute transaction price"
+      switch
+        buying
+          for i 0 (i < data.asks.Size) && remaining > 0 i.++
+            var order (data.asks.Get i)
+            var q (Min remaining order.volume)
+            remaining -= q
+            price += q * order.price
+
+        otherwise
+          for i 0 (i < data.bids.Size) && remaining > 0 i.++
+            var order (data.bids.Get i)
+            var q (Min remaining order.volume)
+            remaining -= q
+            price += q * order.price
+
+    l +=
+      Components:Expand
+        Widgets:Pair 8.0
+          Widgets:Text Fonts:Default "Quantity" 16.0 1.0
+          Widgets:Text Fonts:Default quantity 16.0 1.0
+
+    var avg (? (quantity > 0 price / quantity) (otherwise 0.0))
+
+    l +=
+      Components:Expand
+        Widgets:Pair 8.0
+          Widgets:Text Fonts:Default "Average Price Per Unit" 16.0 1.0
+          Widgets:Text Fonts:Default avg 16.0 1.0
+
+    l +=
+      Components:Expand
+        Widgets:Pair 8.0
+          Widgets:Text Fonts:Default "Total Price" 16.0 1.0
+          Widgets:Text Fonts:Default price 16.0 1.0
+
+    l += (Widgets:SpacerH 8)
+
+    l +=
+      Components:Expand
+        Widgets:Pair 8.0
+          Widgets:Text Fonts:Default "Account" 16.0 1.0
+          Widgets:Text Fonts:Default player.GetCredits + " LTC" 16.0 1.0
+
+    block
+      var newCredits
+        switch
+          buying player.GetCredits - price
+          otherwise player.GetCredits + price
+      var c
+        switch
+          buying Colors:Bad
+          otherwise Colors:Good
+
+      l +=
+        Components:Expand
+          Widgets:Pair 8.0
+            Widgets:Text Fonts:Default "After Transaction" 16.0 1.0
+            Widgets:Text Fonts:Default newCredits + " LTC" 16.0 c
+    l
+
+  function Void PreUpdate (Widget self)
+    self.Rebuild
+
+type TransactionWindow
+  Player player
+  Object market
+  Item item
+  Bool buying
+
+  function List CreateChildren (Widget self)
+    var l List
+
+    desc "Header"
+      l +=
+        Widgets:ListH2 8
+          Components:AlignCenter
+            Widgets:ListH2 0
+              Components:AlignCenter
+                Widgets:Text Fonts:Medium (? (buying "BUY ") (otherwise "SELL ")) 20 Colors:Primary
+              Components:AlignCenter
+                Widgets:Text Fonts:Medium item.GetName.UpperCase 20 1
+          Components:AlignCenter
+            Components:MinSize 32
+              Widgets:Icon item.GetIcon 2.0 * Colors:Primary
+
+    l += (Widgets:SpacerH 8.0)
+
+    l +=
+      Components:Expand
+        ListV 8
+          Custom Widget
+            Details player market item buying
+
+    l += (Widgets:SpacerH 8)
+  
+    desc "Transfer"
+      var s (switch (buying "Transfer To") (otherwise "Transfer From"))
+
+      l +=
+        Components:AlignCenter
+          Widgets:Text Fonts:Default s 16.0 1.0
+
+      l +=
+        Components:Backdrop 0.08 0.5 1 0
+          Widgets:Text Fonts:Default "STORAGE" 16.0 1.0
+
+    l += (Widgets:SpacerH 8)
+
+    desc "Slider"
+      var minimum 1
+      var maximum 0
+      var data (market.GetMarketData item)
+      switch
+        buying
+          for i 0 i < data.asks.Size i.++
+            var order (data.asks.Get i)
+            maximum += order.volume
+        otherwise
+          for i 0 i < data.bids.Size i.++
+            var order (data.bids.Get i)
+            maximum += order.volume
+          var count (GetItemCount (market.GetStorageLocker player) item)
+          minimum = (Min minimum count)
+          maximum = (Min maximum count)
+
+      l +=
+        Components:Expand
+          Widget/Slider:Create "quantity" minimum maximum
+
+    desc "Buttons"
+      l +=
+        Components:Expand
+          Widgets:ListH2 4
+            Components:Expand
+              Components:GreedyX
+                Button:Create MessageConfirmTransaction "CONFIRM" 16
+            Components:Expand
+              Components:GreedyX
+                Button:Create Messages:MessageCancel "CANCEL" 16
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.1 0.5 1.0 8.0
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageConfirmTransaction")
+        var remaining (cast Int (Messages:GetLabel self "quantity"))
+        var data (market.GetMarketData item)
+        switch
+          buying
+            for i 0 (i < data.asks.Size) && remaining > 0 i.++
+              var order (data.asks.Get i)
+              var q (Min remaining order.volume)
+              remaining -= q
+              market.AddMarketBuyOrder player item q order.price
+          otherwise
+            for i 0 (i < data.bids.Size) && remaining > 0 i.++
+              var order (data.bids.Get i)
+              var q (Min remaining order.volume)
+              remaining -= q
+              market.AddMarketSellOrder player item q order.price
+        Sound_Play "ui/confirm.ogg" 0.2
+        self.SendUp Messages:MessageRefresh
+        self.Delete
+
+      (data.IsType "MessageCancel")
+        self.Delete
+
+      (data.IsType "MessageGetLabel")
+        self.SendDown data
+
+function Widget Create (Player player Object market Item item Bool buying)
+  Widgets:FocusWindow 0.9
+    Components:AlignCenter
+      Components:MinSize (Vec2 256 0)
+        Components:Padding 16 16
+          ListV 8
+            Custom Widget
+              TransactionWindow player market item buying

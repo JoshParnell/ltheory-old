@@ -1,0 +1,15 @@
+type Organism
+  Graph:Graph graph Graph:Graph
+  (Array FixedPoint:FixedPoint) points (Array FixedPoint:FixedPoint)
+  Int age 0
+
+  function Void Step ()
+    for i 0 i < points.Size i.++
+      ref fp (points.Get i)
+      ref node (graph.nodes.Get fp.index)
+      ref value (fp.sequence.Get (Mod age fp.sequence.Size))
+      node.value = value
+      node.valueLast = value
+
+    graph.Step
+    age.++

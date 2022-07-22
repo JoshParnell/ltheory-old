@@ -1,0 +1,33 @@
+#include vert.jsl
+#include math.jsl
+
+uniform vec3 eye;
+uniform vec3 up;
+uniform float billboardSize;
+uniform float zOffset;
+
+VERT_OUT float glareFactor;
+VERT_OUT vec4 ndcPos;
+
+void main() {
+  VS_PROLOGUE;
+
+  vec3 toCam = eye - worldPos.xyz;
+  float dist = length(toCam);
+  toCam /= dist;
+  vec3 right = cross(toCam, up);
+
+  float stretch = 1. + dist / 1000.;
+
+  worldPos.xyz += billboardSize * stretch * u * right;
+  worldPos.xyz += billboardSize * stretch * v * up;
+  worldPos.xyz += toCam * min(zOffset, dist * .25);
+
+  gl_Position = PROJ * (VIEW * worldPos);
+  linearDepth = gl_Position.z;
+  gl_Position.z = LogDepth(gl_Position.z, gl_Position.w);
+  ndcPos = gl_Position;
+
+  vec3 n = normalize((WORLDIT * vn).xyz);
+  glareFactor = saturate(dot(n, toCam));
+}

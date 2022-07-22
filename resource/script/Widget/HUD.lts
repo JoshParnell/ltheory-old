@@ -1,0 +1,143 @@
+type HUDGroup
+  Player player
+  Bool visible
+  Float t 0.0
+  Bool locked false
+
+  function List CreateChildren (Widget self)
+    var l List
+    if Camera_Get.IsNotNull
+      l += (Handling:Create player.GetPiloting)
+
+    if visible
+      l +=
+        Components:AlignCenter
+          HUD/HUDWidget:Create (Vec2 512 386)
+            Reticle/Default:Create player player.GetPiloting
+
+      l += 
+        Components:Align (Vec2 0.0 1.0)
+          Components:Margin (Vec2 256 32) 32
+            HUD/HUDWidget:Create (Vec2 385 96)
+              HUD/Sockets:Create player player.GetPiloting
+
+      l +=
+        Components:AlignTopLeft
+          Components:Margin 32 32
+            HUD/HUDWidget:Create (Vec2 256 64)
+              HUD/Container:Create player
+
+      l += 
+        Components:AlignTopRight
+          Components:Margin (Vec2 32 196) 32
+            HUD/HUDWidget:Create (Vec2 256 256)
+              HUD/Log:Create player
+
+      l += 
+        Components:AlignBottomLeft
+          Components:Margin 32 32
+            HUD/HUDWidget:Create (Vec2 196)
+              HUD/Minimap:Create player
+
+      l += 
+        Components:AlignBottomRight
+          Components:Margin 32 32
+            HUD/HUDWidget:Create (Vec2 256 64)
+              HUD/Miniscanner:Create player player.GetPiloting
+
+      l += 
+        Components:AlignTopRight
+          Components:Margin 32 32
+            HUD/HUDWidget:Create (Vec2 512 128)
+              HUD/Targets:Create player player.GetPiloting
+
+      # l += 
+        Components:AlignBottomCenter
+          Components:Margin 32 32
+            HUD/HUDWidget:Create (Vec2 256 64)
+              HUD/PilotingBadge:Create player player.GetPiloting
+
+      l +=
+        Components:FocusFade 1.0
+          Components:AlignTopCenter
+            Components:Padding 8 8
+              HUD/MenuBar:Create player
+
+    l
+
+  function Void PreDraw (Widget self)
+    if visible && locked
+      DrawPanel self.pos self.size 0.05 0.7 1 0
+      Draw (Glyph_Grid self.TopLeft self.BottomRight 1 1 0 0.5) 0 1 Colors:Primary 0.2
+
+  function Void PostDraw (Widget self)
+    if Key_F3.Down
+      Dev/FrameInfo:Draw self
+
+  function Void PostUpdate (Widget self)
+    if visible && Key_B.Pressed
+      locked = locked.!
+
+type HUDLayer
+  Player player
+  Widget layerHUD Widget
+  Widget layerWorld Widget
+  Bool visible true
+
+  function List CreateChildren (Widget self)
+    var l List
+    layerHUD =
+      Components:Expand
+        Stack
+          Custom Widget
+            HUDGroup player visible
+
+    if visible && Camera_Get.IsNotNull
+      layerWorld = 
+        Components:Expand
+          HUD/WorldObjects:Create player
+      l += layerWorld
+
+    l += layerHUD
+    l
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageAddContextMenu")
+        ref msg (cast Widget/Messages:MessageAddContextMenu data)
+        layerHUD.AddChild msg.widget
+
+      (data.IsType "MessageAddWidget")
+        ref msg (cast Widget/Messages:MessageAddWidget data)
+        layerHUD.AddChild
+          Components:Expand
+            Components:AlignCenter
+              Components:Margin 128 128
+                msg.widget
+
+  function Void PostDraw (Widget self)
+    var c 2.0 * Colors:Primary
+    var cursor Icon/Cursors:Pointer
+    if Key_Space.Down
+      cursor = Icon/Cursors:Cross
+    if Key_F4.Pressed
+      visible = visible.!
+      self.Rebuild
+    if visible
+      Draw cursor Cursor_Get 12 c self.alpha
+
+  function Void PostUpdate (Widget self)
+    if self.focusKey && Key_Escape.Pressed
+      self.AddChild GameMenu:Create
+
+function Widget Create (Player player)
+  Components:Expand
+    Layer
+      Compositor_Basic 0.05 0.10 (Vec3 0.40 0.50 0.75)
+      Mesh_Quad
+      1.0
+      Components:Expand
+        Components:CaptureKey
+          Stack
+            Custom Widget
+              HUDLayer player

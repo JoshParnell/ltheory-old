@@ -1,0 +1,20 @@
+#include frag.jsl
+
+uniform sampler2D texture;
+uniform vec3 baseColor;
+uniform float opacity;
+uniform float falloff;
+
+FRAG_IN float opacityMult;
+FRAG_IN vec3 attrib;
+
+void main() {
+  vec2 uvp = uv;
+  uvp = vec2( cos(attrib.x) * uvp.x + sin(attrib.x) * uvp.y,
+             -sin(attrib.x) * uvp.x + cos(attrib.x) * uvp.y);
+  vec4 texMask = texture2D(texture, 0.5 + 0.5 * uvp);
+  float r = dot(uvp, uvp);
+  float alpha = opacityMult * opacity * exp(-falloff*r);
+  vec4 final = texMask * vec4(baseColor * alpha, alpha);
+  RETURN(final);
+}

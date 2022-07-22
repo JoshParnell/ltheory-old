@@ -1,0 +1,151 @@
+function Int NodeCount () 8
+function Int ShipCount () 64
+
+type App
+  Object system
+  Player player
+  Interface ui
+  Interface gameView
+  Camera camera
+
+  function Void Initialize ()
+    var kOrigin (Vec3d 0 0 0)
+    var rng (RNG_MTG 0)
+
+    # Create the camera
+    camera = Camera_Create
+    camera.Push
+
+    # Create the interfaces
+    ui = (Interface_Create "UI")
+    gameView = (Interface_Create "Game View")
+
+    # Set up the game view
+    var passes Vector<Reference<RenderPassT>>
+    passes.Append (RenderPass_Clear (Vec4 0.0))
+    passes.Append (RenderPass_Camera camera)
+    passes.Append (RenderPass_SMAA)
+    passes.Append (RenderPass_Interface ui)
+    passes.Append (RenderPass_PostFilter "post/dither.jsl")
+    gameView.Add (Widget_Rendered passes)
+
+    # Create the system
+    system = (Object_System (Vec3 15.012) 1340)
+
+    # Create the player ship
+    var shipType (Item_ShipType 20000 55 1 1 1 1 1 1)
+    var ship shipType.Instantiate
+    ship.SetPos kOrigin
+    var weaponType (Item_WeaponType 54)
+    for i 0 i < 4 i.++
+      ship.Plug weaponType
+    system.AddInterior ship
+
+    # Create the player
+    player = Player_Human
+    player.AddAsset ship
+    player.Pilot ship
+
+    # Add a combat zone
+    var zone
+      Object_Zone
+        system
+        0
+        kOrigin + (Vec3 1000)
+        Vec3 100000
+        SDF_Sphere 0 1
+        256
+        1.0
+        0.0
+        0.0
+        0.0
+    # system.AddInterior zone
+
+    var warpNodeScale (Vec3 100)
+    var prevNode Object
+    var prevPos (Vec3 0 0 2000) + kOrigin
+
+    var stationType
+      Item_StationType
+        100000000.0
+        162
+        1.0
+        1.0
+        1.0
+        1.0
+
+    var station1 stationType.Instantiate
+    station1.SetPos (prevPos - (Vec3 10000 0 10000))
+    system.AddInterior station1
+
+    for i 0 i < NodeCount (++ i)
+      var node Object_WarpNode
+      node.SetPos prevPos
+      node.SetScale warpNodeScale
+      node.SetLook (Vec3 0 0 1)
+      system.AddInterior node
+
+      if prevNode.IsNotNull
+        var rail (Object/WarpRail:Create node prevNode)
+        system.AddInterior rail
+
+      prevNode = node
+      prevPos += (Vec3 0 0 10000)
+      # prevPos += 1000.0 * rng.Exp * rng.Sphere
+
+    var station2 stationType.Instantiate
+    station2.SetPos prevPos
+    system.AddInterior station2
+
+    ship.SetPos prevPos - (Vec3 0 0 10000)
+
+    var type1 (Item_ShipType 10000 20 1 1 1 1 1 1)
+    var type2 (Item_ShipType 100000 20 1 1 1 1 1 1)
+    var type3 (Item_ShipType 1000000 20 1 1 1 1 1 1)
+    var type4 (Item_ShipType 10000000 20 1 1 1 1 1 1)
+    for i 0 i < ShipCount i.++
+      var choice (rng.Int 1 4)
+      var ship
+        switch
+          choice == 1 type1.Instantiate
+          choice == 2 type2.Instantiate
+          choice == 3 type3.Instantiate
+          otherwise   type4.Instantiate
+
+      ship.SetPos 10000.0 * rng.Sphere * (Vec3 1 1 0)
+      for j 0 j < 8 j.++
+        ship.PushTask (Task_Goto station1 512.0)
+        ship.PushTask (Task_Goto station2 512.0)
+      ship.PushTask (Task_Wait (rng.Float 0 10))
+      system.AddInterior ship
+
+
+    # Set up the UI
+    ui.Add (Widget/HUD:Create player)
+
+  function Void Update ()
+    if Key_T.Pressed Shader_RecompileAll
+
+    if Key_Y.Pressed
+      var target Object
+      for it player.GetPiloting.GetTargets it.HasMore it.Advance
+        target = it.Get
+      target.Send (MessageStartUsing player.GetPiloting)
+
+    if Key_U.Pressed
+      var target Object
+      for it player.GetPiloting.GetTargets it.HasMore it.Advance
+        target = it.Get
+      target.Send (MessageStopUsing player.GetPiloting)
+
+    camera.SetTarget player.GetPiloting
+    var dt FrameTimer_Get
+    dt = (Min dt 0.1)
+    system.Update dt
+    ui.Update
+    gameView.Update
+    gameView.Draw
+
+function App Main ()
+  var self App
+  self

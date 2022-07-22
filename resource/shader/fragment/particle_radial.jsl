@@ -1,0 +1,19 @@
+#include frag.jsl
+#include color.jsl
+
+uniform sampler2D texture;
+uniform vec3 baseColor;
+uniform float opacity;
+uniform float falloff;
+
+FRAG_IN float opacityMult;
+FRAG_IN vec3 attrib;
+
+void main() {
+  float r = falloff * length(uv);
+  float alpha = opacityMult * opacity * (
+    1.0 * exp(-12.0 * r) +
+    0.3 * exp(-sqrt(6.0 * r)));
+  vec3 color = baseColor * attrib;
+  RETURN(vec4(color * alpha, alpha));
+}

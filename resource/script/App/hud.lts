@@ -1,0 +1,38 @@
+type HUDApp
+  Object universe
+  Object system
+  Player player
+  Float t 0
+  Texture texture Texture/RandomScreenshot:Get
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += (Widget/HUD:Create player)
+    l
+
+  function Void PreDraw (Widget self)
+    Draw texture self.pos self.size 1.0
+
+function Data Main ()
+  var self HUDApp
+  self.universe = (Object_Universe 42 0)
+  self.system = self.universe
+
+  while (! (IsSystem self.system))
+    self.system = self.system.GetInteriorObjects.Get
+
+  for it self.system.GetInteriorObjects it.HasMore it.Advance
+    if it.Get.GetOwner
+      self.player = it.Get.GetOwner
+
+  var ship self.player.GetPiloting
+  for i 0 i < 10 (++ i)
+    ship.AddItem (Item_WeaponType i + 100) 1
+
+  widget:Create
+    Layer
+      Compositor_None
+      Mesh_Quad
+      1.0
+      Stack
+        Custom Widget self

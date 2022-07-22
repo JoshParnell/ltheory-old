@@ -1,0 +1,226 @@
+function Texture AddOut (Float aMult Float bMult Texture a Texture b Texture out)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/add.jsl"))
+  shader.Set "texture1" a
+  shader.Set "texture2" b
+  shader.Set "weight1" aMult
+  shader.Set "weight2" bMult
+  out.GenerateFromShader shader
+  out
+
+function Texture Add (Float aMult Float bMult Texture a Texture b)
+  var self (Texture2D_CreateHDR a.GetWidth a.GetHeight)
+  AddOut aMult bMult a b self
+
+function Texture BlurHOut (Float variance Texture texture Texture out)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/blur.jsl"))
+  shader.Set "texture" texture
+  shader.Set "delta" (Vec2 1 / out.GetWidth 0)
+  shader.Set "radius" (cast Int 2.0 * variance)
+  shader.Set "variance" variance
+  out.GenerateFromShader shader
+  out
+
+function Texture BlurH (Float variance Texture texture)
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  BlurHOut variance texture self
+
+function Texture BlurVOut (Float variance Texture texture Texture out)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/blur.jsl"))
+  shader.Set "texture" texture
+  shader.Set "delta" (Vec2 0 1 / out.GetHeight)
+  shader.Set "radius" (cast Int 2.0 * variance)
+  shader.Set "variance" variance
+  out.GenerateFromShader shader
+  out
+
+function Texture BlurV (Float variance Texture texture)
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  BlurVOut variance texture self
+
+function Texture Blur (Float variance Texture texture)
+  BlurH variance
+    BlurV variance
+      texture
+
+function Texture CircleMinMax (Bool isMin Float variance Texture texture)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/circleminmax.jsl"))
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  shader.Set "texture" texture
+  shader.Set "mode" (? (isMin 0) (otherwise 1))
+  shader.Set "radius" (cast Int 2.0 * variance)
+  shader.Set "rcpFrame" (Vec2 1 / texture.GetWidth 1 / texture.GetHeight)
+  shader.Set "variance" variance
+  self.GenerateFromShader shader
+  self
+
+function Texture CircleMax (Float variance Texture texture)
+  CircleMinMax false variance texture
+
+function Texture CircleMin (Float variance Texture texture)
+  CircleMinMax true variance texture
+
+function Texture ColorGradeOut (Vec3 p1 Vec3 p2 Vec3 p3 Vec3 p4 Vec3 p5 Texture texture Texture out)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/colorgradebezier.jsl"))
+  shader.Set "texture" texture
+  shader.Set "p1" p1
+  shader.Set "p2" p2
+  shader.Set "p3" p3
+  shader.Set "p4" p4
+  shader.Set "p5" p5
+  out.GenerateFromShader shader
+  out
+
+function Texture ColorGrade (Vec3 p1 Vec3 p2 Vec3 p3 Vec3 p4 Vec3 p5 Texture texture)
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  ColorGradeOut p1 p2 p3 p4 p5 texture self
+
+function Texture EdgeDetectOut (Texture texture Texture out)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/edgedetect.jsl"))
+  shader.Set "texture" texture
+  shader.Set "rcpFrame" (Vec2 1 / texture.GetWidth 1 / texture.GetHeight)
+  out.GenerateFromShader shader
+  out
+
+function Texture EdgeDetect (Texture texture)
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  EdgeDetectOut texture self
+
+function Texture ExpMap (Float power Float mult Texture texture)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/expmap.jsl"))
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  shader.Set "texture" texture
+  shader.Set "power" power
+  shader.Set "mult" mult
+  self.GenerateFromShader shader
+  self
+
+function Texture GainOut (Float amount Texture texture Texture out)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/add.jsl"))
+  shader.Set "texture1" texture
+  shader.Set "texture2" texture
+  shader.Set "weight1" amount
+  shader.Set "weight2" 0.0
+  out.GenerateFromShader shader
+  out
+
+function Texture Gain (Float amount Texture texture)
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  GainOut amount texture self
+
+function Texture LevelsOut (Vec3 lower Vec3 upper Texture texture Texture out)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/levels.jsl"))
+  shader.Set "texture" texture
+  shader.Set "lower" lower
+  shader.Set "upper" upper
+  out.GenerateFromShader shader
+  out
+
+function Texture Levels (Vec3 lower Vec3 upper Texture texture)
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  LevelsOut lower upper texture self
+
+function Texture Linear (Vec3 constant Vec3 coefficient Texture texture)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/linear.jsl"))
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  shader.Set "texture" texture
+  shader.Set "constant" constant
+  shader.Set "mult" coefficient
+  self.GenerateFromShader shader
+  self
+
+function Texture Invert (Texture texture)
+  Linear 1.0 -1.0 texture
+
+function Texture Median (Float variance Texture texture)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/median.jsl"))
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  shader.Set "texture" texture
+  shader.Set "radius" (cast Int 2.0 * variance)
+  shader.Set "rcpFrame" (Vec2 1 / texture.GetWidth 1 / texture.GetHeight)
+  shader.Set "variance" variance
+  self.GenerateFromShader shader
+  self
+
+function Texture Max (Texture a Texture b)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/max.jsl"))
+  var self (Texture2D_CreateHDR a.GetWidth a.GetHeight)
+  shader.Set "texture1" a
+  shader.Set "texture2" b
+  self.GenerateFromShader shader
+  self
+
+function Texture Min (Texture a Texture b)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/min.jsl"))
+  var self (Texture2D_CreateHDR a.GetWidth a.GetHeight)
+  shader.Set "texture1" a
+  shader.Set "texture2" b
+  self.GenerateFromShader shader
+  self
+
+function Texture MultiplyOut (Texture a Texture b Texture out)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/multiply.jsl"))
+  shader.Set "texture1" a
+  shader.Set "texture2" b
+  out.GenerateFromShader shader
+  out
+
+function Texture Multiply (Texture a Texture b)
+  var self (Texture2D_CreateHDR a.GetWidth a.GetHeight)
+  MultiplyOut a b self
+
+function Texture PowerOut (Vec3 power Texture texture Texture out)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/power.jsl"))
+  shader.Set "texture" texture
+  shader.Set "power" power
+  out.GenerateFromShader shader
+  out
+
+function Texture Power (Vec3 power Texture texture)
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  PowerOut power texture self
+
+function Texture Resample (Float factor Texture texture)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/samplecubic.jsl"))
+  var self
+    Texture2D_CreateHDR
+      factor * (cast Float texture.GetWidth)
+      factor * (cast Float texture.GetHeight)
+  shader.Set "texture" texture
+  shader.Set "frame" (Vec2 texture.GetWidth texture.GetHeight)
+  self.GenerateFromShader shader
+  self
+
+function Texture SaturateOut (Float mult Texture texture Texture out)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/saturate.jsl"))
+  shader.Set "texture" texture
+  shader.Set "mult" mult
+  out.GenerateFromShader shader
+  out
+
+function Texture Saturate (Float mult Texture texture)
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  SaturateOut mult texture self
+
+function Texture VignetteOut (Float hardness Float opacity Texture texture Texture out)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/vignette.jsl"))
+  shader.Set "texture" texture
+  shader.Set "hardness" hardness
+  shader.Set "opacity" opacity
+  out.GenerateFromShader shader
+  out
+
+function Texture Vignette (Float hardness Float opacity Texture texture)
+  static shader (ShaderInstance_Create (Shader_Create "identity.jsl" "post/vignette.jsl"))
+  var self (Texture2D_CreateHDR texture.GetWidth texture.GetHeight)
+  VignetteOut hardness opacity texture self
+
+function Texture Artistic (Texture texture)
+  ColorGrade
+    Vec3 0.00 0.00 0.00
+    Vec3 0.25 0.25 0.25
+    Vec3 0.50 0.75 0.50
+    Vec3 1.25 1.00 0.75
+    Vec3 2.00 1.00 1.00
+    CircleMin 4
+      Filters:Resample 1 / 8
+        texture

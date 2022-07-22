@@ -1,0 +1,22 @@
+#ifndef common_deferred
+#define common_deferred
+
+uniform sampler2D albedoSampler;
+uniform sampler2D depthBuffer;
+
+FRAG_IN vec3 worldRayO;
+FRAG_IN vec3 worldRayD;
+
+float GetDepth() {
+  return texture2D(depthBuffer, uv).x;
+}
+
+float GetDepthNormalized() {
+  return texture2D(depthBuffer, uv).x / farPlane;
+}
+
+vec3 GetWorldPos() {
+  return worldRayO + worldRayD * GetDepth();
+}
+
+#endif

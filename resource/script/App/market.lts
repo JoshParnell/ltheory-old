@@ -1,0 +1,102 @@
+type MarketWidget
+  Player player
+  Object object
+  Texture texture Texture/RandomScreenshot:Get
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Widget/Components:Margin 64 64
+        Widget/Components:Expand
+          Widget/Browser:Create
+            Widget/ObjectInfo:Create player object
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size (Vec3 0.1 0.2 0.3) 1 1 0
+    Draw texture self.pos self.size 1.0
+
+  function Void PostDraw (Widget self)
+    Draw Icon/Cursors:Pointer Cursor_Get 8 4.0 * Colors:Primary 0.3
+    Widget/Dev/FrameInfo:Draw self
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageAddWidget")
+        ref message (cast Widget/Messages:MessageAddWidget data)
+        self.AddChild
+          Widget/Components:Expand
+            Widget/Components:AlignCenter
+              Widget/Components:Margin
+                Vec2 256 128
+                Vec2 256 128
+                message.widget
+
+type App
+  Player player
+  Object station
+  Interface ui
+    
+  function Void Initialize ()
+    var rng (RNG_MTG 42)
+    player = Player_Human
+    player.AddCredits 100000
+
+    var marketMan Player_Human
+    marketMan.AddCredits 100000
+
+    var stationType
+      Item_StationType
+        1000000.0
+        0
+        1.0
+        1.0
+        1.0
+        1.0
+    station = stationType.Instantiate
+
+    var items List
+    for i 0 i < 32 i.++
+      items += (Item_WeaponType rng.Int)
+    for i 0 i < 8 i.++
+      items += (Item_OreType 10.0 * rng.Exp rng.Int)
+
+    var storage (station.GetStorageLocker marketMan)
+    for i 0 i < 256 i.++
+      var item (Item (items.Get (rng.Int items.Size)))
+      var volume (rng.Int 1 100)
+      var price item.GetValue + (Int 1000.0 * rng.Exp)
+      var choice rng.Float
+      if choice < 0.1
+        storage.AddItem item volume
+        station.AddMarketSellOrder
+          marketMan
+          item
+          volume
+          price
+
+      if choice >= 0.1
+        station.AddMarketBuyOrder
+          marketMan
+          item
+          volume
+          price
+
+    ui = (Interface_Create "UI")
+    ui.Add
+      Layer
+        Compositor_Basic 0.05 0.10 (Vec3 0.40 0.50 0.75)
+        Mesh_Quad
+        1.0
+        Stack
+          Custom Widget
+            MarketWidget player station
+
+  function Void Update ()
+    if Key_T.Pressed Shader_RecompileAll
+    station.Update FrameTimer_Get
+    ui.Update
+    ui.Draw
+
+function App Main ()
+  App

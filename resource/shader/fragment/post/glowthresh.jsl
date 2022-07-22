@@ -1,0 +1,15 @@
+#include frag.jsl
+#include color.jsl
+#include math.jsl
+
+uniform sampler2D texture;
+uniform vec2 rcpFrame;
+
+void main() {
+  vec3 c0 = (texture2D(texture, uv + vec2(0, 0) * rcpFrame).xyz);
+  vec3 c1 = (texture2D(texture, uv + vec2(1, 0) * rcpFrame).xyz);
+  vec3 c2 = (texture2D(texture, uv + vec2(0, 1) * rcpFrame).xyz);
+  vec3 c3 = (texture2D(texture, uv + vec2(1, 1) * rcpFrame).xyz);
+  vec3 c = 0.25 * (c0 + c1 + c2 + c3);
+  RETURN(vec4(c, 0.0));
+}

@@ -1,0 +1,89 @@
+function Int UniverseSeed ()
+  39
+
+type App
+  Object universe
+  Player player
+  Camera camera
+
+  function Void Create (Widget self)
+    # Create the camera
+    camera = Camera_Create
+    camera.Push
+
+    # Create the universe
+    universe = (Object_Universe UniverseSeed 0)
+    var system universe
+    while (! system.IsSystem)
+      system = system.GetInteriorObjects.Get
+
+    var rng (RNG_MTG 0)
+    var shipType (Item_ShipType 20000 55 1 1 1 1 1 1)
+    var ship shipType.Instantiate
+
+    var station Object
+    for it system.GetInteriorObjects it.HasMore it.Advance
+      if it.Get.HasComponentDockable
+        station = it.Get
+        
+    switch
+      station.IsNotNull
+        ship.SetPos station.GetPos + 10000.0 * rng.Sphere
+      otherwise
+        ship.SetPos 100000.0 * rng.Sphere
+
+    var weapon (Item_WeaponType 46)
+    # ship.Plug (Item_TransferUnitType 1 1 1 1 1 1)
+    while (ship.Plug weapon) 0
+    system.AddInterior ship
+
+    # Create the player
+    player = Player_Human
+    player.AddCredits 10000
+    player.AddAsset ship
+    player.Pilot ship
+    player.SetName "SuperSpaceSquirrel"
+
+    Sound_PlayLooped "system/ambiance/089.wav" 0.05
+
+  function List CreateChildren (Widget self)
+    var l List
+
+    # Set up the game view
+    var passes Vector<Reference<RenderPassT>>
+    passes.Append (RenderPass_Clear (Vec4 0.0))
+    passes.Append (RenderPass_Camera camera)
+    passes.Append (RenderPass_SMAA)
+    passes.Append (RenderPass_Interface ui)
+    passes.Append (RenderPass_PostFilter "post/dither.jsl")
+    l += (Widget_Rendered passes)
+    l += (Widget/HUD:Create player)
+
+    l
+
+  function Void PreUpdate (Widget self)
+    camera.SetTarget player.GetPiloting
+
+    if Key_Y.Pressed
+      var target Object
+      for it player.GetPiloting.GetTargets it.HasMore it.Advance
+        target = it.Get
+      if target.IsNotNull
+        target.Send (MessageStartUsing player.GetPiloting)
+
+    if Key_U.Pressed
+      var target Object
+      for it player.GetPiloting.GetTargets it.HasMore it.Advance
+        target = it.Get
+      if target.IsNotNull
+        target.Send (MessageStopUsing player.GetPiloting)
+    
+    var container player.GetPiloting.GetContainer
+    var dt (Min 0.1 FrameTimer_Get)
+    if Key_H.Down dt *= 20.0
+    container.Update dt
+
+function Data Main ()
+  widget:Create
+    Stack
+      Custom Widget App

@@ -1,0 +1,282 @@
+type MessageCamRotation
+  Vec3 dir
+
+type MessageCamThrust
+  Vec3 dir
+
+type MessageSetStates
+  Bool boosting
+  Bool firing
+
+type MessageTarget
+  Object object
+  Vec3d pos
+
+function Float RotationSpeed () 0.03
+
+type HandlingScript
+  Vec3 thrust (Vec3 0 0 0)
+  Vec3 rotation (Vec3 0 0 0)
+  Vec3 look (Vec3 0 0 1)
+  Vec3 lookTarget (Vec3 0 0 1)
+  Vec3 up (Vec3 0 1 0)
+  Vec3 upTarget (Vec3 0 1 0)
+  Vec3 noise (Vec3 0 0 0)
+  Vec3 noiseTarget (Vec3 0 0 0)
+  Vec3d targetPos (Vec3d 0 0 0)
+  Object targetObject Object
+  Float distance 2.0
+  Float distanceTarget 2.0
+  Bool boosting false
+  Bool firing false
+  RNG rng (RNG_MTG 0)
+  Int targetIndex 0
+
+  function Bool Update (Object self)
+    var dt FrameTimer_Get
+
+    var target self
+    desc "Get Target"
+      var i 0
+      for it self.GetSockets (it.HasMore && i < targetIndex) it.Advance
+        if it.Get.IsTurret
+          target = it.Get
+          i.++
+
+    desc "Update State"
+      distanceTarget -= 0.5 * Mouse_GetScrollDelta
+      distanceTarget = (Clamp distanceTarget 1.0 8.0)
+      distance = (Mix distance distanceTarget (1.0 - (ExpDecay dt 0.1)))
+      noise = (Mix noise noiseTarget (1.0 - (ExpDecay dt 2.0)))
+      up = (Normalize (Mix up upTarget 1.0 - (ExpDecay dt 0.05)))
+      look = (Normalize (Mix look lookTarget 1.0 - (ExpDecay dt 0.5)))
+
+    self.Broadcast (MessageThrustLinear thrust)
+
+    desc "Shake"
+      var shake 1.0 - (ExpDecay self.GetSpeed 1000.0)
+      noiseTarget = 0.1 * shake * rng.Sphere
+
+    desc "Angular Thrust"
+      var transform self.GetTransform
+      var torque (transform.GetInverseDir (Cross transform.look look))
+      torque.z = (Dot transform.look (Cross transform.up up))
+      torque -= self.GetVelocityAngular / 2.0
+      # self.Broadcast (MessageThrustAngular torque torque.Length)
+      self.SetLook (Mix self.GetLook look 1.0 - (ExpDecay dt 0.5))
+
+    desc "Update Camera"
+      var cam Camera_Get
+      cam.SetTarget target
+
+      var pos target.GetPos
+      var radius distance * target.GetRadius
+      var lookAt target.GetPos
+
+      switch
+        distance < 1.5
+          pos += radius * look
+          lookAt = pos + (1000.0 * look + noise)
+
+          cam.SetRigidity 10000000.0
+
+        otherwise
+          var t (Transform_LookUp (Vec3d 0 0 0) look up)
+          var r (Dot t.right target.GetLook)
+          var u (Dot t.up target.GetLook)
+
+          var dir look + r * t.right
+          dir = (Normalize dir)
+
+          #
+            var offset 4.0 * (target.GetLook - look)
+            var offsetLength offset.Length
+            offset = 0.25 * (1.0 - (ExpDecay offsetLength 0.5)) * offset.Normalize
+            pos -= radius * (Mix target.GetLook look (1.0 - (ExpDecay offsetLength 1.0)))
+            pos -= radius * offset
+
+          pos -= radius * look
+          pos += 0.2 * radius * up
+
+          lookAt = target.GetPos + (1000.0 * look + noise)
+          cam.SetRigidity 10000000.0
+
+      cam.SetRelativePos pos
+      cam.SetRelativeUp up
+      cam.SetRelativeLookAt lookAt
+      cam.SetRigidity 1000.0
+
+    desc "Update Aim"
+      target.Broadcast (MessageTargetPosition targetPos)
+
+    desc "States"
+      if boosting
+        self.Broadcast MessageBoost
+      if firing
+        target.Broadcast MessageFire
+
+    desc "Camera Particles"
+      if false
+        var cam Camera_Get
+        var ps ParticleSystem_Get
+        var particle Particle_Firefly
+        var count 128
+        var radius self.GetRadius
+        for i 0 i < count (++ i)
+          var dir rng.Direction
+          ps.Add
+            particle
+            cam.GetPos + 1000.0 * rng.Sphere
+            rng.Exp * rng.Sphere - 100.0 * rng.Float * cam.GetUp
+            2.0
+            rng.Float 2 3
+            32.0 * (Vec3 1.0 1.0 1.0)
+
+
+    desc "Cam"
+      if Key_Equal.Pressed
+        targetIndex += 1
+      if Key_Dash.Pressed
+        targetIndex -= 1
+    true
+
+  function Void Receive (Object self Data data)
+    switch
+      (data.IsType "MessageCamRotation")
+        ref msg (cast MessageCamRotation data)
+        var transform (Transform_LookUp (Vec3d 0 0 0) lookTarget upTarget)
+        transform.Rotate RotationSpeed * msg.dir
+        lookTarget = transform.look
+        upTarget = transform.up
+
+      (data.IsType "MessageCamThrust")
+        ref msg (cast MessageCamThrust data)
+        var transform (Transform_LookUp (Vec3d 0 0 0) look up)
+        thrust = 
+          transform.right * msg.dir.x + transform.up * msg.dir.y + transform.look * msg.dir.z
+
+      (data.IsType "MessageTarget")
+        ref msg (cast MessageTarget data)
+        targetObject = msg.object
+        targetPos = msg.pos
+
+      (data.IsType "MessageSetStates")
+        ref msg (cast MessageSetStates data)
+        boosting = msg.boosting
+        firing = msg.firing
+
+type Handler
+  Object object
+  Bool active false
+  Vec3d targetPos (Vec3d 0 0 0)
+  Object targetObject Object
+  Bool hasTarget false
+
+  function Void PostDraw (Widget self)
+    hasTarget = false
+    targetObject = Object
+
+    var cursor Cursor_Get
+    var cam Camera_Get
+    if cam.IsNotNull
+      var speed 1000.0
+      for it object.GetSockets it.HasMore it.Advance
+        var socket it.Get
+        if socket.IsTurret && socket.GetSockets.HasMore
+          var mount socket.GetSockets.Get
+          var st mount.GetSupertype
+          if st.HasSpeed
+            speed = st.GetSpeed
+
+      for it object.GetTargets it.HasMore it.Advance
+        var target it.Get
+        var impact
+          GetImpact
+            object.GetPos
+            target.GetPos
+            object.GetVelocity
+            target.GetVelocity
+            speed
+
+        if impact.t > 0.0
+          var proj (cam.Project impact.position)
+
+          if proj.z > 0.0
+            var ss (Position_Frame proj)
+            Draw Icons:Cancel ss 8.0 Colors:Hostile 1.0
+
+            if cursor >= ss - 32.0 && cursor <= ss + 32.0
+              Draw (Glyph_Arc 0 1 0.01 1 1 0 1) ss 16.0 Colors:Secondary 1.0
+              hasTarget = true
+              targetObject = target
+              targetPos = impact.position
+
+  function Void PostUpdate (Widget self)
+    self.focusKey = true
+    self.focusMouse = true
+    self.focusScroll = true
+
+    if Key_Space.Pressed
+      active = active.!
+
+    if active
+      desc "Rotation"
+        var rotation (Vec3 0)
+
+        if self.focusMouse
+          var delta 2.0 * (Mouse_GetPos - self.Center) / self.size
+          rotation.x += delta.y
+          rotation.y += delta.x
+
+        if self.focusKey
+          if Key_Q.Down
+            rotation.z += 2.0
+          if Key_E.Down
+            rotation.z -= 2.0
+
+        object.Broadcast (MessageCamRotation rotation)
+
+    desc "Thrust"
+      var thrust (Vec3 0 0 0)
+      if self.focusKey
+        if Key_A.Down
+          thrust.x = -1.0
+        if Key_D.Down
+          thrust.x = 1.0
+        if Key_W.Down
+          thrust.z = 1.0
+        if Key_S.Down
+          thrust.z = -1.0
+
+      object.Broadcast (MessageCamThrust thrust)
+
+    desc "Target"
+      switch
+        hasTarget
+          object.Broadcast (MessageTarget targetObject targetPos)
+        otherwise
+          var ray (Camera_Get.GetRay Mouse_GetPos)
+          var target (ray.GetPoint 1000.0)
+          object.Broadcast (MessageTarget Object target)
+
+    desc "States"
+      var boosting false
+      var firing false
+
+      if self.focusKey
+        if Key_Tab.Down
+          boosting = true
+
+      if self.focusMouse
+        if Mouse_RightDown
+          firing = true
+
+      object.Broadcast (MessageSetStates boosting firing)
+
+function Widget Create (Object object)
+  var cam Camera_Get
+  cam.SetTarget object
+  object.AddScript HandlingScript
+  Components:Expand
+    Custom Widget
+      Handler object

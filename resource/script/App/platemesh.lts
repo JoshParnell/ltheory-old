@@ -1,0 +1,32 @@
+type App
+  Texture texture Texture/RandomScreenshot:Get
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Widget/Components:Expand
+        Widget/Components:Margin 0 0
+          Widget/ModelEditor:Create
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.1 1 1 0
+    Draw texture self.pos self.size 1
+
+  function Void PostDraw (Widget self)
+    Draw Icon/Cursors:Pointer Cursor_Get 12 4.0 * Colors:Primary 0.3
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageAddContextMenu")
+        ref msg (cast Widget/Messages:MessageAddContextMenu data)
+        self.AddChild msg.widget
+
+function Data Main ()
+  widget:Create
+    Layer
+      Compositor_Basic 0.0 0.0 (Vec3 0.40 0.50 0.75)
+      Mesh_Quad
+      1.0
+      Stack
+        Custom Widget App

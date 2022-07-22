@@ -1,0 +1,34 @@
+#include vert.jsl
+#include math.jsl
+
+uniform vec3 eye;
+uniform vec3 axis;
+uniform vec2 size;
+
+VERT_OUT float opacity;
+VERT_OUT vec3 attrib;
+VERT_OUT vec3 position;
+
+const float kWrapDistance = 1024.0;
+
+void main() {
+  VS_PROLOGUE;
+
+  vec3 toCam = eye - worldPos.xyz;
+  toCam = 2.0 * mod(toCam, vec3(kWrapDistance)) - vec3(kWrapDistance);
+  worldPos.xyz = eye - toCam;
+
+  vec3 up = normalize(axis);
+  vec3 right = cross(normalize(toCam), up);
+
+  opacity = 1.0;
+  attrib = vertex_normal;
+
+  worldPos.xyz += size.x * u * right;
+  worldPos.xyz += size.y * v * up;
+  gl_Position = PROJ * (VIEW * worldPos);
+  linearDepth = gl_Position.z;
+  gl_Position.z = LogDepth(gl_Position.z, gl_Position.w);
+
+  position = worldPos.xyz;
+}

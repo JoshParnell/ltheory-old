@@ -1,0 +1,82 @@
+function Float MinimapDistance () 1000.0
+
+type Minimap
+  Player player
+  Float time 0.0
+  Widget child Widget
+  Float distanceScale 5000.0
+
+  function String GetName () "Mini-Map"
+
+  function Void PreDraw (Widget self)
+    var color
+      switch
+        self.focusMouse Colors:Secondary
+        otherwise Colors:Primary
+
+    var cam Camera_Get
+    if cam.IsNotNull
+      var pos cam.GetPos
+      var look cam.GetLook
+      var up cam.GetUp
+      var right cam.GetRight
+
+      for it player.GetSystem.GetInteriorObjects it.HasMore it.Advance
+        var object it.Get
+        if
+          object.HasComponentInterior ||
+            object.HasComponentNavigable ||
+              object.HasComponentPilotable ||
+                object.HasComponentResources ||
+                  object.IsCustom
+
+          var viewDistance MinimapDistance * object.GetRadius
+          if (Camera_CanSee object viewDistance)
+            var toObject (object.GetPos - pos)
+            var dir (Vec2 (Dot toObject right) (Dot toObject look))
+            dir.y *= -1.0
+            dir = (1.0 - (ExpDecay dir.Length distanceScale)) * dir.Normalize
+            dir = (Vec2 0.5) + 0.5 * dir
+            var color
+              switch
+                (player.GetPiloting.HasTarget object)
+                  Colors:Secondary
+                otherwise
+                  Colors:Primary
+            Draw (Glyph_Circle 0 1 1 1) self.pos + dir * self.size 16.0 2.0 * color 1.0
+            # Draw object.GetIcon self.pos + dir * self.size 10.0 color 1.0
+
+    var radius 0.5 * (Min self.size.x self.size.y)
+    for i 0 i < 8 i.++
+      var t (i + 1) / (8 + 1)
+      var r t
+      var m (Abs (Sin time - 2Pi * r)) ^ 8.0
+      Draw (Glyph_Arc 0 1 0.001 1 1 0 1) self.Center r * radius color 0.2 * m
+
+    Draw (Glyph_Arc 0 1 0.001 1 1 0 1) self.Center radius color 0.5
+    Draw (Glyph_Line self.LeftCenter self.Center 1 1) 0 1 color 0.1
+    Draw (Glyph_Line self.RightCenter self.Center 1 1) 0 1 color 0.1
+    Draw (Glyph_Line self.TopCenter self.Center 1 1) 0 1 color 0.1
+    Draw (Glyph_Line self.BottomCenter self.Center 1 1) 0 1 color 0.1
+
+  function Void PostUpdate (Widget self)
+    time += FrameTimer_Get
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageClick")
+      switch
+        child.HasParent
+          child.Delete
+          child = Widget
+        otherwise
+          child = (Map:Create player player.GetPiloting.GetSystem)
+          self.SendUp (Messages:MessageAddWidget child)
+    
+function Widget Create (Player player)
+  var self
+    Custom Widget
+      Minimap player
+  self =
+    Components:CaptureMouse
+      Components:Clickable Messages:MessageClick self self
+  self

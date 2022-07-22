@@ -1,0 +1,51 @@
+Structural Engineering
+  searchtime
+    10
+  >>
+    Plating
+
+    Ship Construction
+      type
+        ShipType
+      >>
+        Scout Construction
+
+        Fighter Construction
+          level
+            2
+
+        Bomber Construction
+          level
+            3
+
+        Corvette Construction
+          level
+            5
+
+        Frigate Construction
+          level
+            7
+
+        Destroyer Construction
+          level
+            10
+
+        Cruiser Construction
+          level
+            12
+
+        Battleship Construction
+          level
+            15
+
+        Carrier Construction
+          level
+            20
+
+        Leviathan Construction
+          level
+            30
+
+    Station Construction
+      type
+        StationType

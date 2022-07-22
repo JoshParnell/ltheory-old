@@ -1,0 +1,17 @@
+#include frag.jsl
+#include color.jsl
+#include math.jsl
+#include noise.jsl
+
+uniform sampler2D texture;
+uniform float hardness;
+uniform float opacity;
+
+void main() {
+  vec4 c = texture2D(texture, uv);
+  float mask =
+    (1.0 - exp(-hardness * (1.0 - abs(2.0 * uv.x - 1.0)))) *
+    (1.0 - exp(-hardness * (1.0 - abs(2.0 * uv.y - 1.0))));
+  c *= mix(1.0, mask, opacity);
+  RETURN(c);
+}

@@ -1,0 +1,50 @@
+type StruktCanvas
+  function List CreateChildren (Widget self)
+    var l List
+    l
+
+type StruktUI
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Widget/Components:Expand
+        Widget/Components:MinSize 64
+          Widget/Components:Backdrop 0.1 0.5 1.0 0.0
+            Widget
+    l +=
+      Widget/Components:Expand
+        Widget/Components:GreedyY
+          Stack
+            Custom Widget
+              StruktCanvas
+    l +=
+      Widget/Components:Expand
+        Widget/Components:MinSize 24
+          Widget/Components:Backdrop 0.1 0.5 1.0 0.0
+            Widget
+    l
+
+type App
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Widget/Components:Expand
+        Widget/Components:Backdrop 0.08 1 1 0
+          ListV 0
+            Custom Widget
+              StruktUI
+    l
+
+  function Void PostDraw (Widget self)
+    Draw Icon/Cursors:Pointer Cursor_Get 10 Colors:Primary 1
+    if Key_F3.Down
+      Widget/Dev/FrameInfo:Draw self
+
+function Data Main ()
+  widget:Create
+    Layer
+      Compositor_Basic 0.05 0.1 (Vec3 0.4 0.5 0.9)
+      Mesh_Quad
+      1.0
+      Stack
+        Custom Widget App

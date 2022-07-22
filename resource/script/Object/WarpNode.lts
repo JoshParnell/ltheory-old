@@ -1,0 +1,122 @@
+function Vec3 WarpNodeScale () (Vec3 100)
+function Float WarpNodeSpacing () 15000.0
+
+function Void BuildRail (Object self Position p1 Position p2)
+  var nodes (Max 2 (Int (Ceil (Length p1 - p2) / WarpNodeSpacing)))
+  var prevNode Object
+
+  for i 0 i < nodes i.++
+    var t i / (nodes - 1)
+    var p (Mix p1 p2 t)
+    var node Object_WarpNode
+    node.SetPos p
+    node.SetScale WarpNodeScale
+    node.SetLook (Normalize p2 - p1)
+    self.AddInterior node
+
+    if prevNode.IsNotNull
+      var rail (Object/WarpRail:Create node prevNode)
+      self.AddInterior rail
+      
+    prevNode = node
+
+function Void BuildRailRadial (Object self Position center Float radius Float angle1 Float angle2)
+  var nodes (Max 2 (Int (Ceil 2Pi * radius * (Abs angle2 - angle1) / WarpNodeSpacing)))
+  var prevNode Object
+
+  for i 0 i < nodes i.++
+    var t i / (nodes - 1)
+    var angle 2Pi * (Mix angle1 angle2 t)
+    var p center + radius * (Vec3 angle.Cos 0 angle.Sin)
+    var node Object_WarpNode
+    node.SetPos p
+    node.SetScale WarpNodeScale
+    self.AddInterior node
+
+    if prevNode.IsNotNull
+      var rail (Object/WarpRail:Create node prevNode)
+      self.AddInterior rail
+      
+    prevNode = node
+
+function Void EjectPassenger (Object object)
+  var sound
+    Sound_Play
+      "warpnode/exit.wav"
+      object
+      0
+      0.2
+      0.25 * (Sqrt object.GetRadius)
+
+  if (Camera_CanSee object 100000)
+    var ps ParticleSystem_Get
+    if ps.IsNotNull
+      var particle Particle_Firefly
+      var p object.GetPos
+      var rng (RNG_MTG Int_Random)
+      for i 0 i < 512 (++ i)
+        var angle rng.Angle
+        var v 2.0 * object.GetRadius * (angle.Cos * object.GetRight + angle.Sin * object.GetUp)
+        var s (Saturate 0.1 * rng.Exp ^ 2.0)
+        ps.Add
+          particle
+          p
+          (ExpDecay s 0.1) * v + 0.5 * s * object.GetVelocity
+          0.15 * rng.Exp * object.GetRadius
+          rng.Float 1 2
+          4.0 * (Mix (Vec3 1.0 2.5 4.0) (Vec3 2.0 3.0 4.0) rng.Float)
+
+function Void UpdatePassenger (Object object)
+  if (Camera_CanSee object 40000)
+    var ps ParticleSystem_Get
+    var particle Particle_Firefly
+    var p object.GetPos
+    var rng (RNG_MTG Int_Random)
+    for i 0 i < 8 (++ i)
+      ps.Add
+        particle
+        p
+        0.25 * rng.Float * object.GetVelocity
+        40.0 * rng.Float
+        rng.Float 1 2
+        2.0 * (Vec3 1.0 2.5 4.0)
+
+type WarpNodeScript
+  RNG rng (RNG_MTG Int_Random)
+  Sound sound Sound
+  Sound sound2 Sound
+  Sound sound3 Sound
+  Float t 10.0 * Float_Random
+
+  function Bool Update (Object self)
+    t += FrameTimer_Get
+
+    if sound.IsNull
+      sound = (Sound_PlayLooped "warpnode/drone3.ogg" self 0 0.9 5.0)
+      sound2 = (Sound_PlayLooped "warpnode/drone1.ogg" self 0 0.5 2.0)
+      sound3 = (Sound_PlayLooped "warpnode/drone2.ogg" self 0 0.5 5.0)
+      sound.RandomizePosition
+      sound2.RandomizePosition
+      sound3.RandomizePosition
+
+    if (Camera_CanSee self 40000)
+      var ps ParticleSystem_Get
+      var particle Particle_Firefly
+      var scale 0.05 * self.GetRadius
+      var count 64
+      var mult 0.5 + 0.5 * t.Sin
+      for i 0 i < count (++ i)
+        var dir rng.Direction
+        var energy mult * 32.0 * rng.Exp ^ 2.0
+        ps.Add
+          particle
+          self.GetPos + (1.0 + 0.3 * energy) * 0.6 * self.GetRadius * dir
+          scale * (rng.Sphere - energy * dir)
+          1.5 * scale * rng.Exp
+          rng.Float 2 3
+          2.0 * (Mix (Vec3 1.0 2.5 4.0) (Vec3 2.0 1.4 1.0) 1.0 - (ExpDecay energy 2.0))
+
+    true
+
+function Void Init (Object object)
+  object.AddScript WarpNodeScript

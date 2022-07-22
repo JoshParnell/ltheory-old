@@ -1,0 +1,18 @@
+#include frag.jsl
+#include noise.jsl
+#include math.jsl
+#include field.jsl
+
+#output 0 float field_value
+
+uniform vec3 halfTexel;
+uniform vec3 texelScale;
+uniform vec3 origin;
+uniform vec3 du;
+uniform vec3 dv;
+
+void main() {
+  vec2 uvp = texelScale.xy * (vec2(uv.x, 1. - uv.y) - halfTexel.xy);
+  vec3 position = origin + uvp.x * du + uvp.y * dv;
+  field_value = field(position);
+}

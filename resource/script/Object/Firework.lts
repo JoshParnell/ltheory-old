@@ -1,0 +1,85 @@
+type Firework
+  Vec3 color
+  Float age
+  Float life
+  Int generation
+  RNG rng
+
+  function Void Update (Object self)
+    self.ApplyForce 200.0 * (Vec3 0 -1.0 0)
+    age += FrameTimer_Get
+    var ps ParticleSystem_Get
+    var particle Particle_Firefly
+
+    var opacity (1.0 - age / life) ^ 4.0
+    var p self.GetPos
+    for i 0 i < 16 i.++
+      ps.Add
+        particle
+        p - (i / 16) * FrameTimer_Get * self.GetVelocity
+        0
+        100.0 * rng.Float
+        rng.Float 1 2
+        opacity * ((Vec3 1.0) + 4.0 * color)
+
+    if age > life
+      if generation < 2
+        var hsl color.ToHSL
+
+        var children (rng.Int 10 20)
+
+        for i 0 i < children i.++
+          var color hsl
+          color.x += 0.1 * (rng.Float -1.0 1.0)
+          color = color.ToRGB
+          while color.x < 0.0 (color.x += 1.0)
+          while color.x > 1.0 (color.x -= 1.0)
+
+          var child
+            Object_Custom
+              Firework
+                color 
+                0
+                5.0 * rng.Float
+                generation + 1
+                RNG_MTG rng.Int
+
+          child.SetPos self.GetPos
+          child.ApplyForce 20000.0 * (1.0 + rng.Exp) * rng.Direction
+          var light (Object_Light 5.0 * color 1.0 false)
+          child.AddChild light
+          self.GetContainer.AddInterior child
+
+          if i == 0
+            var sound
+              Sound_Play
+                "explosion/altsmall3.ogg"
+                child
+                0
+                1.0
+                1.0
+            sound.SetPitch (rng.Float 0.25 0.5)
+
+      self.Delete
+
+function Object Create ()
+  var color (ToRGB (Vec3 Float_Random 0.7 0.5))
+  var self
+    Object_Custom
+      Firework
+        color
+        0
+        2.0
+        0
+        RNG_MTG Int_Random
+
+  var light (Object_Light 5.0 * color 1.0 false)
+  self.AddChild light
+  self
+
+function Object ShootFrom (Object source)
+  var self Create
+  self.SetPos source.GetPos + source.GetRadius * (Vec3 0 1 0)
+  self.ApplyForce 100000.0 * (Vec3 0 1 0)
+  source.GetContainer.AddInterior self
+  self

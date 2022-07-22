@@ -1,0 +1,23 @@
+#include vert.jsl
+#include math.jsl
+
+VERT_OUT float alpha;
+VERT_OUT vec3 position;
+
+uniform vec3 eye;
+uniform float size;
+
+void main() {
+  VS_PROLOGUE;
+  position = vertex_position;
+  vec3 toCam = eye - position;
+  float camDistance = length(toCam);
+  toCam /= camDistance;
+  vec3 right = normalize(cross(toCam, vertex_normal));
+
+  uv.x = sign(u);
+  vec3 offset = size * uv.x * right;
+  gl_Position = PROJ * (VIEW * vec4(position + offset, 1.0));
+  gl_Position.z = LogDepth(gl_Position.z, gl_Position.w);
+  alpha = abs(u);
+}

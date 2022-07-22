@@ -1,0 +1,46 @@
+type ObjectBadge
+  Player player
+  Object object
+  Bool fancy
+  Widget child Widget
+
+  function HashT GetHash () object.GetHash
+
+  function String GetName () object.GetName
+
+  function Void PostDraw (Widget self)
+    var color 2.0 * Colors:Primary
+    if object.GetOwner == player
+      color = 2.0 * Colors:Friendly
+
+    Draw object.GetIcon self.Center 0.25 * self.size color 1.0
+    DrawText Fonts:Heading object.GetName self.BottomCenter 14 1 1 true
+
+    var h object.GetHealthNormalized
+    desc "Health"
+      var res 12
+      for i 0 i < res i.++
+        var t0 i / res
+        var t1 (i + 1) / res
+        var o (Clamp (h - t0) / (1 / res) 0.1 1.0)
+        Draw (Glyph_Arc 0 1 0.05 1 1 0.5 * (i / (res - 1)) 0.25 / (cast Float res) - 0.005) self.Center 0.4 * self.size Colors:Primary o
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageClick")
+      switch
+        child.HasParent
+          child.Delete
+          child = Widget
+        otherwise
+          child = (ObjectInfo:CreateWindow player object)
+          self.SendUp (Messages:MessageAddWidget child)
+
+function Widget Create (Player player Object object Bool fancy)
+  var self
+    Custom Widget
+      ObjectBadge player object fancy
+
+  self =
+    Components:CaptureMouse
+      Components:Clickable Messages:MessageClick self self
+  self

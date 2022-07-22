@@ -1,0 +1,34 @@
+#include frag.jsl
+#include lighting.jsl
+#include math.jsl
+#include noise.jsl
+#include texturing.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+
+uniform mat4 WORLDIT;
+uniform sampler2D albedoMap;
+uniform sampler2D depthBuffer;
+uniform sampler2D normalMap;
+
+void main() {
+  //EARLY_Z
+  vec4 albedo = texture2D(albedoMap, uv);
+  float alpha = saturate(dot(normalize(position - eye), normalize(normal)));
+
+  if (albedo.w < 1.0 || alpha < 0.5) {
+    discard;
+    return;
+  }
+
+  PREPASS
+
+  vec4 normalMat = texture2D(normalMap, uv);
+  vec3 normal = decodeNormal(normalMat.xy);
+  normal = normalize((WORLDIT * vec4(normal, 0)).xyz);
+  normalMat.xy = encodeNormal(normal);
+
+  fragment_color0 = albedo;
+  fragment_color1 = normalMat;
+}

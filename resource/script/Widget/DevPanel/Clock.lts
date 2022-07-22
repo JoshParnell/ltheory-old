@@ -1,0 +1,63 @@
+type Clock
+  function List CreateChildren (Widget self)
+    var l List
+    var time Time_Current
+    var ampm (? (time.hour < 12 "AM") (otherwise "PM"))
+    var strHour (cast String time.hour)
+    var strMinute (cast String time.minute)
+    if time.minute < 10
+      strMinute = "0" + strMinute
+    var strSecond (cast String time.second)
+    if time.second < 10
+      strSecond = "0" + strSecond
+
+    var size 24
+    l +=
+      Components:AlignCenter
+        Widgets:ListV2 4
+          Components:AlignCenter
+            Widgets:ListH6 2
+              Components:AlignCenter
+                Widgets:Text Fonts:Medium strHour size 1
+              Components:AlignCenter
+                Widgets:Text Fonts:Default ":" size - 8 Colors:Primary
+              Components:AlignCenter
+                Widgets:Text Fonts:Medium strMinute size 1
+              Components:AlignCenter
+                Widgets:Text Fonts:Default ":" size - 8 Colors:Primary
+              Components:AlignCenter
+                Widgets:Text Fonts:Medium strSecond size 1
+              Components:AlignCenter
+                Widgets:Text Fonts:Default ampm size Colors:Primary
+          Components:AlignCenter
+            Widgets:ListH5 2
+              Components:AlignCenter
+                Widgets:Text Fonts:Medium time.month 14 1
+              Components:AlignCenter
+                Widgets:Text Fonts:Default "/" 14 Colors:Primary
+              Components:AlignCenter
+                Widgets:Text Fonts:Medium time.day 14 1
+              Components:AlignCenter
+                Widgets:Text Fonts:Default "/" 14 Colors:Primary
+              Components:AlignCenter
+                Widgets:Text Fonts:Medium time.year 14 1
+
+    # l +=
+      Components:AlignCenter
+        Components:MinSize size + 6
+          Widgets:Icon Icons:Clock 0.5 * Colors:Primary
+
+    # Components:Expand
+      Widgets:ListH2 2
+        Widget
+        Components:AlignBottomCenter
+          Widgets:Text Fonts:Medium time.month + " . " + time.day + " . " + time.year 20 0.2
+    l
+
+  function Void PreUpdate (Widget self)
+    self.Rebuild
+
+function Widget Create ()
+  ListH 16
+    Custom Widget
+      Clock

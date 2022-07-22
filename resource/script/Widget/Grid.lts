@@ -1,0 +1,27 @@
+type Grid
+  Float cellSize
+  Float spacing
+  Int minCols
+  Float width
+
+  function Void PrePosition (Widget self)
+    self.minSize.x = (Float minCols) * (cellSize + spacing)
+    width = (Max width self.minSize.x)
+
+    var cellsX (Max 1 (Int (Floor width / (cellSize + spacing))))
+    var cellsY (Max 1 (Int (Ceil (self.GetChildren.Size / cellsX))))
+    self.minSize.y = (Float cellsY) * (cellSize + spacing)
+
+  function Void PostPosition (Widget self)
+    width = self.size.x
+    var p (Vec2 0.5 * spacing)
+
+    for it self.GetChildren it.HasMore it.Advance
+      var child it.Get
+      child.pos += self.pos + p
+      child.size = cellSize
+      p.x += cellSize + spacing
+
+      if p.x + cellSize > width
+        p.x = 0.5 * spacing
+        p.y += cellSize + spacing

@@ -1,0 +1,34 @@
+#include frag.jsl
+#include lighting.jsl
+#include math.jsl
+#include texturing.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+
+uniform sampler2D albedoMap;
+uniform sampler2D normalMap;
+uniform sampler2D detailMap;
+
+const float expVariance = 15.;
+const vec3 absAmbient = vec3(0.);
+const vec3 sunDiffuse = vec3(.1);
+const float envDiffuse = .5;
+
+#include fdm.jsl
+
+void main() {
+  vec4 color = sampleTriplanarAtlas(albedoMap, vertpos, uv.y, uv.x);
+  vec3 bump = 2.*sampleTriplanarAtlas(normalMap, vertpos, uv.y, uv.x).xyz - 1.;
+  vec3 n = mix(normal, getBumpNormal(normalize(normal), bump), 1.);
+
+  vec3 view = normalize(position - eye);
+  vec3 refl = normalize(reflect(view, n));
+
+  /* Envmap calculations */
+  vec4 env = textureCube(envMap, refl);
+  color.xyz *= 2.*env.xyz * vec3(1., 1., 1.8);
+  color.w = env.w + 1.;
+
+  RETURN(saturate(color));
+}

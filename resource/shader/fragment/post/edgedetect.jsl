@@ -1,0 +1,28 @@
+#include frag.jsl
+#include math.jsl
+#include color.jsl
+
+uniform sampler2D texture;
+uniform vec2 rcpFrame;
+
+void main() {
+  vec4 n11 = texture2D(texture, uv + vec2(-1.0, -1.0) * rcpFrame);
+  vec4 n21 = texture2D(texture, uv + vec2( 0.0, -1.0) * rcpFrame);
+  vec4 n31 = texture2D(texture, uv + vec2( 1.0, -1.0) * rcpFrame);
+  vec4 n12 = texture2D(texture, uv + vec2(-1.0,  0.0) * rcpFrame);
+  vec4 n22 = texture2D(texture, uv + vec2( 0.0,  0.0) * rcpFrame);
+  vec4 n32 = texture2D(texture, uv + vec2( 1.0,  0.0) * rcpFrame);
+  vec4 n13 = texture2D(texture, uv + vec2(-1.0,  1.0) * rcpFrame);
+  vec4 n23 = texture2D(texture, uv + vec2( 0.0,  1.0) * rcpFrame);
+  vec4 n33 = texture2D(texture, uv + vec2( 1.0,  1.0) * rcpFrame);
+
+  vec4 dx = 2.0 * (n32 - n12) + (n31 - n11) + (n33 - n13);
+  vec4 dy = 2.0 * (n23 - n21) + (n13 - n11) + (n33 - n31);
+
+  vec4 dc = vec4(
+    length(vec2(dx.x, dy.x)),
+    length(vec2(dx.y, dy.y)),
+    length(vec2(dx.z, dy.z)),
+    length(vec2(dx.w, dy.w)));
+  RETURN(dc);
+}

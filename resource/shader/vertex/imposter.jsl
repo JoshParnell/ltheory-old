@@ -1,0 +1,60 @@
+#include vert.jsl
+#include math.jsl
+
+uniform vec3 eye;
+uniform vec3 camUp;
+
+VERT_OUT vec3 blend;
+VERT_OUT vec3 position;
+VERT_OUT vec3 texOffset;
+
+vec3 invDir(vec3 dir, vec3 R, vec3 U, vec3 L) {
+  return normalize(vec3(dot(dir, R), dot(dir, U), dot(dir, L)));
+}
+
+void main() {
+  VS_PROLOGUE;
+
+  vec3 scale = vec3(length((WORLD * vec4(1, 0, 0, 0)).xyz),
+                    length((WORLD * vec4(0, 1, 0, 0)).xyz),
+                    length((WORLD * vec4(0, 0, 1, 0)).xyz));
+
+  vec3 R = normalize((WORLD * vec4(1, 0, 0, 0)).xyz);
+  vec3 U = normalize((WORLD * vec4(0, 1, 0, 0)).xyz);
+  vec3 L = normalize((WORLD * vec4(0, 0, 1, 0)).xyz);
+
+  vec3 toCam = normalize(eye - worldPos.xyz);
+  vec3 right = normalize(cross(camUp, toCam));
+  vec3 up = cross(right, toCam);
+
+  vec3 local = -invDir(toCam, R, U, L);
+  vec3 localAbs = abs(local);
+  float localMax = max(local.x, max(local.y, local.z));
+  vec2 bound = vec2(0);
+
+  blend = vec3(0);
+  texOffset = vec3(0);
+
+  blend.x = pow2(local.x);
+  bound += blend.x * vn.zy * scale.zy;
+  texOffset.x = (0.0 + max(0.0, -sign(local.x))) / 6.0;
+
+  blend.y = pow2(local.y);
+  bound += blend.y * vn.xz * scale.xz;
+  texOffset.y = (2.0 + max(0.0, -sign(local.x))) / 6.0;
+
+  blend.z = pow2(local.z);
+  bound += blend.z * vn.xy * scale.xy;
+  texOffset.z = (4.0 + max(0.0, -sign(local.z))) / 6.0;
+
+  blend.xyz /= blend.x + blend.y + blend.z;
+
+  worldPos.xyz += 0.5 * bound.x * u * right;
+  worldPos.xyz += 0.5 * bound.y * v * up;
+
+  gl_Position = PROJ * (VIEW * worldPos);
+  linearDepth = gl_Position.z;
+  gl_Position.z = LogDepth(gl_Position.z, gl_Position.w);
+
+  position = worldPos.xyz;
+}

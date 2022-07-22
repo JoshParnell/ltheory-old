@@ -1,0 +1,21 @@
+#include frag.jsl
+#include bezier.jsl
+#include color.jsl
+#include math.jsl
+#include noise.jsl
+
+uniform sampler2D texture;
+uniform vec3 p1;
+uniform vec3 p2;
+uniform vec3 p3;
+uniform vec3 p4;
+uniform vec3 p5;
+
+void main() {
+  vec4 c = texture2D(texture, uv);
+  c.xyz = saturate(c.xyz);
+  c.x = bezier(c.x, p1.x, p2.x, p3.x, p4.x, p5.x);
+  c.y = bezier(c.y, p1.y, p2.y, p3.y, p4.y, p5.y);
+  c.z = bezier(c.z, p1.z, p2.z, p3.z, p4.z, p5.z);
+  RETURN(vec4(saturate(c.xyz), c.w));
+}

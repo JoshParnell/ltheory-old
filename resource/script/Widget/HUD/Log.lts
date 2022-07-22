@@ -1,0 +1,51 @@
+type WidgetLogEntry
+  Int index
+  String contents
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:AlignCenter
+        Widgets:Text Fonts:Heading "[" + (192 + index) + ".30.10]" 14 Colors:Primary
+
+    var icon
+      switch
+        (contents.Contains "order")
+          Icons:Credits
+        (contents.Contains "message")
+          Icons:Comm
+        otherwise
+          Icons:Assets
+
+    l +=
+      Components:AlignCenter
+        Components:MinSize 24
+          Widgets:Icon icon Colors:Primary
+    l +=
+      Components:AlignCenter
+        Widgets:Text Fonts:Default contents 16 1
+    l
+
+  function HashT GetHash () contents.GetHash
+
+type WidgetLog
+  Player player
+
+  function List CreateChildren (Widget self)
+    var l List
+    var i 0
+    for it player.GetLog it.HasMore it.Advance
+      l +=
+        ListH 8
+          Custom Widget
+            WidgetLogEntry i it.Get.message
+      i.++
+    l
+
+  function String GetName () "Notifications"
+
+function Widget Create (Player player)
+  Dynamic
+    ListV 8
+      Custom Widget
+        WidgetLog player

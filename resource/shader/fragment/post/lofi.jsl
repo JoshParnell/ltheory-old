@@ -1,0 +1,17 @@
+#include frag.jsl
+#include blend.jsl
+#include math.jsl
+#include noise.jsl
+
+uniform sampler2D texture;
+uniform float invHeight;
+uniform float seed;
+
+void main() {
+  vec4 c = tex2D(texture, uv);
+  float sinmask = 1.0 + 0.2 * sin(uv.y / invHeight);
+  sinmask += 0.3 * noise(uv);
+  sinmask -= -0.01 * log(noise(seed) + 1e-5);
+  c = pow(c, vec4(1.5, 1.25, 1.0, 1.0));
+  RETURN(c * sinmask);
+}

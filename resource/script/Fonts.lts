@@ -1,0 +1,20 @@
+function Font Medium ()
+  Font_Get "Rajdhani/Medium.ttf"
+
+function Font ChineseSimp ()
+  Font_Get "NotoSansCJKSC/Regular.otf"
+
+function Font Light ()
+  Font_Get "Rajdhani/Light.ttf"
+
+function Font Default ()
+  Font_Get "Rajdhani/Regular.ttf"
+
+function Font Heading ()
+  Font_Get "Iceland/Regular.ttf"
+
+function Font Subheading ()
+  Font_Get "Iceland/Regular.ttf"
+
+function Font Unicode ()
+  Font_Get "NotoSans/Regular.ttf"

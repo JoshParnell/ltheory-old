@@ -1,0 +1,73 @@
+function Vec2 InnerMargin () (Vec2 0 32)
+function Vec2 OuterMargin () (Vec2 0 0)
+
+type MessageClose
+
+type WidgetWindow
+  Widget contents
+  String title
+  Float opacity 0.0
+
+  function Void Create (Widget self)
+    Sound_Play "ui/windowopen.wav" 0.1
+
+  function Void Destroy (Widget self)
+    Sound_Play "ui/windowclose.wav" 0.2
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Margin InnerMargin OuterMargin
+        contents
+
+    l += 
+      Components:Named "Close"
+        Components:Margin 8 8
+          Components:Tooltip
+            Components:FocusGlow
+              Components:AlignTopRight
+                Components:Clickable MessageClose self
+                  Components:MinSize 14
+                    Widgets:Icon Icons:Cancel 1.5 * Colors:Primary
+    l
+
+  function String GetName ()
+    title
+
+  function Void PreDraw (Widget self)
+    var color 2.0 * Colors:Primary
+    DrawPanel self.pos self.size 0.05 0.95 opacity * self.alpha 16
+    # DrawPanel self.pos (Vec2 self.size.x 32.0) 0.10 0.5 opacity * self.alpha 0
+    var p1 self.TopLeft
+    var p2 self.TopRight
+    var pos self.pos + (Vec2 0 12) + (Vec2 (self.size.x / 2.0) 0)
+    # DrawText Fonts:Subheading title.UpperCase self.TopLeft + (Vec2 self.size.x / 2.0 16.0) 14.0 0.4 1.0 true
+    ClipRegion_Push self.pos self.size
+
+  function Void PostDraw (Widget self)
+    ClipRegion_Pop
+
+  function Void PrePosition (Widget self)
+    self.minSize = size
+    self.pos = pos
+
+  function Void PreUpdate (Widget self)
+    var factor 1.0 - (ExpDecay FrameTimer_Get 0.25)
+    opacity = (Mix opacity 1.0 factor)
+    ClipRegion_Push self.pos self.size
+
+  function Void PostUpdate (Widget self)
+    ClipRegion_Pop
+    if self.focusKey
+      if Key_Escape.Pressed
+        self.Delete
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageClose")
+      self.Delete
+
+function Widget Create (String title Widget contents)
+  Stack
+    Components:CaptureKey
+      Custom Widget
+        WidgetWindow contents title

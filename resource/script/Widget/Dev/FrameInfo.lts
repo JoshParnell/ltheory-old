@@ -1,0 +1,9 @@
+function Void Draw (Widget self)
+  var str1 ((Round FrameTimer_GetEMA01 * 1000.0) + " ms")
+  DrawText Fonts:Medium str1 self.pos + (Vec2 12 16) 12 1 1 false
+
+  var str2 ((Round 1.0 / FrameTimer_GetEMA01) + " fps")
+  DrawText Fonts:Medium str2 self.pos + (Vec2 64 16) 12 1 1 false
+
+  var str3 (Renderer_GetPolyCount + " polys // " + Renderer_GetDrawCallCount + " calls")
+  DrawText Fonts:Medium str3 self.pos + (Vec2 128 16) 12 1 1 false

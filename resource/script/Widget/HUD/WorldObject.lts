@@ -1,0 +1,163 @@
+type MessageComm
+type MessageFireworks
+type MessageInfo
+type MessageJumpTo
+type MessageOwner
+type MessageTarget
+type MessageTrade
+
+type MenuOption
+  Icon icon
+
+  function List CreateChildren (Widget self)
+    var l List
+    var c
+      switch
+        self.focusMouse (Vec3 -1.0)
+        otherwise 2.0 * Colors:Primary
+    l +=
+      Components:MinSize 36
+        Widgets:Icon icon c
+    l
+
+function Widget CreateMenuOption (Widget widget String name Icon icon Data message)
+  Components:Named name
+    Components:AlignCenter
+      Components:FocusRebuild
+        Components:Tooltip
+          Components:ClickableRightRelease message widget
+            Stack
+              Custom Widget
+                MenuOption icon
+
+type WorldObjectMenu
+  Player player
+  Object object
+
+  function List CreateChildren (Widget self)
+    var l List
+    var color 1.5 * Colors:Primary
+    var size 36.0
+
+    if object.GetOwner.IsNotNull
+      l += (CreateMenuOption self "Communications" Icons:Comm MessageComm)
+      l += (CreateMenuOption self "Owner" Icons:Person MessageOwner)
+
+    if object.HasComponentMarket
+      l += (CreateMenuOption self "Trade" Icons:Trade MessageTrade)
+
+    l += (CreateMenuOption self "[DEV] Jump To" Icons:JumpTo MessageJumpTo)
+    l += (CreateMenuOption self "[DEV] Fireworks!" Icons:Assets MessageFireworks)
+    l += (CreateMenuOption self "Information" Icons:QuestionMark MessageInfo)
+    l += (CreateMenuOption self "Target" Icons:Target MessageTarget)
+    l
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageComm")
+        ref msg (cast MessageComm data)
+
+      (data.IsType "MessageFireworks")
+        Object/Firework:ShootFrom object
+
+      (data.IsType "MessageJumpTo")
+        player.GetPiloting.SetPos
+          object.GetPos - (1.5 * object.GetRadius + 1000.0) * player.GetPiloting.GetLook
+
+      (data.IsType "MessageInfo")
+        # self.SendUp
+          Messages:MessageAddWidget
+            ObjectInfo:CreateWindow player object
+
+      (data.IsType "MessageOwner")
+        # self.SendUp
+          Messages:MessageAddWidget
+            ObjectInfo:CreateWindow player object.GetOwner
+
+      (data.IsType "MessageTarget")
+        switch
+          (player.GetPiloting.HasTarget object)
+            player.GetPiloting.RemoveTarget object
+            Sound_Play "ui/targetlost.ogg" 0.2
+          otherwise
+            player.GetPiloting.AddTarget object
+            Sound_Play "ui/targetacquired.ogg" 0.2
+
+      (data.IsType "MessageTrade")
+        self.SendUp
+          Messages:MessageAddWidget
+            Widget/Object/Market:Create player object
+
+type WidgetObject
+  Player player
+  Object object
+  Vec2 toCursor 0
+
+  function HashT GetHash () object.GetHash
+  function String GetName () object.GetName
+  function Void PostDraw (Widget self)
+    var color 2.0 * Colors:Primary
+    var alpha self.alpha
+    var isTargetted (player.GetPiloting.HasTarget object)
+    if object.GetOwner == player
+      color = 2.0 * Colors:Friendly
+    if object.GetName == "Pirate"
+      color = 2.0 * Colors:Hostile
+    if self.focusMouse || isTargetted
+      color = 2.0 * Colors:Secondary
+      alpha = 1.0
+
+    var center self.pos + self.size / 2.0
+    Draw object.GetIcon center self.size / 2.0 color alpha
+
+    if isTargetted
+      Draw (Glyph_Arc 0 1 0.01 1 1 0 1) center self.size * 0.8 2.0 * Colors:Secondary alpha
+
+      DrawText
+        Fonts:Default
+        (Round (object.GetDistance player.GetPiloting)) / 1000.0 + "km"
+        center + (Vec2 0 1.2 * self.size.y)
+        12
+        1.0
+        1.0
+        true
+
+    if self.focusMouse
+      if Key_T.Pressed
+        if isTargetted
+          player.GetPiloting.RemoveTarget object
+          Sound_Play "ui/targetlost.ogg" 0.2
+        if (! isTargetted)
+          player.GetPiloting.AddTarget object
+          Sound_Play "ui/targetacquired.ogg" 0.2
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageGetObject")
+      ref msg (cast Messages:MessageGetObject data)
+      msg.object = object
+
+type WidgetObjectStack
+  Player player
+  Object object
+
+  function HashT GetHash () object.GetHash
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Tooltip
+        Components:CaptureMouse
+          Custom Widget
+            WidgetObject player object
+    l
+
+function Widget Create (Player player Object object)
+  Component/ContextMenu:Create
+    Widgets:RadialList
+      96.0
+      Custom Widget
+        WorldObjectMenu player object
+    Components:Tooltip
+      Components:CaptureMouse
+        Custom Widget
+          WidgetObject player object

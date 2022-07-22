@@ -1,0 +1,43 @@
+#include frag.jsl
+#include lighting.jsl
+#include raytracing.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+
+uniform float time;
+
+const int kSamples = 8;
+
+float field(vec3 p) {
+  vec4 z = vec4(p.xyz, 0.5);
+  vec4 kOffset = vec4(0.4 + 0.2 * cos(time / 4.0), 0.7 + 0.2 * sin(time / 3.32), 0.5, 0.5);
+  z += 0.2;
+  float a = 0, l = 0;
+  for (int i = 0; i < 10; ++i) {
+    float m = dot(z, z);
+    z = abs(z) / m - kOffset;
+    a += abs(m - l);
+    l = m;
+  }
+  a *= 0.05 * exp(-10.0 * dot(p, p));
+  return a;
+}
+
+void main() {
+  float a = 0;
+  vec3 ro = normalize(vertpos);
+  vec3 rd = normalize(eye - position);
+  float t = interSphere(vec4(0, 0, 0, 1.0001), ro, rd).y;
+  rd *= t / float(kSamples);
+  for (int i = 0; i < kSamples; ++i) {
+    a += field(ro);
+    ro += rd;
+  }
+  a /= float(kSamples);
+  a = clamp(a, 0.0, 1.0);
+
+  vec3 c = 4.0 * a * vec3(1.0, 1.5, 2.0);
+  float alpha = 1.0 - getFoginess(length(position - eye));
+  RETURN(vec4(c, 1.0) * alpha);
+}

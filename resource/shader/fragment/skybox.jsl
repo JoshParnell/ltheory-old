@@ -1,0 +1,13 @@
+#include frag.jsl
+#include math.jsl
+
+uniform samplerCube envMap;
+uniform samplerCube irMap;
+
+void main() {
+  vec3 c = textureCube(envMap, vertpos).xyz;
+  c = toLinear(c);
+  outputAlbedo(c);
+  outputAlpha(1.0);
+  outputMaterial(MATERIAL_NOSHADE);
+}

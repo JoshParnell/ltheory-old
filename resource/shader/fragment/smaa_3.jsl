@@ -1,0 +1,14 @@
+#include frag.jsl
+
+#define SMAA_ONLY_COMPILE_PS
+#include smaa.jsl
+
+uniform sampler2D texture;
+uniform sampler2D blendWeights;
+
+FRAG_IN vec4 offset[2];
+
+void main() {
+  vec4 c = SMAANeighborhoodBlendingPS(uv, offset, texture, blendWeights);
+  RETURN(c);
+}

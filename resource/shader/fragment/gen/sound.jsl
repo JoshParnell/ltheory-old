@@ -1,0 +1,67 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+uniform float dim;
+uniform float note;
+uniform float duration;
+
+float kTau = radians(360.);
+
+float sine(float t, float f) {
+  return sin(kTau * t * f);
+}
+
+float sinep(float t, float f, float p) {
+  float s = sine(t, f);
+  return sign(s) * pow(abs(s), p);
+}
+
+float saw(float t, float f) {
+  return 2. * fract(t * f) - 1.;
+}
+
+float tri(float t, float f) {
+  return 2. * abs(saw(t, f)) - 1.;
+}
+
+float harmonic(float n) {
+  return note * pow(2., n / 12.);
+}
+
+float wave(float t) {
+  float s = 0.;
+  s += sine(t, note / 4.);
+  s += sinep(t, note, 4.);
+  //s += sinep(t, harmonic(7), 2.);
+  //s += sinep(t, harmonic(10), 1.);
+  return s;
+}
+
+float asd(float t, float a, float s, float d) {
+  return min(1., pow(t * a, 2.)) * exp(-d * max(0., t - s));
+}
+
+float signal(float t) {
+  float s = 0.;
+  //s = wave(t) * asd(t, .5, 0, 1);
+  s += sinep(t, note, .1);
+  s *= asd(t, 1000., 0., 4.);
+  //s *= fsnoise(t * 220., 10, 2.);
+  return s;
+}
+
+void main() {
+  float t = duration * (uv.y + uv.x / dim);
+  float s = signal(t);
+
+  float w = 1., d = 0.;
+  for (int i = 0; i < 0; ++i) {
+    d += .25;
+    s += w * signal(max(0., t - d));
+    w *= .5;
+  }
+
+  s *= min(1., 8. * (duration - t));
+  RETURN(vec4(s));
+}

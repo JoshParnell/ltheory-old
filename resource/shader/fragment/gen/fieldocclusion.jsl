@@ -1,0 +1,51 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+#output 0 float field_occlusion
+
+uniform int samples;
+uniform sampler2D positionSampler;
+uniform sampler2D normalSampler;
+uniform sampler2D noiseSampler;
+uniform sampler3D fieldSampler;
+uniform vec3 fieldOrigin;
+uniform vec3 fieldExtent;
+uniform vec3 fieldStep;
+
+float field(vec3 p) {
+  vec3 coord = (p - fieldOrigin) / fieldExtent;
+  coord.y = 1.0 - coord.y;
+  return texture3D(fieldSampler, coord).x;
+}
+
+float occlusion(vec3 p, vec3 n) {
+  vec3 tangent;
+  if (abs(n.x) < 0.5)
+    tangent = normalize(cross(n, vec3(1, 0, 0)));
+  else
+    tangent = normalize(cross(n, vec3(0, 1, 0)));
+  vec3 cotangent = cross(n, tangent);
+  float occluded = 0;
+  for (int i = 0; i < samples; ++i) {
+    vec3 dir = texture2D(noiseSampler, vec2(float(i) / float(samples - 1), 0)).xyz;
+    vec3 samplePos = p + (dir.x * n + dir.y * tangent + dir.z * cotangent);
+    float fieldValue = field(samplePos);
+    occluded += exp(-1000.0 * max(fieldValue, 0.0));
+  }
+  return pow4(1.0 - sqrt(occluded / float(samples - 1)));
+}
+
+void main() {
+  vec3 p = texture2D(positionSampler, uv).xyz;
+  vec3 n = texture2D(normalSampler, uv).xyz;
+
+  float value = field(p);
+  const int kIterations = 32;
+  vec3 iterationStep = n * fieldStep / vec3(kIterations - 1);
+  for (int i = 0; i < kIterations && value <= 1e-5; ++i) {
+    p += iterationStep;
+    value = field(p);
+  }
+  field_occlusion = occlusion(p, n);
+}

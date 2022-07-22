@@ -1,0 +1,11 @@
+type Margin
+  Vec2 inner
+  Vec2 outer
+
+  function Void PrePosition (Widget self)
+    self.minSize += (inner + outer)
+
+  function Void PostPosition (Widget self)
+    self.maxSize -= (inner + outer)
+    self.size -= (inner + outer)
+    self.pos += inner

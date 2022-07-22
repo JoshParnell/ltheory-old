@@ -1,0 +1,28 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+FRAG_IN vec3 position;
+FRAG_IN vec3 normal;
+
+uniform vec4 color;
+uniform vec3 eye;
+uniform vec2 size;
+uniform float t;
+
+void main() {
+  vec2 uvp = uv;
+  float d = max(0.0, pow2(abs(uvp.x)));
+  float alpha = 0.0;
+  alpha += 4.0 * exp(-pow2(1024.0 * d));
+  alpha *= 1.0 - 0.2 * log(1e-8 + noise(t));
+  float power = pow2(snoise(32.0 * uv.y + 16.0 * t));
+  alpha *= power;
+  alpha += exp(-6.0 * sqrt(d));
+
+  alpha *= (1.0 - exp(-32.0 * uv.y));
+  alpha *= (1.0 - exp(-32.0 * (1.0 - uv.y)));
+
+  vec4 c = color * alpha;
+  RETURN(c);
+}

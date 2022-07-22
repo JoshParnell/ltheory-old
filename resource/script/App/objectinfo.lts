@@ -1,0 +1,150 @@
+type App
+  Player player
+  Object station
+  (Array Object) systems (Array Object)
+  Object system
+  Texture texture Texture/RandomScreenshot:Get
+    
+  function Void Create (Widget self)
+    var rng (RNG_MTG 42)
+    player = Player_Human
+    player.AddCredits 100000
+    player.SetName "V'ewy Tyred"
+
+    var marketMan Player_Human
+    marketMan.AddCredits 100000
+
+    var stationType
+      Item_StationType
+        1000000.0
+        12
+        1.0
+        1.0
+        1.0
+        1.0
+    station = stationType.Instantiate
+    station.SetName "Konryz Mining Outpost LZ-882"
+
+    for i 0 i < 9 i.++ rng.Int
+    for i 0 i < 3 i.++
+      var system (Object_System (Vec3 rng.Float) rng.Int)
+      system.SetName (CapitalCase (Grammar_Get "$system" rng))
+      systems += system
+
+    var shipType (Item_ShipType 1000000 9094 1 1 1 1 1 1)
+    var ship shipType.Instantiate
+    ship.SetName "Blue Dragon"
+
+    var weaponType (Item_WeaponType 42)
+    for i 0 i < 4 i.++
+      ship.Plug weaponType
+
+    ref sys0 (systems.Get 0)
+    system = sys0
+    system.AddInterior ship
+    player.AddAsset ship
+    player.Pilot ship
+
+    var assets (Array Object)
+    var shipType2 (Item_ShipType 100000 315 1 1 1 1 1 1)
+    var shipType3 (Item_ShipType 1000000 515 1 1 1 1 1 1)
+    var shipType4 (Item_ShipType 10000000 415 1 1 1 1 1 1)
+    for i 0 i < 32 i.++
+      var choice rng.Float
+      var object Object
+      switch
+        choice < 0.5
+          object = shipType2.Instantiate
+          object.SetName ("Fighter " + i)
+        choice < 0.8
+          object = shipType3.Instantiate
+          object.SetName ("Hauler " + i)
+        choice < 0.9
+          object = shipType4.Instantiate
+          object.SetName ("Battleship " + i)
+        otherwise 
+          object = stationType.Instantiate
+          object.SetName (CapitalCase (Grammar_Get "$station" rng))
+
+      if rng.Float < 0.3
+        object.SetHealth (Max 0.0 (cast Float object.GetHealth) - 5000.0 * rng.Exp)
+      object.SetPos 10000.0 * rng.Sphere
+
+      ref system (systems.Get (rng.Int systems.Size))
+      system.AddInterior object
+      player.AddAsset object
+      assets += object
+
+    var items (Array Item)
+    for i 0 i < 32 i.++
+      items += (Item_WeaponType rng.Int)
+    for i 0 i < 8 i.++
+      items += (Item_OreType 10.0 * rng.Exp rng.Int)
+
+    for i 0 i < assets.Size i.++
+      ref o1 (assets.Get i)
+      if rng.Float < 0.5
+        if o1.HasComponentTasks
+          ref o2 (assets.Get (rng.Int assets.Size))
+          o1.PushTask (Task_Goto o2 500.0)
+
+      for j 0 j < 8 j.++
+        ref item (items.Get (rng.Int items.Size))
+        o1.AddItem item 2
+
+    for i 0 i < 128 i.++
+      ref item (items.Get (rng.Int items.Size))
+      ship.AddItem item 1
+      station.AddItem item 1
+
+    var storage (station.GetStorageLocker marketMan)
+    for i 0 i < 256 i.++
+      ref item (items.Get (rng.Int items.Size))
+      var volume (rng.Int 1 100)
+      var price item.GetValue + (Int 1000.0 * rng.Exp)
+      var choice rng.Float
+      if choice < 0.1
+        storage.AddItem item volume
+        station.AddMarketSellOrder
+          marketMan
+          item
+          volume
+          price
+
+      if choice >= 0.1
+        station.AddMarketBuyOrder
+          marketMan
+          item
+          volume
+          price
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Widget/Components:Margin (Vec2 128 64) (Vec2 128 64)
+        Widget/Components:Expand
+          Widget/Browser:Create
+            Widget/ObjectInfo:Create player player.GetPiloting
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.005 1 1 0
+    Draw texture self.pos self.size 0.2
+
+  function Void PostDraw (Widget self)
+    Draw Icon/Cursors:Pointer Cursor_Get 8 4.0 * Colors:Primary 0.3
+    # Widget/Dev/FrameInfo:Draw self
+
+  function Void PreUpdate (Widget self)
+    if Key_T.Pressed Shader_RecompileAll
+    station.Update FrameTimer_Get
+
+function Data Main ()
+  widget:Create
+    Layer
+      Compositor_Basic 0.05 0.10 (Vec3 0.40 0.50 0.75)
+      Mesh_Quad
+      1.0
+      Stack
+        Custom Widget
+          App

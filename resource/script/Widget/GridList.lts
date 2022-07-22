@@ -1,0 +1,90 @@
+type Toolbar
+  String name
+  (Pointer String) mode
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:AlignCenter
+        Widgets:Text Fonts:Default name 14 1
+
+    l +=
+      Components:Expand
+        Components:GreedyX Widget
+    l +=
+      Components:AlignCenter
+        Widgets:ListH2 8.0
+          Components:MinSize 32
+            Widgets:TabIcon "mode" "List" Icons:Log 0.125 0.75 * Colors:Primary false false true
+          Components:MinSize 32
+            Widgets:TabIcon "mode" "Grid" Icons:Cargo 0.125 0.75 * Colors:Primary false false false
+    l
+        
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.05 0.5 1 16
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "TabSelect")
+      ref msg (cast Tab:TabSelect data)
+      (deref mode) = msg.label
+      self.SendDown data
+
+type GridListContents
+  (Pointer String) mode
+
+  function Void PostPosition (Widget self)
+    var offset (Vec2 0)
+
+    switch
+      (deref mode) == "Grid"
+        0
+        #
+          var area self.size.x * self.size.y
+          var cellSize (Floor (Sqrt area / (cast Float self.GetChildren.Size)) - 2.0)
+          var margin cellSize * 0.3
+          var parity false
+
+          for it self.GetChildren it.HasMore it.Advance
+            var child it.Get
+            child.pos = offset + self.pos
+            child.size = cellSize - margin
+            offset.x += cellSize
+
+            if offset.x + cellSize > self.size.x
+              parity = parity.!
+              offset.x =
+                switch
+                  parity 0.5 * cellSize
+                  otherwise 0.0
+              offset.y += 0.5 * cellSize * (Sqrt 3.0)
+
+      (deref mode) == "List"
+        0
+    
+type GridList
+  String name
+  Widget widget
+  String mode "List"
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Expand
+        Components:Padding (Vec2 12 8) (Vec2 12 8)
+          ListH 4
+            Custom Widget
+              Toolbar name (address mode)
+    # l +=
+      Components:GreedyY
+        Components:Expand
+          Custom
+            ListV 4.0
+              widget
+            GridListContents (address mode)
+    l
+
+function Widget Create (String name Widget widget)
+  Components:Expand
+    ListV 4.0
+      Custom Widget
+        GridList name widget

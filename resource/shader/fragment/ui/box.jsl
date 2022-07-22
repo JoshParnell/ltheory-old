@@ -1,0 +1,24 @@
+#include ui.jsl
+
+FRAG_IN vec4 attrib1;
+FRAG_IN vec4 attrib2;
+FRAG_IN vec4 attrib3;
+
+const float kRadius = 2.0;
+
+void main() {
+  vec4 color = attrib1;
+  vec2 uv = attrib2.xy;
+  vec2 size = attrib2.zw;
+  vec2 realSize = size - 48.0;
+
+  vec2 uvp = (uv * frame - 0.5) / (frame - 1.0);
+  uvp = (2.0 * uvp - 1.0);
+
+  float r = min(kRadius, min(realSize.x, realSize.y));
+  float dist = length(max(vec2(0.0), size * abs(uvp) - (realSize - r))) - r;
+  float mult = 0.0;
+  mult += 1.0 * exp(-2.0 * max(0.0, dist));
+  mult += 0.2 * exp(-pow(0.25 * max(0.0, dist), 0.75));
+  RETURN(color * mult);
+}

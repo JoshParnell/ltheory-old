@@ -1,0 +1,26 @@
+#include frag.jsl
+#include math.jsl
+#include lighting.jsl
+#include noise.jsl
+
+FRAG_IN vec3 position;
+FRAG_IN vec3 normal;
+
+uniform float t;
+uniform float speed;
+uniform float thinness;
+uniform vec3 baseColor;
+
+void main() {
+  float u = uv.x;
+  float v = saturate(uv.y);
+  float uw = max(0.0, abs(u) - 0.25 * sqrt(v));
+  float alpha = exp(-8.0 * uw) + 0.25 * exp(-8.0 * sqrt(uw));
+  alpha *= (1.0 - exp(-pow2(16.0 * v))) * exp(-7.0 * v);
+  alpha *= 1.0 + 4.0 * exp(-12.0 * v);
+  float variation = pow2(fsnoise(vec2(uv.x, 20.0 * v - 10.0 * t), 2, 1.6));
+  alpha *= mix(1.0, 1.5, variation);
+  alpha *= 1.0 - getFoginess(length(position - eye));
+  alpha *= 2.0;
+  RETURN(vec4(baseColor, 1.0) * alpha);
+}

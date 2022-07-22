@@ -1,0 +1,73 @@
+type MessageBuy
+  Item item
+
+type MessageSell
+  Item item
+
+type BuyWindow
+  Player player
+  Object market
+  Item item
+
+  function List CreateChildren (Widget self)
+    var l List
+    var c (switch (self.focusMouse (Vec3 0.0)) (otherwise (Vec3 0.0)))
+    l +=
+      Components:AlignCenter
+        Widgets:Text Fonts:Default "CONFIRM" 16.0 c
+
+    l +=
+      Components:AlignCenter
+        Widgets:Text Fonts:Default "CANCEL" 16.0 c
+    l
+
+type ItemPanel
+  Player player
+  Object market
+  Item item
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Expand
+        Components:GreedyY
+          ItemInfo:Create player item
+
+    l +=
+      Components:Expand
+        Widgets:ListH3 4
+          Components:Expand
+            Components:GreedyX
+              Button:Create (MessageBuy item) "BUY" 16.0
+          Components:Expand
+            Components:GreedyX
+              Button:Create (MessageSell item) "SELL" 16.0
+          Components:Expand
+            Components:GreedyX
+              Button:Create 0 "DETAILS" 16.0
+    l
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "UnselectItem")
+        ref message (cast Messages:UnselectItem data)
+        if item == message.item
+          self.Delete
+
+function Widget CreateItemPanel (Player player Object market Item item)
+  Components:Expand
+    Components:GreedyY
+      Components:MinSize (Vec2 320 0)
+        ListV 8
+          Custom Widget
+            ItemPanel player market item
+    
+type RightPanel
+  Player player
+  Object market
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "SelectItem")
+        ref message (cast Messages:SelectItem data)
+        self.AddChild (CreateItemPanel player market message.item)

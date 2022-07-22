@@ -1,0 +1,47 @@
+#include ui.jsl
+#include noise.jsl
+
+FRAG_IN vec4 attrib1;
+FRAG_IN vec4 attrib2;
+FRAG_IN vec4 attrib3;
+
+float dfield(float d) {
+  return exp(-2.0 * d * d) + 0.2 * exp(-pow(0.2 * d, 0.75));
+}
+
+void main() {
+  vec4 color = attrib1;
+  vec2 uv = attrib2.xy;
+  vec2 scale = attrib2.zw;
+  vec2 offset = attrib3.xy;
+  vec2 scale2 = attrib3.zw;
+
+  vec2 uvp = (uv * frame - 0.5) / (frame - 1.0);
+  vec2 p = (2.0 * uvp - 1.0) * scale * scale2 + offset;
+  uvp = abs(2.0 * uvp - 1.0);
+  vec2 d1 = 16.0 * abs(2.0 * fract(p / 16.0 - 0.5) - 1.0);
+  vec2 d2 = 64.0 * abs(2.0 * fract(p / 64.0 - 0.5) - 1.0);
+  float mult = 1.5;
+  mult += 6.0 * exp(-16.0 * 32.0 * max(0.0, length(abs(2.0 * fract(p / 16.0 - 0.5) - 1.0)) - 0.75 / 16.0));
+  mult += 6.0 * exp(-16.0 * 128.0 * max(0.0, length(abs(2.0 * fract(p / 64.0 - 0.5) - 1.0)) - 0.75 / 64.0));
+  float d = 1.0;
+  mult +=
+      0.5 * max(
+        dfield(max(0.0, d1.x - 1.0 / 16.0)),
+        dfield(max(0.0, d1.y - 1.0 / 16.0)));
+  mult +=
+      1.5 * max(
+        dfield(max(0.0, d2.x - 1.0 / 64.0)),
+        dfield(max(0.0, d2.y - 1.0 / 64.0)));
+  mult += d;
+  mult *= 0.25;
+
+  mult *= 2.0 * exp(-2.0 * uv.y);
+#if 0
+  mult += 1.0 * exp(-sqrt(max(0.0, scale.x * abs(uvp.x - 1.0) - 1.00)));
+  mult += 1.0 * exp(-sqrt(max(0.0, scale.x * abs(uvp.x + 1.0) - 1.00)));
+  mult += 1.0 * exp(-sqrt(max(0.0, scale.y * abs(uvp.y - 1.0) - 1.00)));
+  mult += 1.0 * exp(-sqrt(max(0.0, scale.y * abs(uvp.y + 1.0) - 1.00)));
+#endif
+  RETURN(color * mult);
+}

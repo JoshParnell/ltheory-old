@@ -1,0 +1,30 @@
+#include frag.jsl
+#include lighting.jsl
+#include math.jsl
+#include texturing.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+FRAG_IN vec3 vertposscaled;
+
+uniform mat4 WORLDIT;
+uniform sampler2D albedoMap;
+uniform sampler2D depthBuffer;
+uniform sampler2D normalMap;
+
+#include fdm.jsl
+
+void main() {
+  PREPASS
+  EARLY_Z
+
+  vec3 c = vec3(1.0);
+  vec3 bump = sampleFDMBumpmap(normalMap, vertposscaled / 512.0);
+  vec3 n = normalize(normal);
+
+  outputAlbedo(c);
+  outputAlpha(1.0);
+  outputNormal(n);
+  outputMaterial(MATERIAL_ICE);
+  outputRoughness(1.0);
+}

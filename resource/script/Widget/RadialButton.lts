@@ -1,0 +1,32 @@
+type RadialButton
+  function Void PreDraw (Widget self)
+    var c Colors:Primary
+    var i 0
+    var childCount self.GetChildren.Size
+    var center self.pos
+
+    # Draw (Glyph_Arc 0 1 0.01 1 1 0 1) center 0.5 * radius 2.0 * Colors:Primary 1
+    Draw (Glyph_Circle 0 1 1 1) center 16 c 1
+    var parent self.GetParent
+    Draw (Glyph_LineFade self.pos parent.Center 1 1) 0 1 4.0 * c 1
+    
+    var child it.Get
+    var angle (Fract (i / childCount) - 0.25)
+    var dir (Vec2 (Cos 2Pi * angle) (Sin 2Pi * angle))
+    var offset radius * dir
+    var myCenter center + dir * 6.0
+    var c (Vec3 0.05)
+    if child.focusMouse
+      c = Colors:Primary
+
+      DrawPanelRadial
+        myCenter
+        0.5 * radius
+        1.1 * radius
+        angle
+        1.0 / (Float childCount)
+        c
+        1.0
+        1.0
+        0.0
+      ++ i

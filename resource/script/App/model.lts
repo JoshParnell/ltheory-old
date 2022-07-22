@@ -1,0 +1,157 @@
+type SetRadius
+  Float radius
+
+type ModelUI
+  Camera camera
+  Vec3 offset 0
+  Float radius 10
+  Float radiusT 10
+  Float pitch -0.9 * Pi2
+  Float pitchT -0.9 * Pi2
+  Float yaw 1.5
+  Float yawT 1.5
+
+  function Void PostDraw (Widget self)
+    Draw Icon/Cursors:Cross Cursor_Get 8 Colors:Primary 1
+    if Key_F3.Down
+      Widget/Dev/FrameInfo:Draw self
+
+  function Void PostUpdate (Widget self)
+    if self.focusScroll
+      radiusT *= 1.0 - 0.1 * Mouse_GetScrollDelta
+    if Mouse_RightDown
+      yawT -= 0.01 * Cursor_GetDelta.x
+      pitchT += 0.01 * Cursor_GetDelta.y
+
+    var factor 1.0 - (ExpDecay FrameTimer_Get 0.10)
+    radius = (Mix radius radiusT factor)
+    pitch = (Mix pitch pitchT 1.0)
+    yaw = (Mix yaw yawT 1.0)
+
+    var look (Vec3 pitch.Sin * yaw.Cos pitch.Cos pitch.Sin * yaw.Sin)
+    var p radius * look + offset
+    camera.SetRelativePos p
+    camera.SetRelativeLookAt offset
+    camera.SetRigidity 8.0
+
+    look = -1.0 * radius * (Normalize (Vec3 look.x 0 look.z))
+    var right radius * (Normalize (Cross (Vec3 0 1 0) look))
+    var up radius * (Vec3 0 1 0)
+
+    var dt FrameTimer_Get
+    if Key_W.Down offset += look * dt
+    if Key_S.Down offset -= look * dt
+    if Key_A.Down offset -= right * dt
+    if Key_D.Down offset += right * dt
+    if Key_Q.Down offset -= up * dt
+    if Key_E.Down offset += up * dt
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "SetRadius")
+      ref msg (cast SetRadius data)
+      radius = msg.radius
+      radiusT = msg.radius
+      offset = 0
+
+type App
+  Object system
+  (Array Object) scene (Array Object)
+  Widget view
+  Widget ui
+  Widget controller
+  Camera camera
+
+  function Void GenObject ()
+    var rng (RNG_MTG Int_Random)
+
+    for i 0 i < scene.Size i.++
+      Delete (deref (scene.Get i))
+    scene.Clear
+
+    var choice 0
+    if true
+      var object
+        Instantiate
+          Item_ShipType 10.0 ^ (cast Float (Int_Random 5 7)) Int_Random 1 1 1 1 1 1
+      scene += object
+
+    if true
+      var object
+        Instantiate
+          Item_StationType 1000000 Int_Random 1 1 1 1
+      object.SetPos (Vec3 1000 0 0)
+      scene += object
+
+    if true
+      var object
+        Instantiate
+          Item_PlanetType 155
+      object.SetScale 1000
+      object.SetPos (Vec3 -4000 0 0)
+      scene += object
+
+    if true
+      for i 0 i < 1024 i.++
+        var object (Object_Asteroid rng.Int)
+        object.SetScale 50.0 * rng.Exp
+        object.SetPos 10000.0 * rng.Sphere
+        scene += object
+
+    for i 0 i < scene.Size i.++
+      system.AddInterior (deref (scene.Get i))
+    var target (deref (scene.Get 0))
+    camera.SetTarget target
+    controller.Send (SetRadius 1.5 * target.GetRadius)
+
+  function Void Create (Widget self)
+    # Create the camera
+    camera = Camera_Create
+    camera.Push
+
+    # Create the interfaces
+    controller =
+      Widget/Components:CaptureScroll
+        Custom Widget
+          ModelUI camera
+
+    ui =
+      Layer
+        Compositor_None
+        Mesh_Quad
+        1.0
+        controller
+
+    # Set up the game view
+    var passes Vector<Reference<RenderPassT>>
+    passes.Append (RenderPass_Clear (Vec4 0.0))
+    passes.Append (RenderPass_Camera camera)
+    passes.Append (RenderPass_SMAA)
+    # passes.Append (RenderPass_RadialBlur 0.5 0.0 0.5 2)
+    # passes.Append (RenderPass_Aberration 0.01)
+    passes.Append (RenderPass_PostFilter "post/dither.jsl")
+    view = (Widget_Rendered passes)
+
+    # Create the universe
+    system = (Object_System (Vec3 8.012) 31)
+    if false
+      system.AddInterior
+        Object_Zone system 0 (Vec3 0) (Vec3 10000) (SDF_Sphere 0 1) 0 1.0 0.0 0.0 0.0
+
+    this.GenObject
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += view
+    l += ui
+    l
+
+  function Void PreUpdate (Widget self)
+    if Key_R.Pressed
+      this.GenObject
+
+    system.Update FrameTimer_Get
+
+function Data Main ()
+  widget:Create
+    Stack
+      Custom Widget App

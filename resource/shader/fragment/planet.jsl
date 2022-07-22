@@ -1,0 +1,93 @@
+#include frag.jsl
+#include math.jsl
+#include color.jsl
+#include noise.jsl
+#include lighting.jsl
+#include scattering.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+FRAG_IN vec3 origin;
+
+uniform samplerCube planetMap;
+uniform vec3 color1;
+uniform vec3 color2;
+uniform vec3 color3;
+uniform vec3 color4;
+uniform float colorSeed;
+uniform float cloudLevel;
+uniform float heightMult;
+uniform float oceanLevel;
+
+const float kSpecular = 1.0;
+const vec3 kOceanColor = vec3(0.03, 0.05, 0.10);
+const float seed = 151.2;
+
+float heightFn(float t) {
+  t = pow2(sin(radians(90.0) * t) - 0.3);
+  t = exp(-sqrt(6.0 * t));
+  return t;
+}
+
+float visibility(samplerCube map, float offset, float radius, float strength) {
+  vec3 toStar = normalize(starPos - position);
+  const float samples = 8.0;
+  float v = 0.0;
+  float tw = 0.0;
+  for (float i = 0.0; i < samples; ++i) {
+    vec3 sp = normalize(mix(vertpos, toStar, radius * (i + 1.0) / samples));
+    float h = heightFn(textureCube(map, sp).x);
+    float rh = h - (offset + (length(sp) - 1.0));
+    v += exp(-strength * heightMult * max(0.0, rh));
+  }
+  return v / samples;
+}
+
+vec3 gradient(float t) {
+  vec3 c12 = mix(color1, color2, t);
+  vec3 c23 = mix(color2, color3, t);
+  vec3 c34 = mix(color3, color4, t);
+  vec3 c123 = mix(c12, c23, t);
+  vec3 c234 = mix(c23, c34, t);
+  return mix(c123, c234, t);
+}
+
+void main() {
+  PREPASS
+
+  vec3 L = normalize(starPos - position);
+  vec3 N = normalize(normal);
+  vec3 V = normalize(position - eye);
+  float NL = dot(N, L);
+  float light = mix(exp(-1.0 * pow(1.0 - NL, 16.0)), 1.0, 0.001);
+
+  vec4 map = textureCube(planetMap, vertpos);
+  float h = map.x;
+  float c = 0.5 + 0.5 * sin(4.0 * map.y);
+  float cloud = map.z;
+
+  h = heightFn(h);
+  float ocean = 1.0 - exp(-16.0 * max(0.0, 0.3 - h));
+  float land = 1.0 - ocean;
+  land *= visibility(planetMap, h, 0.10, 6.0);
+
+  vec3 landColor = gradient(h) * gradient(c);
+  vec3 color = light * (land * landColor + ocean * kOceanColor);
+
+  vec3 R = reflect(V, N);
+  color +=
+    kSpecular * ocean * kOceanColor * starColor *
+    cookTorrance(L, position, N, 0.01, 1.0);
+
+  vec3 clouds = 0.01 * light * vec3(exp(-4.0 * max(0.0, cloud - cloudLevel)));
+  color = clouds + (1.0 - clouds) * color;
+
+  vec4 atmo = getScattering(origin, eye, V, length(position - eye));
+  color += atmo.xyz;
+
+  outputAlbedo(color);
+  outputAlpha(1.0);
+  outputNormal(N);
+  outputMaterial(MATERIAL_NOSHADE);
+  outputRoughness(0);
+}

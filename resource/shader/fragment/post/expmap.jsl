@@ -1,0 +1,11 @@
+#include frag.jsl
+
+uniform sampler2D texture;
+uniform float power;
+uniform float mult;
+
+void main() {
+  vec4 c = texture2D(texture, uv);
+  c.xyz = (1.0 - exp(-mult * pow(c.xyz, vec3(power))));
+  RETURN(c);
+}

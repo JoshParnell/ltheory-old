@@ -1,0 +1,32 @@
+#include ui.jsl
+
+FRAG_IN vec4 attrib1;
+FRAG_IN vec4 attrib2;
+FRAG_IN vec4 attrib3;
+FRAG_IN vec4 attrib4;
+
+void main() {
+  vec4 color = attrib1;
+  vec2 uv = attrib2.xy;
+  vec2 p1 = attrib3.xy;
+  vec2 dir = attrib3.zw;
+  vec2 origin = attrib4.xy;
+  vec2 size = attrib4.zw;
+
+  vec2 uvp = (uv * frame - 0.5) / (frame - 1.0);
+  vec2 p = origin - p1 + uvp * size;
+  vec2 n = normalize(dir);
+  float l = length(dir);
+  if (l <= 1e-6)
+    RETURN(vec4(0.0));
+
+  float projLength = clamp(dot(n, p), 0.0, l);
+  // projLength = floor(projLength / 4.0 + 0.5) * 4.0;
+  vec2 proj = n * projLength;
+  float d = length(p - proj);
+  float t = saturate(1.0 - projLength / l);
+  float m =
+    0.7 * exp(-2.0 * max(0.0, d - 0.5)) +
+    0.2 * exp(-sqrt(0.7 * max(0.0, d - 0.5)));
+  RETURN(color * m);
+}

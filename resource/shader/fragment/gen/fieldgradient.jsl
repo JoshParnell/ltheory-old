@@ -1,0 +1,28 @@
+#include frag.jsl
+#include noise.jsl
+#include math.jsl
+
+#output 0 vec3 field_gradient
+
+uniform sampler2D positionSampler;
+uniform sampler3D fieldSampler;
+uniform vec3 fieldOrigin;
+uniform vec3 fieldExtent;
+uniform vec3 fieldStep;
+
+float field(vec3 p) {
+  return texture3D(fieldSampler, (p - fieldOrigin) / fieldExtent).x;
+}
+
+vec3 gradient(vec3 p) {
+  float d = field(p);
+  float dx = field(p + fieldStep * vec3(1, 0, 0)) - field(p - fieldStep * vec3(1, 0, 0));
+  float dy = field(p + fieldStep * vec3(0, 1, 0)) - field(p - fieldStep * vec3(0, 1, 0));
+  float dz = field(p + fieldStep * vec3(0, 0, 1)) - field(p - fieldStep * vec3(0, 0, 1));
+  return vec3(dx, dy, dz);
+}
+
+void main() {
+  vec3 p = texture2D(positionSampler, vec2(uv.x, 1. - uv.y)).xyz;
+  field_gradient = gradient(p);
+}

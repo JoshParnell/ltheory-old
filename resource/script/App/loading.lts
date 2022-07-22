@@ -1,0 +1,113 @@
+type Node
+  Float energy
+  Float v
+
+type LoadingApp
+  Float time 0
+  (Array Node) nodes (Array Node)
+
+  function Void Create (Widget self)
+    for i 0 i < 512 i.++
+      var node (Node 0 0)
+      if (i == 0)
+        node.energy = 0.0
+      nodes += node
+
+  function Void PostUpdate (Widget self)
+    var factor (1.0 - (ExpDecay FrameTimer_Get 1.0))
+    var elasticity 10.0
+    var speed 1.0
+    var damping 50.0
+
+    for k 0 k < 5 k.++
+      for i 0 i < nodes.Size i.++
+        ref node1 (nodes.Get i)
+        ref node2 (nodes.Get (Mod i + 1 nodes.Size))
+        var delta (node1.energy - node2.energy)
+        node2.v += elasticity * factor * delta
+        node1.v -= elasticity * factor * delta
+
+      for i 0 i < nodes.Size i.++
+        ref node (nodes.Get i)
+        node.energy += speed * factor * node.v
+        node.v *= (ExpDecay FrameTimer_Get damping)
+
+    if Float_Random < 0.01
+      var base (Mod (Abs Int_Random) nodes.Size)
+      var variance (Mix 0.05 0.4 Float_Random)
+      for i 0 i < 64 i.++
+        var t i / 64
+        t = 2.0 * t - 1.0
+        var e 0.5 * (Exp -1.0 * (Abs t / variance) ^ 1.0)
+        var index (Mod base + i nodes.Size)
+        ref node (nodes.Get index)
+        node.energy += e
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.04 1 1 0
+
+  function Void PostDraw (Widget self)
+    DrawText
+      Font_Get "Gafata/Regular.ttf"
+      FrameTimer_GetEMA10 * 1000.0 + " ms"
+      self.pos + (Vec2 16 self.size.y - 16.0)
+      10
+      0.1
+      1
+      false
+
+    Draw Icon/Cursors:Pointer Cursor_Get 12 2.0 * Colors:Primary 1.0
+
+    block
+      var m Cursor_Get
+      time += FrameTimer_Get
+      var box (Glyph_Line (Vec2 0.5 0) (Vec2 0.5 1) 1 1)
+      var point (Glyph_Circle 0 1 1 1)
+      var s (Vec2 5.0 64.0)
+
+      var font Fonts:Default
+      var completion (Floor 100.0 * (Abs 0.5 + 0.5 * (Sin time / 3.0)))
+      DrawText
+        font
+        "[ LOADING  //  " + completion + "% ]"
+        self.Center
+        20
+        0.3
+        1
+        true
+      
+      DrawText
+        Fonts:Heading
+        "LIMIT THEORY"
+        self.size * (Vec2 0.5 1.0) - (Vec2 0 64)
+        72
+        0.1
+        1
+        true
+
+  
+      var c1 (Vec3 0.1 0.5 1.0)
+      var c2 (Vec3 0.5 0.7 1.0)
+
+      for i 0 i < nodes.Size i.++
+        var t i / nodes.Size
+        ref node (nodes.Get i)
+        var angle 2Pi * t
+        var dir (Vec2 angle.Cos angle.Sin)
+        var p1 self.Center + dir * 128
+        var mult 1.0 + (ExpDecay (Length Cursor_Get - p1) 64.0)
+        var h 2.0 * node.energy
+        h *= mult
+        var c 8.0 * (Abs node.v) * (Mix c1 c2 (Abs 2.0 * t - 1.0))
+        var p2 self.Center + dir * (256.0 + 128.0 * h)
+        Draw point p1 8 c 1.0
+        Draw point p2 16 c 1.0
+        Draw (Glyph_LineFade p1 p2 1 1) 0 1 c1 0.05
+
+function Data Main ()
+  widget:Create
+    Layer
+      Compositor_Basic 0.2 0.3 (Vec3 0.4 0.5 0.9)
+      Mesh_Quad
+      1.0
+      Custom Widget LoadingApp

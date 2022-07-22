@@ -1,0 +1,9 @@
+(
+  name        = "Engineering"
+  advanceTime = 60
+  level       = 1
+  searchTime  = 1
+
+  jchildren = (
+  )
+)

@@ -1,0 +1,91 @@
+type BrowserBack
+type BrowserForward
+
+type Browser
+  (Array Widget) stack
+  Int index 0
+
+  function List CreateChildren (Widget self)
+    var l List
+    var elems (ListH 2 Widget)
+    elems.AddChild
+      Components:AlignCenter
+        Widgets:ListH2 8
+          Components:MinSize 32
+            Widgets:IconButton BrowserBack Icons:ArrowLeft
+          Components:MinSize 32
+            Widgets:IconButton BrowserForward Icons:ArrowRight
+    elems.AddChild
+      Components:MinSize (Vec2 8 0)
+        Widget
+
+    for i 0 i < stack.Size i.++
+      ref elem (stack.Get i)
+      if i > 0
+        elems.AddChild
+          Components:AlignCenter
+            Widgets:Text Fonts:Medium "/" 22 Colors:Primary
+      elems.AddChild
+        Components:AlignCenter
+          Widgets:Text Fonts:Medium elem.GetName.UpperCase 14
+            ? (i <= index Colors:White) (otherwise Colors:DGray)
+
+    elems.AddChild Widgets:EmptySpaceH
+    elems.AddChild
+      Components:AlignCenter
+        Components:MinSize 28
+          Widgets:IconButton 0 Icons:Star
+
+    l +=
+      Components:Expand
+        Components:Padding (Vec2 12 8) (Vec2 12 8)
+          elems
+
+    ref contents (stack.Get index)
+    l +=
+      Components:GreedyY
+        contents
+    l
+
+  function Void PreDraw (Widget self)
+    ClipRegion_Push self.pos self.size
+
+  function Void PostDraw (Widget self)
+    ClipRegion_Pop
+
+  function Void PreUpdate (Widget self)
+    ClipRegion_Push self.pos self.size
+
+  function Void PostUpdate (Widget self)
+    ClipRegion_Pop
+    if self.focusKey
+      if Key_Escape.Pressed
+        self.Delete
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageLink")
+      Sound_Play "ui/objectmenuopen.ogg" 0.1
+      ref msg (cast Messages:MessageLink data)
+      while index + 1 < stack.Size
+        stack.Remove (stack.Size - 1)
+      stack += msg.widget
+      index = stack.Size - 1
+      self.Rebuild
+    if (data.IsType "BrowserBack")
+      if index > 0
+        index -= 1
+        self.Rebuild
+    if (data.IsType "BrowserForward")
+      if index + 1 < stack.Size
+        index += 1
+        self.Rebuild
+
+function Widget Create (Widget widget)
+  var array (Array Widget)
+  array += widget
+  Components:Backdrop 0.075 0.95 1 16
+    Components:CaptureKey
+      Components:Expand
+        ListV 0
+          Custom Widget
+            Browser array

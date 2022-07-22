@@ -1,0 +1,35 @@
+#include frag.jsl
+#include color.jsl
+#include math.jsl
+#include noise.jsl
+
+uniform sampler2D texture;
+uniform vec2 rcpFrame;
+uniform float strength;
+
+const float kBlend = 1.0;
+const float kDistortion = 0.0;
+const int kTaps = 4;
+
+void main() {
+  vec3 c = vec3(0.0);
+  float r2 = dot(uv - 0.5, uv - 0.5);
+  float f = 1.0 - kDistortion * r2;
+
+  for (int i = 0; i < kTaps; ++i) {
+    float s = strength * float(i) / kTaps;
+    vec3 eta = vec3(1.0) + s * vec3(0.0, 0.5, 1.0);
+    vec2 uvr = 0.5 + eta.r * f * (uv - 0.5);
+    vec2 uvg = 0.5 + eta.g * f * (uv - 0.5);
+    vec2 uvb = 0.5 + eta.b * f * (uv - 0.5);
+    c.r += toLinear(texture2D(texture, uvr).r);
+    c.g += toLinear(texture2D(texture, uvg).g);
+    c.b += toLinear(texture2D(texture, uvb).b);
+  }
+
+  c /= kTaps;
+  //c = emix(texture2D(texture, f * (uv - 0.5) + 0.5).xyz, c, kBlend);
+  c = mix(texture2D(texture, uv).xyz, toGamma(c), kBlend);
+
+  RETURN(vec4(c, 1.0));
+}

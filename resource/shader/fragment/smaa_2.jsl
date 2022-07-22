@@ -1,0 +1,17 @@
+#include frag.jsl
+
+#define SMAA_ONLY_COMPILE_PS
+#include smaa.jsl
+
+uniform sampler2D edgeBuffer;
+uniform sampler2D areaBuffer;
+uniform sampler2D searchBuffer;
+
+FRAG_IN vec2 pixcoord;
+FRAG_IN vec4 offset[3];
+
+void main() {
+  vec4 c = SMAABlendingWeightCalculationPS(uv, pixcoord, offset,
+    edgeBuffer, areaBuffer, searchBuffer, ivec4(0));
+  RETURN(c);
+}

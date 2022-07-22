@@ -1,0 +1,35 @@
+#include frag.jsl
+#include bezier.jsl
+#include lighting.jsl
+#include noise.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+FRAG_IN vec3 scale;
+
+uniform float time;
+
+float field(vec3 p) {
+  vec4 z = vec4(p.xyz, 0.5);
+  vec4 kOffset = vec4(0.4 + 0.2 * cos(time / 4.0), 0.7 + 0.2 * sin(time / 3.32), 0.5, 0.5);
+  z += 0.5;
+  float a = 0, l = 0;
+  for (int i = 0; i < 8; ++i) {
+    float m = dot(z, z);
+    z = abs(z) / m - kOffset;
+    a += abs(m - l);
+    l = m;
+  }
+  a *= 0.125 * exp(-10.0 * dot(p, p));
+  return 0.5 + 0.5 * sin(a);
+}
+
+void main() {
+  float t = frcnoise(scale * vertpos / vec3(128, 128, 512) + vec3(0, 0, time), 32, 3, 2.0);
+  t = exp(-8.0 * abs(sin(8.0 * t) - sin(time + scale.z * vertpos.z / 128)));
+  vec3 c = vec3(1.0, 2.0, 5.0) * pow(vec3(t), vec3(2.0, 1.0, 0.5));
+  float alpha = t;
+  alpha *= abs(dot(normalize(position - eye), normalize(normal)));
+  alpha *= 1.0 - getFoginess(length(position - eye));
+  RETURN(vec4(c, 1.0) * alpha);
+}

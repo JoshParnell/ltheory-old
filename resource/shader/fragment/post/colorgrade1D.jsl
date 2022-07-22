@@ -1,0 +1,44 @@
+#include frag.jsl
+#include color.jsl
+#include math.jsl
+#include texturing.jsl
+
+uniform sampler2D texture;
+uniform sampler2D rCurve;
+uniform sampler2D gCurve;
+uniform sampler2D bCurve;
+uniform sampler2D rCurve2;
+uniform sampler2D gCurve2;
+uniform sampler2D bCurve2;
+uniform vec2 rDir;
+uniform vec2 gDir;
+uniform vec2 bDir;
+uniform float colorPoints;
+
+const float kVariation = 0.5;
+
+void main() {
+  vec3 original = saturate(texture2D(texture, uv).xyz);
+  original = (original * (colorPoints - 1.0) + 0.5) / colorPoints;
+  vec3 c = original;
+
+  c.x = mix(
+    texLod(rCurve, vec2(c.x, 0.5), 0).x,
+    texLod(rCurve2, vec2(c.x, 0.5), 0).x,
+    kVariation * dot(uv, rDir));
+
+  c.y = mix(
+    texLod(gCurve, vec2(c.y, 0.5), 0).x,
+    texLod(gCurve2, vec2(c.y, 0.5), 0).x,
+    kVariation * dot(uv, gDir));
+
+  c.z = mix(
+    texLod(bCurve, vec2(c.z, 0.5), 0).x,
+    texLod(bCurve2, vec2(c.z, 0.5), 0).x,
+    kVariation * dot(uv, bDir));
+
+  c *= avg(original) / max(0.00001, avg(c));
+  // c = mix(c, original, 0.999);
+
+  RETURN(vec4(c, 1.0));
+}

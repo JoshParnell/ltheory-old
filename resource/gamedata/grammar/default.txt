@@ -1,0 +1,802 @@
+activity
+  1|Border
+  1|Construction
+  1|Mining
+  1|Production
+  1|Research
+  1|Science
+  1|Scouting
+  1|Surveying
+  1|Trading
+
+adjective
+  4|$color
+  1|alpha
+  1|delta
+  1|beta
+  1|gamma
+  1|lambda
+  1|theta
+  1|dark
+  1|bright
+  1|cold
+  1|hot
+
+armor
+  1|$adjective| |$nounex
+  1|$qualifier| |$nounex
+
+bigram
+  4|th
+  2|he
+  2|re
+  2|te
+  2|st
+  1|to
+  1|se
+  1|ha
+  1|le
+  1|ve
+  1|co
+  1|me
+  1|de
+  1|hi
+  1|ri
+  1|ro
+  1|ne
+  1|ce
+  1|li
+  1|be
+  1|ma
+  1|si
+
+bird
+  1|Baza
+  1|Buzzard
+  1|Condor
+  1|Drake
+  1|Dragon
+  1|Eagle
+  1|Falcon
+  1|Griffin
+  1|Harpy
+  1|Harrier
+  1|Hawk
+  1|Jatayu
+  1|Osprey
+  1|Raptor
+  1|Raven
+  1|Sparrow
+  1|Strix
+  1|Vulture
+  1|Wyvern
+
+color
+  2|black
+  2|red
+  1|blue
+  1|green
+  1|crystal
+  1|red
+  1|white
+  1|yellow
+  1|ruby
+  1|saphire
+  1|jade
+  1|onyx
+
+consonant
+  1.5|b
+  2.8|c
+  4.3|d
+  2.2|f
+  2.0|g
+  6.1|h
+  0.2|j
+  0.8|k
+  4.0|l
+  2.4|m
+  6.7|n
+  1.9|p
+  0.1|q
+  6.0|r
+  6.3|s
+  9.1|t
+  1.0|v
+  2.4|w
+  0.2|x
+  0.1|z
+
+digit
+  1|0
+  1|1
+  1|2
+  1|3
+  1|4
+  1|5
+  1|6
+  1|7
+  1|8
+  1|9
+
+digits
+  1|$digit
+  1|$digit|$digit
+  1|$digit|$digits
+
+element
+  1|blood
+  1|bronze
+  1|crystal
+  1|death
+  1|diamond
+  1|doom
+  1|fire
+  1|flame
+  1|fury
+  1|gold
+  1|ice
+  1|iron
+  1|jade
+  1|justice
+  1|lava
+  1|lead
+  1|light
+  1|magma
+  1|matter
+  1|mercury
+  1|night
+  1|nova
+  1|ruby
+  1|shock
+  1|silver
+  1|star
+  1|twilight
+  1|vengeance
+  1|wind
+  1|wrath
+
+faction
+  1|$faction_pre| |$faction_suffix
+
+faction_pre
+  1|$element
+  1|$element| |$faction_post
+  3|$faction_name
+
+faction_name
+  1|$faction_name_pre|$faction_name_post
+
+faction_name_pre
+  1|arch
+  1|charon
+  1|dimivi
+  1|far
+  1|krigen
+  1|niri
+  1|sorren
+  1|star
+  1|winter
+
+faction_name_post
+  1|light
+  1|rys
+  1|sky
+  1|soft
+  1|space
+  1|tech
+  1|tek
+
+faction_post
+  1|agents
+  1|angels
+  1|dragons
+  1|eagles
+  1|hessians
+  1|hunters
+  1|nomads
+  1|rogues
+  1|shadows
+  1|stalkers
+  1|zealots
+
+faction_suffix
+  1|brotherhood
+  1|cartel
+  1|collective
+  3|corporation
+  1|imperium
+  1|industries
+  1|guild
+  1|technologies
+
+grade
+  1|mk I
+  1|mk II
+  1|mk III
+  1|mk IV
+  1|mk V
+  1|type 1
+  1|type 2
+  1|type 3
+  1|prototype
+
+lettercap
+  1|A
+  1|B
+  1|C
+  1|D
+  1|E
+  1|F
+  1|G
+  1|H
+  1|I
+  1|J
+  1|K
+  1|L
+  1|M
+  1|N
+  1|O
+  1|P
+  1|Q
+  1|R
+  1|S
+  1|T
+  1|U
+  1|V
+  1|W
+  1|X
+  1|Y
+  1|Z
+
+letterscap
+  1|$lettercap
+  1|$lettercap|$letterscap
+
+name
+  1|$namepre|$namepost
+
+namepost
+  1|ama
+  1|ard
+  1|ards
+  1|ardson
+  1|buck
+  1|call
+  1|eddy
+  1|elly
+  1|e
+  1|ell
+  1|eman
+  1|enport
+  1|ent
+  1|enter
+  2|er
+  1|erick
+  1|ers
+  2|erson
+  1|ester
+  1|ett
+  1|ez
+  1|foot
+  1|ford
+  1|ick
+  1|ill
+  1|in
+  1|ing
+  1|inson
+  1|is
+  1|ison
+  1|kin
+  1|lee
+  1|ler
+  2|man
+  1|mont
+  1|ovan
+  1|pard
+  1|rell
+  1|ris
+  1|rews
+  1|row
+  2|son
+  1|ston
+  1|ten
+  1|ter
+  1|ton
+  1|ts
+  1|ys
+  1|ysdale
+  1|wood
+
+namepre
+  1|Ad
+  1|And
+  1|Ash
+  1|ak
+  1|Bal
+  1|Bark
+  1|Barn
+  1|Barr
+  1|Bax
+  1|Beam
+  1|Black
+  1|Brenn
+  1|Bright
+  1|Brook
+  1|Buch
+  1|Buck
+  1|But
+  1|Carp
+  1|Cart
+  1|Clay
+  1|Col
+  1|Con
+  1|Craw
+  1|Dan
+  1|Dav
+  1|Donald
+  1|Drys
+  1|Fred
+  1|Free
+  1|Gat
+  1|Gor
+  1|Gran
+  1|Jack
+  1|Jam
+  1|Jenn
+  1|Hamp
+  1|Hard
+  1|Harr
+  1|Higg
+  1|Hodg
+  1|Holl
+  1|Hopp
+  1|Hot
+  1|How
+  1|Ic
+  1|Kenn
+  1|King
+  1|Kirk
+  1|Lak
+  1|Lanc
+  1|Lew
+  1|Light
+  1|Long
+  1|Malt
+  1|Mand
+  1|Map
+  1|Marsh
+  1|Mart
+  1|Master
+  1|Mav
+  1|Mig
+  1|Mill
+  1|Mont
+  1|Morr
+  1|Nash
+  1|Nel
+  1|Nil
+  1|Norm
+  1|Oak
+  1|Ols
+  1|Park
+  1|Parn
+  1|Pear
+  1|Perr
+  1|Peter
+  1|Port
+  1|Pres
+  1|Red
+  1|Reev
+  1|Reyn
+  1|Rich
+  1|Riv
+  1|Rob
+  1|Rog
+  1|Rom
+  1|Russ
+  1|Ryan
+  1|Sand
+  1|Shepp
+  1|Sher
+  1|Sim
+  1|Spad
+  1|Spark
+  1|Stan
+  1|Star
+  1|Steel
+  1|Stein
+  1|Stev
+  1|Stew
+  1|Ston
+  1|Summ
+  1|Swan
+  1|Tayl
+  1|Tell
+  1|That
+  1|Thomp
+  1|Trent
+  1|Tyl
+  1|Vern
+  1|Vik
+  1|Wag
+  1|Wal
+  1|War
+  1|Wash
+  1|Wat
+  1|Webb
+  1|Well
+  1|West
+  1|Whit
+  1|Wil
+  1|Win
+  1|Wood
+  1|Worth
+  1|Wyn
+  1|Zal
+  1|Zan
+
+noun
+  1|#armor|hide
+  1|#armor|plating
+  1|#armor|shell
+  1|#armor|skin
+  1|#armor|stopper
+  1|#shield|barrier
+  1|#shield|field
+  1|#shield|matrix
+  1|#shield|net
+  1|#shield|neutralizer
+  1|#shield|repulsor
+  1|#shield|stopper
+  1|#beam|beam
+  1|#beam|blaze
+  1|#beam|dissolver
+  1|#beam|emitter
+  1|#beam|ray
+  1|#missile|bay
+  1|#missile|catapult
+  1|#missile|launcher
+  1|#missile|hunter
+  1|#missile|runner
+  1|#missile|stalker
+  1|#missile|sweeper
+  1|#missile|reaper
+  1|#missile|torpedo
+  1|#pulse|accelerator
+  1|#pulse|blade
+  1|#pulse|blaster
+  1|#pulse|cannon
+  1|#pulse|fire
+  1|#pulse|pulse
+  1|#pulse|thrower
+  1|#rail|hammer
+  1|#rail|grinder
+  1|#rail|rail
+  1|#rail|ripper
+  1|#rail|storm
+  1|#rail|teeth
+  1|#rail|viper
+
+nounex
+  2|$substance| |$noun
+  2|$element|$noun
+  1|$element| |$grade
+
+number
+  1|zero
+  1|one
+  1|two
+  1|three
+  1|four
+  1|five
+  1|six
+  1|seven
+  1|eight
+  1|nine
+  1|ten
+
+oretype
+  1|$station_pre|$oretype_post
+
+oretype_post
+  1|ax
+  1|chite
+  1|dium
+  1|gen
+  1|ide
+  1|ite
+  1|ium
+  1|llite
+  1|nite
+  1|ockite
+  1|ox
+  1|site
+  1|spar
+  1|stone
+  1|trope
+  1|urine
+  1|uth
+  1|xite
+  1|yst
+
+person
+  1|cauchy
+  1|dirichlet
+  1|euler
+  1|fourier
+  1|hilbert
+  1|gauss
+  1|jacobi
+  1|lagrange
+  1|laplace
+  1|newton
+  1|riemann
+  1|zeno
+
+prefix
+  1|$adjective| |$nounex
+  1|$qualifier| |$nounex
+
+qualifier
+  3|$system_pre|$system_post|ian
+  1|$system_pre|$system_post|is
+  1|alpha
+  1|beta
+  1|gamma
+  1|delta
+  1|theta
+  1|lambda
+  1|cold
+  1|dark
+  1|hot
+  1|micro
+  1|screaming
+  1|sharp
+  1|quantum
+  1|overcharged
+  1|#armor|reinforced
+  1|#armor|thick
+  1|#shield|boosted
+
+ship_prefix
+  1|Advanced
+  1|Modified
+  1|Prototype
+
+shiptype
+  3|$bird
+  2|$snake
+  1|$ship_prefix| |$bird
+  1|$ship_prefix| |$snake
+  2|$color| |$snake
+  2|$color| |$bird
+
+snake
+  1|Adder
+  1|Anaconda
+  1|Asp
+  1|Boa
+  1|Boiga
+  1|Cantil
+  1|Cascabel
+  1|Cascavel
+  1|Cobra
+  1|Copperhead
+  1|Diamondback
+  1|Habu
+  1|Keelback
+  1|Krait
+  1|Lora
+  1|Mamba
+  1|Moccasin
+  1|Mussurana
+  1|Python
+  1|Rinkhals
+  1|Sidewinder
+  1|Sonoran
+  1|Stiletto
+  1|Taipan
+  1|Serpent
+  1|Urutu
+  1|Viper
+
+station
+  3|$station_midfix
+  2|$station_midfix| |$station_suffix
+  1|$station_midfix| |$activity| |$station_suffix
+
+station_midfix
+  2|$station_pre|$station_post
+  1|$station_pre|$station_post| |$number
+
+station_post
+  1|alo
+  1|ano
+  1|antis
+  1|anz
+  1|ava
+  1|awa
+  1|bea
+  1|en
+  1|ester
+  1|er
+  1|iz
+  1|flag
+  1|flak
+  1|den
+  1|eon
+  1|heim
+  1|ima
+  1|land
+  1|poli
+  1|port
+  1|oku
+  1|sarra
+  1|sei
+  1|shima
+  1|shu
+  1|son
+  1|stadt
+  1|sun
+  1|tan
+  1|ua
+  1|uiz
+
+station_pre
+  1|aber
+  1|alt
+  1|alst
+  1|arran
+  1|ant
+  1|barr
+  1|baut
+  1|behr
+  1|bist
+  1|bruc
+  1|card
+  1|chutt
+  1|free
+  1|gam
+  1|gart
+  1|gazz
+  1|herr
+  1|hol
+  1|isl
+  1|ky
+  1|leip
+  1|lun
+  1|lub
+  1|mac
+  1|man
+  1|mont
+  1|nom
+  1|our
+  1|pad
+  1|pleb
+  1|roch
+  1|sapp
+  1|sart
+  1|solar
+  1|stok
+  1|vier
+  1|yam
+  1|yew
+
+station_suffix
+  1|Base
+  1|Facility
+  1|Outpost
+  1|Station
+
+substance
+  1|darkmatter
+  1|deuterium
+  1|energy
+  1|graviton
+  1|gravity
+  1|hadron
+  1|magnon
+  1|muon
+  1|neutrino
+  1|nuclear
+  1|particle
+  1|phonon
+  1|photon
+  1|phase
+  1|plasmon
+  1|polaron
+  1|positron
+  1|proton
+  1|singularity
+  1|tachyon
+  1|trion
+  1|tritium
+
+system
+  1|$system_numeric
+  2|$system_word
+
+system_numeric
+  1|$letterscap|-|$digits|$letterscap
+
+system_post
+  1|adan
+  1|ala
+  1|ax
+  1|ellia
+  1|ius
+  1|lys
+  1|olah
+  1|oat
+  1|on
+  1|ta
+  1|tarus
+  1|tion
+  1|th
+  1|ulus
+  1|uscant
+  1|ygni
+  1|yon
+  1|eti
+
+system_pre
+  1|$system_pre_1|$system_pre_2|$system_pre_3
+  1|$system_pre_1|$system_pre_2|$system_pre_3|$system_pre_2|$system_pre_3
+
+system_pre_1
+  1|a
+  1|b
+  1|c
+  1|d
+  1|j
+  1|k
+  1|l
+  1|m
+  1|n
+  1|p
+  1|r
+  1|s
+  1|t
+  1|s
+  1|x
+
+system_pre_2
+  1|a
+  1|i
+  1|o
+  1|r
+  1|y
+
+system_pre_3
+  1|b
+  1|d
+  1|k
+  1|n
+  1|l
+  1|n
+
+system_suffix
+  1|$digits
+  1|$number
+  1|Major
+  1|Minor
+  1|Prime
+
+system_word
+  2|$system_pre|$system_post
+  1|$system_pre|$system_post| |$system_suffix
+
+vowel
+  8.2|a
+  12.7|e
+  7.0|i
+  7.5|o
+  2.8|u
+  2.0|y
+
+weapon
+  4|$adjective| |$nounex
+  4|$qualifier| |$nounex
+  6|$nounex
+  1|$person|'s |$nounex

@@ -1,0 +1,48 @@
+#include frag.jsl
+#include lighting.jsl
+#include math.jsl
+#include scattering.jsl
+#include softparticle.jsl
+#include texturing.jsl
+
+uniform sampler2D normalMap;
+uniform float time;
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+
+#include fdm.jsl
+
+void main() {
+  vec3 bump = (sampleFDMTexture(normalMap, vertpos.xz * 1.0 + time * 0.130).xyz + 
+               sampleFDMTexture(normalMap, vertpos.xz / 8.0 + time * 0.277).xyz) / 2.0;
+  bump = normalize(2.0 * bump - 1.0);
+  bump = mix(bump, vec3(0.0, 0.0, 1.0), 0.95);
+  vec3 n = bump.x * vec3(1.0, 0.0, 0) + bump.y * vec3(0.0, 0.0, 1.0) + bump.z * normal;
+  n = normalize(normal);
+
+  vec3 view = normalize(position - eye);
+  vec3 refl = normalize(reflect(view, n));
+  refl.y = abs(refl.y);
+  vec2 uv = GetSSPosition();
+
+  float delta = GetDepthDifference();
+  float depth = 1.0 - exp(-20000.0 * delta);
+  vec3 color = mix(vec3(37.0, 114.0, 96.0) / 255.0,
+                   vec3(31.0, 052.0, 65.0) / 255.0, depth);
+
+  float fresnel = 1.0 - pow4(saturate(-dot(normalize(position - eye), n)));
+  vec3 env = toLinear(textureCube(envMap, refl).xyz);
+  color = mix(color, env, 0.25 + 0.75 * fresnel);
+
+  vec3 rd = (position - eye);
+  // vec4 atmo = getScatteringInside(eye, normalize(rd), length(rd), 0.);
+  // color = mix(color.xyz, atmo.xyz, atmo.w);
+  float alpha = depth;
+  float fogDepth = length(position - eye);
+  vec3 fog = getFog(eye, normalize(position - eye), fogDepth, 0.0);
+  color = mix(color, fog, getFoginess(fogDepth));
+  color = toGamma(color);
+
+  RETURN(vec4(color, 1.0) * alpha);
+}

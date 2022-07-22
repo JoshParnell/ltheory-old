@@ -1,0 +1,92 @@
+type Ribbon
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.05 0.5 1 0
+
+type ItemInfoContents
+  Player player
+  Item item
+
+  function List CreateChildren (Widget self)
+    var l List
+    if item.HasValue
+      l +=
+        Widgets:Pair 8
+          Widgets:Text Fonts:Subheading "ESTIMATED VALUE" 14 Colors:Primary
+          Widgets:Text Fonts:Default item.GetValue + " cr" 18 1
+
+    if item.HasIntegrity
+      l +=
+        Widgets:Pair 8
+          Widgets:Text Fonts:Subheading "INTEGRITY" 14 Colors:Primary
+          Widgets:Text Fonts:Default item.GetIntegrity 18 1
+
+    if item.HasMass
+      l +=
+        Widgets:Pair 8
+          Widgets:Text Fonts:Subheading "MASS" 14 Colors:Primary
+          Widgets:Text Fonts:Default item.GetMass + " kg" 16 1
+
+    if item.HasPowerDrain
+      l +=
+        Widgets:Pair 8
+          Widgets:Text Fonts:Subheading "POWER DRAW" 14 Colors:Primary
+          Widgets:Text Fonts:Default item.GetPowerDrain + " W" 18 1
+
+    if item.HasRange
+      l +=
+        Widgets:Pair 8
+          Widgets:Text Fonts:Subheading "RANGE" 14 Colors:Primary
+          Widgets:Text Fonts:Default item.GetRange + " m" 18 1
+
+    if item.HasRate
+      l +=
+        Widgets:Pair 8
+          Widgets:Text Fonts:Subheading "RATE" 14 Colors:Primary
+          Widgets:Text Fonts:Default item.GetRate + " Hz" 18 1
+
+    if item.HasSpeed
+      l +=
+        Widgets:Pair 8
+          Widgets:Text Fonts:Subheading "SPEED" 14 Colors:Primary
+          Widgets:Text Fonts:Default item.GetSpeed + " m/s" 18 1
+    l
+
+type ItemInfo
+  Player player
+  Item item
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Custom 
+        Components:Expand
+          Components:Padding (Vec2 16 8) (Vec2 16 8)
+            Components:AlignRightCenter
+              Widgets:ListH3 8
+                Components:AlignCenter
+                  Widgets:Text Fonts:Medium item.GetName.UpperCase 20 1
+                Components:AlignCenter
+                  Components:MinSize 48
+                    Widgets:Icon item.GetIcon 2.0 * Colors:Primary
+                Components:AlignCenter
+                  Widgets:Text Fonts:Subheading item.GetTypeString.UpperCase 14 Colors:Primary
+        Ribbon
+
+    l +=
+      Components:GreedyY
+        Components:Expand
+          Components:Padding 16 16
+            ListV 8
+              Custom Widget
+                ItemInfoContents player item
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.05 0.75 1 0
+
+function Widget Create (Player player Item item)
+  Components:Expand
+    ListV 4
+      Custom
+        Widget
+        ItemInfo player item

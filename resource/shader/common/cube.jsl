@@ -1,0 +1,12 @@
+uniform vec3 origin;
+uniform vec3 du;
+uniform vec3 dv;
+
+uniform float halfTexel;
+uniform float texelScale;
+
+vec3 GetCubePosition(vec2 uv, bool texelCenter) {
+  float u = texelCenter ? uv.x : (uv.x - halfTexel) * texelScale;
+  float v = texelCenter ? uv.y : (uv.y - halfTexel) * texelScale;
+  return normalize(origin + u * du + v * dv);
+}

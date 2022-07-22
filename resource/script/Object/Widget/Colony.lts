@@ -1,0 +1,65 @@
+type ColonyTraits
+  Object object
+
+  function Void PostDraw (Widget self)
+    var traits object.GetTraits
+    var x1 self.pos.x + 76.0
+    var x2 self.pos.x + self.size.x - 4.0
+    var y self.pos.y
+    var c 2.0 * Colors:Primary
+
+    DrawText Fonts:Default "Aggressive" (Vec2 self.pos.x y) 12 1 1 false
+    Draw (Glyph_Circle 0 1 1 1) (Vec2 x1 y) 12 c 1
+    Draw (Glyph_LineFade (Vec2 x1 y) (Vec2 (Mix x1 x2 traits.Aggressive) y) 1 1) 0 1 c 1
+
+    y += 16.0
+    DrawText Fonts:Default "Creative" (Vec2 self.pos.x y) 12 1 1 false
+    Draw (Glyph_Circle 0 1 1 1) (Vec2 x1 y) 12 c 1
+    Draw (Glyph_LineFade (Vec2 x1 y) (Vec2 (Mix x1 x2 traits.Creative) y) 1 1) 0 1 c 1
+
+    y += 16.0
+    DrawText Fonts:Default "Explorative" (Vec2 self.pos.x y) 12 1 1 false
+    Draw (Glyph_Circle 0 1 1 1) (Vec2 x1 y) 12 c 1
+    Draw (Glyph_LineFade (Vec2 x1 y) (Vec2 (Mix x1 x2 traits.Explorative) y) 1 1) 0 1 c 1
+
+    y += 16.0
+    DrawText Fonts:Default "Greedy" (Vec2 self.pos.x y) 12 1 1 false
+    Draw (Glyph_Circle 0 1 1 1) (Vec2 x1 y) 12 c 1
+    Draw (Glyph_LineFade (Vec2 x1 y) (Vec2 (Mix x1 x2 traits.Greedy) y) 1 1) 0 1 c 1
+
+    y += 16.0
+    DrawText Fonts:Default "Intellectual" (Vec2 self.pos.x y) 12 1 1 false
+    Draw (Glyph_Circle 0 1 1 1) (Vec2 x1 y) 12 c 1
+    Draw (Glyph_LineFade (Vec2 x1 y) (Vec2 (Mix x1 x2 traits.Intellectual) y) 1 1) 0 1 c 1
+
+    y += 16.0
+    DrawText Fonts:Default "Lawless" (Vec2 self.pos.x y) 12 1 1 false
+    Draw (Glyph_Circle 0 1 1 1) (Vec2 x1 y) 12 c 1
+    Draw (Glyph_LineFade (Vec2 x1 y) (Vec2 (Mix x1 x2 traits.Lawless) y) 1 1) 0 1 c 1
+
+    y += 16.0
+    DrawText Fonts:Default "Sociable" (Vec2 self.pos.x y) 12 1 1 false
+    Draw (Glyph_Circle 0 1 1 1) (Vec2 x1 y) 12 c 1
+    Draw (Glyph_LineFade (Vec2 x1 y) (Vec2 (Mix x1 x2 traits.Sociable) y) 1 1) 0 1 c 1
+
+  function Void PrePosition (Widget self)
+    self.minSize = (Vec2 256 108)
+
+type ColonyWidget
+  Player player
+  Object object
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += (Widgets:Text Fonts:Default "Cultural Traits" 24 1)
+    l += 
+      Custom
+        Widget
+        ColonyTraits object
+    l
+    
+function Widget Create (Player player Object object)
+  ListV 16
+    Custom
+      Widget
+      ColonyWidget player object

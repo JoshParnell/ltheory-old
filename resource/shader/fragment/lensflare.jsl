@@ -1,0 +1,18 @@
+#include frag.jsl
+#include math.jsl
+#include lighting.jsl
+
+FRAG_IN float position;
+
+uniform vec3 baseColor;
+uniform float depth;
+uniform float opacity;
+uniform sampler2D texture;
+
+void main() {
+  float alpha = 1.25 * texture2D(texture, 0.5 + 0.5 * uv).x;
+  alpha *= opacity;
+  alpha *= sqrt(1.0 - getFoginess(depth));
+  vec3 color = baseColor;
+  RETURN(vec4(color, 1.0) * alpha);
+}

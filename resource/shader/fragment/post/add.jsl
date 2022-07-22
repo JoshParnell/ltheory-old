@@ -1,0 +1,14 @@
+#include frag.jsl
+#include math.jsl
+#include color.jsl
+
+uniform sampler2D texture1;
+uniform sampler2D texture2;
+uniform float weight1;
+uniform float weight2;
+
+void main() {
+  vec4 c1 = texture2D(texture1, uv);
+  vec4 c2 = texture2D(texture2, uv);
+  RETURN(weight1 * c1 + weight2 * c2);
+}

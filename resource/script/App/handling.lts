@@ -1,0 +1,147 @@
+type App
+  Object system
+  Player player
+  Camera camera
+
+  function Void Create (Widget self)
+    var rng (RNG_MTG 0)
+
+    # Create the camera
+    camera = Camera_Create
+    camera.Push
+
+    # Create the system
+    system = (Object_System (Vec3 15.012) 1440)
+
+    var oreType (Item_OreType 10.0 13)
+    oreType.SetName "Mercoxit"
+    system.AddResource oreType 1.0
+    system.SetName "Fermat's Last"
+
+    # Create the player ship
+    var shipType (Item_ShipType 1000000 6 1 1 1 1 1 1)
+    var ship shipType.Instantiate
+    ship.SetPos (Vec3 0)
+
+    for i 0 i < 2 i.++
+      var ship2 shipType.Instantiate
+      ship2.SetPos 1000.0 * rng.Sphere
+      ship2.SetHealth (rng.Int ship2.GetMaxHealth)
+      ship2.SetName "Pirate"
+      system.AddInterior ship2
+
+    var equipment (Item_TransferUnitType 1 1 1 1 1 1)
+    while (ship.Plug equipment) 0
+    system.AddInterior ship
+
+    # Create the player
+    player = Player_Human
+    player.AddAsset ship
+    player.Pilot ship
+    player.AddLog "Buy order for 100 x TETRITE succeeded (-600 cr)"
+    player.AddLog "Received new message from Darth Vader"
+
+    # Set up for object info demo
+    var stationType
+      Item_StationType
+        100000000
+        18
+        1.0
+        1.0
+        1.0
+        1.0
+    var station stationType.Instantiate
+    station.SetName "Konryz Mining Outpost LZ-882"
+
+    var assets (Array Object)
+    var shipType2 (Item_ShipType 100000 315 1 1 1 1 1 1)
+    var shipType3 (Item_ShipType 1000000 515 1 1 1 1 1 1)
+    var shipType4 (Item_ShipType 10000000 415 1 1 1 1 1 1)
+    for i 0 i < 16 i.++
+      var choice rng.Float
+      var object Object
+      switch
+        choice < 0.5
+          object = shipType2.Instantiate
+          object.SetName ("Fighter " + i)
+        choice < 0.8
+          object = shipType3.Instantiate
+          object.SetName ("Hauler " + i)
+        choice < 0.9
+          object = shipType4.Instantiate
+          object.SetName ("Battleship " + i)
+        otherwise 
+          object = stationType.Instantiate
+          object.SetName (CapitalCase (Grammar_Get "$station" rng))
+
+      if (rng.Float < 0.15)
+        object.SetHealth (cast Float object.GetHealth) * rng.Float
+
+      object.SetPos 10000.0 * rng.Sphere
+      system.AddInterior object
+      player.AddAsset object
+      assets += object
+
+    var items (Array Item)
+    for i 0 i < 32 i.++
+      items += (Item_WeaponType rng.Int)
+    for i 0 i < 8 i.++
+      items += (Item_OreType 10.0 * rng.Exp rng.Int)
+
+    for i 0 i < assets.Size i.++
+      ref o1 (assets.Get i)
+      if rng.Float < 0.5
+        if o1.HasComponentTasks
+          ref o2 (assets.Get (rng.Int assets.Size))
+          o1.PushTask (Task_Goto o2 500.0)
+
+      for j 0 j < 8 j.++
+        ref item (items.Get (rng.Int items.Size))
+        o1.AddItem item 2
+
+    for i 0 i < 128 i.++
+      ref item (items.Get (rng.Int items.Size))
+      ship.AddItem item 1
+      station.AddItem item 1
+
+    # Add a combat zone
+    var zone
+      Object_Zone
+        system
+        0
+        Vec3 1000
+        Vec3 100000
+        SDF_Sphere 0 1
+        128
+        1.0
+        0.0
+        0.0
+        0.0
+    # system.AddInterior zone
+
+  function List CreateChildren (Widget self)
+    var l List
+    var passes Vector<Reference<RenderPassT>>
+    passes.Append (RenderPass_Clear (Vec4 0.0))
+    passes.Append (RenderPass_Camera camera)
+    passes.Append (RenderPass_SMAA)
+    passes.Append (RenderPass_PostFilter "post/dither.jsl")
+    l += (Widget_Rendered passes)
+    l += (Widget/HUD:Create player)
+    l
+
+  function Void PreUpdate (Widget self)
+    camera.SetTarget player.GetPiloting
+    var dt FrameTimer_Get
+    dt = (Min dt 0.1)
+    if Key_H.Down dt *= 20.0
+
+    static paused false
+    if Key_P.Pressed paused = paused.!
+    if paused.!
+      system.Update dt
+
+function Data Main ()
+  widget:Create
+    Stack
+      Custom Widget App

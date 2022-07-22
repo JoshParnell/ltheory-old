@@ -1,0 +1,27 @@
+#include frag.jsl
+#include color.jsl
+#include math.jsl
+
+uniform sampler2D texture;
+uniform vec2 delta;
+uniform int radius;
+uniform float variance;
+
+void main() {
+  vec3 c = texture2D(texture, uv).xyz;
+  float tw = 1.0;
+
+  for (int i = 1; i <= radius; ++i) {
+    float offset = float(i);
+    vec3 c1 = texture2D(texture, uv + offset * delta.xy).xyz;
+    vec3 c2 = texture2D(texture, uv - offset * delta.xy).xyz;
+    float w = exp(-pow2(offset / variance));
+    float w1 = w;
+    float w2 = w;
+    c += w1 * c1;
+    c += w2 * c2;
+    tw += w1 + w2;
+  }
+
+  RETURN(vec4(c / tw, 1.0));
+}

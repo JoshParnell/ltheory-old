@@ -1,0 +1,11 @@
+#include frag.jsl
+#include math.jsl
+#include color.jsl
+
+uniform sampler2D texture;
+uniform vec3 power;
+
+void main() {
+  vec4 c = texture2D(texture, uv);
+  RETURN(pow(c, vec4(power, 1.0)));
+}

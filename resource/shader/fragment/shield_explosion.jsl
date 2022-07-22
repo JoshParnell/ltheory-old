@@ -1,0 +1,35 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+#include softparticle.jsl
+
+uniform vec3 harmonics;
+uniform vec3 color1;
+uniform vec3 color2;
+uniform float opacity;
+uniform float age;
+uniform float ring;
+
+const float animSpeed = .2f;
+
+FRAG_IN vec4 colorMask;
+
+void main() {
+  float dx = uv.x; float dy = uv.y;
+  float realAge = animSpeed * age;
+  float radius = sqrt(saturate(dx*dx + dy*dy));
+  float noisyRadius = radius - .6 *
+      sin(uv.x * 9.21 * harmonics.x - realAge * 4.83) *
+      cos(uv.x * 3.88 * harmonics.y - realAge * 1.3) *
+      sin(uv.y * 13.32 * harmonics.z - realAge * 1.63) *
+      cos(uv.y * 7.1313 * harmonics.x - realAge * 11.93);
+
+  float alpha = .5 * (exp(-saturate(noisyRadius - .3) * 4.) + exp(-saturate(noisyRadius - .3) * 2.));
+  alpha *= exp(-realAge * 5.);
+  alpha += .5 * ring * exp(-abs(noisyRadius - realAge) * 5.);
+  alpha *= saturate(1. - radius);
+  alpha *= 1. - exp(-realAge * 15.);
+  alpha *= exp(-realAge);
+  alpha *= opacity;
+  RETURN(vec4(mix(color1, color2, alpha), 1.0) * alpha);
+}

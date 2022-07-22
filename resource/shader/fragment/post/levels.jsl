@@ -1,0 +1,13 @@
+#include frag.jsl
+#include math.jsl
+#include color.jsl
+
+uniform sampler2D texture;
+uniform vec3 lower;
+uniform vec3 upper;
+
+void main() {
+  vec4 c = texture2D(texture, uv);
+  c.xyz = (c.xyz - lower) / (upper - lower);
+  RETURN(c);
+}

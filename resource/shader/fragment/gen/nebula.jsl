@@ -1,0 +1,99 @@
+ /* --- Here Lies Magic <3 -------------------------------------------------- */
+
+#include frag.jsl
+#include color.jsl
+#include cube.jsl
+#include math.jsl
+#include noise.jsl
+#include quat.jsl
+
+uniform float seed;
+uniform float roughness;
+uniform vec3 color1;
+uniform vec3 color2;
+uniform vec3 starDir;
+uniform vec4 offset;
+uniform vec4 orientation1;
+uniform vec4 orientation2;
+
+const float kDepth = 2.0;
+const float kEmission = 1.25;
+const float kSamples = 128.0;
+
+float magic(vec3 p, float r) {
+  vec4 z = vec4(0.25 * p + 0.75, 0.5) + vec4(0.2);
+  float a = 0.0, l = 0.0, tw = 0.0, w = 1.0;
+  vec4 c = vec4(0.3, 0.5, 0.4, 0.5);
+  for (int i = 0; i < 24; ++i) {
+    float m = dot(z, z);
+    z = abs(z) / dot(z, z) - c;
+    z += 0.01 * log(1.e-10 + noise4(float(i) + seed));
+    z *= 1.00 - 0.1 * (2.0 * noise(float(i) + seed * 2.0 + 32.0) - 1.0);
+    z += 0.1 * sin(z);
+    a += w * exp(-4.0 * pow2(abs(l - m)));
+    tw += w;
+    if (i > 3) w *= r;
+    l = m;
+  }
+  return 30.0 * a / tw;
+}
+
+float emission(vec3 p) {
+  return exp(-8.0 * fsnoise(p, 4, 2.0));
+}
+
+float absorption(vec3 p) {
+  return 0.5 + 0.5 * cos(magic(0.75 + 0.1 * p, 0.72));
+}
+
+vec4 generate(vec3 dir, vec4 q1, vec4 q2) {
+  vec3 color = vec3(0.0);
+  float density = 0.0;
+  float w = 1.0 / float(kSamples);
+
+  /* Emission. */ {
+    float mask = 1.0;
+    vec3 p = quatMul(q1, dir);
+    float t = emission(dir);
+    t *= mask;
+    t += 0.05;
+    color += t * color1;
+  }
+
+  /* Central Star. */ {
+    float d = 1.0 - dot(dir, starDir);
+    float t = 2.0 * exp(-512.0 * d);
+    color += t * color1;
+  }
+
+  /* Absorption. */ {
+    float mask = 1.0;
+    // mask *= exp(-0.5 * pow(abs(pos.y), 2.0));
+
+    for (float i = 0.0; i < kSamples; ++i) {
+      vec3 pos = (1.0 + kDepth * (i * w)) * dir;
+      float t = absorption(quatMul(q2, pos));
+      t = exp(-t);
+
+      vec3 wv = normalize(pow(color2, vec3(2.0)));
+      vec3 vs = exp(-(16.0 * wv * max(0.0, abs(t - 0.95) - 0.00)));
+
+      vs *= mask;
+      density += w * avg(vs);
+
+      vs -= 1.3 * exp(-pow(16.0 * abs(t - 0.90), 0.75));
+      color *= exp(-6.0 * w * vs);
+    }
+  }
+
+  return vec4(color, density);
+}
+
+void main() {
+  vec3 dir = GetCubePosition(uv, false);
+  vec4 q1 = quatRotation(orientation1.xyz, orientation1.w);
+  vec4 q2 = quatRotation(orientation2.xyz, orientation2.w);
+  vec4 c = generate(dir, q1, q2);
+  // c.xyz = normalize(c.xyz) * pow(length(c.xyz), 0.5);
+  RETURN(c);
+}

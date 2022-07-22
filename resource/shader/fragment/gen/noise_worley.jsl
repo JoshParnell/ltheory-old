@@ -1,0 +1,12 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+void main() {
+  vec2 uvp = uv * 8.;
+  float r = fcnoise(uvp, 4., 8, 1.4);
+  float g = fcnoise(uvp, 5., 8, 1.4);
+  float b = fcnoise(uvp, 6., 8, 1.4);
+  float a = fcnoise(uvp, 7., 8, 1.4);
+  RETURN(vec4(r, g, b, a));
+}

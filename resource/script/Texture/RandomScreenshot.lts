@@ -1,0 +1,16 @@
+function Texture Get ()
+  var path "/home/josh/Dropbox/lt/screenshot"
+  while path.IsDirectory
+    path += "/"
+    var contents path.ListDir
+    var selection (contents.Get (Int_Random contents.Size))
+    path += selection
+
+  switch
+    true
+      Texture_LoadFrom
+        Location_File path
+    otherwise
+      Texture/Filters:Artistic
+        Texture_LoadFrom
+          Location_File path

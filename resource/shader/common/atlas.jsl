@@ -1,0 +1,10 @@
+const float textureExtent = 1000.;
+uniform float atlasTextureCount;
+
+vec2 atlasUV(vec2 uv, float index) {
+  float u = fract(uv.x);
+  float v = fract(uv.y);
+  return vec2(
+    (index - 1.) / atlasTextureCount + u / atlasTextureCount,
+    v);
+}

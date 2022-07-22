@@ -1,0 +1,103 @@
+type TabSelect
+  String group
+  String label
+
+function Void TabUpdate (Widget self String group String label Bool focus Bool selected)
+  if self.focusMouse && (! focus)
+    focus = true
+    self.Rebuild
+    Sound_Play "ui/hover.wav" 0.008
+
+  if (! self.focusMouse) && focus
+    focus = false
+    self.Rebuild
+
+  if self.focusMouse
+    if Mouse_LeftPressed
+      selected = true
+      self.SendUp (TabSelect group label)
+      Sound_Play "ui/tabselect.wav" 0.1
+
+function Void TabReceive (Widget self Data data String group String label Bool selected)
+  switch
+    (data.IsType "MessageGetLabel")
+      ref message (cast Messages:MessageGetLabel data)
+      if (message.label == group && selected)
+        message.contents = label
+
+    (data.IsType "TabSelect")
+      ref message (TabSelect data)
+      if (message.group == group && message.label != label)
+        selected = false
+        self.Rebuild
+
+type Tab
+  String group
+  String label
+  Bool focus false
+  Bool selected false
+
+  function List CreateChildren (Widget self)
+    var l List
+    var c 
+      switch
+        focus (Vec3 0.0)
+        otherwise (Vec3 1.0)
+    l +=
+      Custom Widget
+        Text:Text Fonts:Default label 13.0 c
+    l
+
+  function Void PreDraw (Widget self)
+    if focus
+      DrawPanel self.pos self.size 2.5 * Colors:Primary 0.5 1.0 0.0
+    if selected
+      DrawPanel self.pos (Vec2 4 self.size.y) 2.5 * Colors:Primary 0.5 1.0 0.0
+
+  function Void PostUpdate (Widget self)
+    TabUpdate self group label focus selected
+
+  function Void Receive (Widget self Data data)
+    TabReceive self data group label selected
+
+type TabIcon
+  String group
+  String label
+  Icon icon
+  Vec3 color
+  Vec3 focusColor
+  Bool drawRing
+  Bool drawText
+  Bool selected
+  Bool focus false
+
+  function String GetName () label
+
+  function Void PreDraw (Widget self)
+    var c (? (selected 3.0 * focusColor) (otherwise 2.0 * color))
+    var opacity (? (selected 0.5) (otherwise 0.1))
+
+    switch
+      drawText
+        if drawRing
+          Draw (Glyph_Arc 0 1 0.01 1 1 0 1) (self.GetPoint 0.5 0.4) 0.4 * self.size c opacity
+          if focus
+            Draw (Glyph_Arc 0 1 0.01 1 1 0 1) (self.GetPoint 0.5 0.4) 0.5 * self.size c 1.0
+          if selected
+            Draw (Glyph_Arc 0 1 0.01 1 1 0 1) (self.GetPoint 0.5 0.4) 0.45 * self.size c opacity
+        Draw icon (self.GetPoint 0.5 0.4) 0.25 * self.size c 1.0
+        DrawText Fonts:Subheading label.UpperCase self.BottomCenter + (Vec2 0 1) 12 c 0.5 true
+      otherwise
+        if drawRing
+          Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.5 * self.size c opacity
+          if focus
+            Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.6 * self.size c 1.0
+          if selected
+            Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.55 * self.size c opacity
+        Draw icon self.Center (? (drawRing 0.25) (otherwise 0.4)) * self.size c 1.0
+
+  function Void PostUpdate (Widget self)
+    TabUpdate self group label focus selected
+
+  function Void Receive (Widget self Data data)
+    TabReceive self data group label selected

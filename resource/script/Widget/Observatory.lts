@@ -1,0 +1,181 @@
+function Float ViewDistance () 100.0
+
+type ObsObject
+  Object object
+
+  function HashT GetHash () object.GetHash
+
+  function Void PreDraw (Widget self)
+    if self.focusMouse
+      Draw object.GetIcon self.Center 32 1 1
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse && Mouse_LeftPressed
+      Camera_Get.SetTarget object
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageGetObject")
+      ref msg (cast Messages:MessageGetObject data)
+      msg.object = object
+
+function Widget CreateObsObject (Object object)
+  Components:CaptureMouse
+    Custom Widget
+      ObsObject object
+
+type ObsObjects
+  function List CreateChildren (Widget self)
+    var l List
+    var camera Camera_Get
+    if camera.GetSystem.IsNotNull
+      for it camera.GetSystem.GetInteriorObjects it.HasMore it.Advance
+        var object it.Get
+        if object.HasComponentNameable
+          var viewDistance ViewDistance * object.GetRadius
+          if (Camera_CanSee object viewDistance)
+            l += (CreateObsObject object)
+    l
+
+  function Void PostPosition (Widget self)
+    var camera Camera_Get
+    for it self.GetChildren it.HasMore it.Advance
+      var widget it.Get
+      var object (Messages:GetObject widget)
+      var proj (Camera_Project camera object.GetPos)
+      var distance (Length camera.GetPos - object.GetPos)
+      var viewDistance ViewDistance * object.GetRadius
+      var size 64.0
+      switch
+        proj.z > 0.0 && distance < viewDistance
+          widget.alpha = 1.0 - distance / viewDistance
+          var ss self.pos + self.size * ((Vec2 0.5 0.5) + (Vec2 0.5 -0.5) * (Vec2 proj.x proj.y))
+          widget.pos = (Clamp ss 4 self.size - 8) - 0.5 * size
+          widget.size = size
+        otherwise
+          widget.alpha = 0
+          widget.pos = 0
+          widget.size = 0
+
+type ObservatoryFilter
+  Texture buffer (Texture2D_CreateHDR 1 1)
+  Texture buffer2 (Texture2D_CreateHDR 1 1)
+
+  function Texture Render (Texture self)
+    if (buffer.GetWidth != self.GetWidth || buffer.GetHeight != self.GetHeight)
+      buffer = (Texture2D_CreateHDR self.GetWidth self.GetHeight)
+      buffer2 = (Texture2D_CreateHDR self.GetWidth self.GetHeight)
+      buffer.BeginDrawTo
+      DrawClear 0 0
+      buffer.EndDrawTo
+
+    switch
+      false
+        var k 0.4
+        Texture/Filters:AddOut k 1.0 - k self buffer buffer2
+        Texture/Filters:GainOut 1.0 buffer2 buffer
+        buffer2
+      false
+        Texture/Filters:VignetteOut 8.0 0.5 self buffer
+        Texture/Filters:ColorGradeOut
+          Vec3 0.000 0.000 0.000
+          Vec3 0.250 0.250 0.250
+          Vec3 0.500 0.500 0.500
+          Vec3 0.750 0.750 0.750
+          Vec3 1.000 1.000 1.000
+          buffer
+          self
+        self
+      otherwise
+        self
+
+type Title
+  Camera camera
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += (Widgets:Text Fonts:Medium camera.GetTarget.GetSystem.GetName.UpperCase 48 1)
+    l
+
+  function Void PreDraw (Widget self)
+    Draw (Glyph_Gradient 0 1 0.02 0 0.02 1) self.pos self.size 1 1
+
+type Overlay
+  Camera camera
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:AlignBottomLeft
+        Components:ExpandX
+          Components:Padding 32 32
+            ListH 8
+              Custom Widget
+                Title camera
+
+    l += 
+      Components:Expand
+        Dynamic
+          Stack
+            Custom Widget
+              ObsObjects
+    l
+
+type Observatory
+  Camera camera
+  Position origin (Vec3d 0 0 0)
+  Float radius 10000
+  Float radiusT 10000
+  Float pitch -0.9 * Pi2
+  Float pitchT -0.9 * Pi2
+  Float yaw 1.5
+  Float yawT 1.5
+
+  function List CreateChildren (Widget self)
+    var l List
+
+    var passes Vector<Reference<RenderPassT>>
+    passes.Append (RenderPass_Clear (Vec4 0.0))
+    passes.Append (RenderPass_Camera camera)
+    passes.Append (RenderPass_CustomFilter ObservatoryFilter)
+    passes.Append (RenderPass_SMAA)
+    passes.Append (RenderPass_PostFilter "post/dither.jsl")
+    l += (Widget_Rendered passes)
+
+    l += 
+      Layer
+        Compositor_Basic 0.05 0.10 (Vec3 0.40 0.50 0.75)
+        Mesh_Quad
+        1.0
+        Stack
+          Custom Widget
+            Overlay camera
+    l
+
+  function Void PostDraw (Widget self)
+    Draw Icon/Cursors:Cross Cursor_Get 8 Colors:Primary 1
+    if Key_F3.Down
+      Widget/Dev/FrameInfo:Draw self
+
+  function Void PreUpdate (Widget self)
+    radiusT *= 1.0 - 0.1 * Mouse_GetScrollDelta
+    if Mouse_RightDown
+      yawT -= 0.01 * Cursor_GetDelta.x
+      pitchT += 0.01 * Cursor_GetDelta.y
+
+    var factor 1.0 - (ExpDecay FrameTimer_Get 0.10)
+    radius = (Mix radius radiusT factor)
+    pitch = (Mix pitch pitchT 1.0)
+    yaw = (Mix yaw yawT 1.0)
+
+
+    var origin camera.GetTarget.GetPos
+    var p origin + radius * (Vec3 pitch.Sin * yaw.Cos pitch.Cos pitch.Sin * yaw.Sin)
+    camera.SetRelativePos p
+    camera.SetRelativeLookAt origin
+    camera.SetRigidity 32.0
+
+function Widget Create (Camera camera)
+  Components:Expand
+    Stack
+      Custom Widget
+        Observatory camera

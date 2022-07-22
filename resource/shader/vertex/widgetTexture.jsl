@@ -1,0 +1,6 @@
+#include vert.jsl
+
+void main() {
+  uv = vertex_uv;
+  gl_Position = PROJ * vec4(vertex_position, 1.0);
+}

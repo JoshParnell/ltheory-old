@@ -1,0 +1,32 @@
+#include frag.jsl
+#include color.jsl
+#include math.jsl
+#include noise.jsl
+
+uniform sampler2D texture;
+uniform vec2 center;
+uniform float strength;
+uniform float falloff;
+uniform float radius;
+
+const float kSamples = 8;
+
+void main() {
+  vec4 total = vec4(0);
+  float tw = 0.0;
+  vec2 origin = mix(uv, center, 0.05);
+
+  float rcpSamples = 1.0 / (kSamples + 1.0);
+  for (float i = noise(933.0 * uv + 0.591); i <= kSamples; i += 1.0) {
+    float t = i * rcpSamples;
+    float w = 1.0 - t;
+    total += w * texture2D(texture, mix(uv, origin, t));
+    tw += w;
+  }
+
+  total /= tw;
+  float r = 2.0 * length(uv - center);
+  float s = strength * (1.0 - exp(-falloff * pow2(max(0.0, r - radius))));
+  s = saturate(s);
+  RETURN(mix(texture2D(texture, uv), total, s));
+}

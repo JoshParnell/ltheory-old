@@ -1,0 +1,24 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+#include cube.jsl
+
+uniform samplerCube source;
+uniform float radius;
+uniform int samples;
+
+void main() {
+  vec2 uvp = uv;
+  vec3 p = GetCubePosition(uvp, true);
+  vec4 c = vec4(0.0);
+
+  for (int i = 0; i < samples; ++i) {
+    vec3 dir = noise3(float(i));
+    dir = 2.0 * dir - 1.0;
+    c += textureCube(source, p + 0.5 * radius * dir);
+  }
+
+  c /= float(samples);
+  c += vec4(1.0 / 256.0) * noise(p);
+  RETURN(c);
+}

@@ -1,0 +1,6 @@
+type Padding
+  Vec2 inner
+  Vec2 outer
+
+  function Vec4 GetPadding ()
+    Vec4 inner.x inner.y outer.x outer.y

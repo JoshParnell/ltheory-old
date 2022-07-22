@@ -1,0 +1,45 @@
+type Button
+  Data onPress
+  String text
+  Float size
+  Bool focus false
+
+  function List CreateChildren (Widget self)
+    var l List
+    var c (? (self.focusMouse (Vec3 0)) (otherwise (Vec3 1)))
+
+    # CRITICAL ~ 2-passed compile..can't use text widget directly :/
+    l +=
+      Components:AlignCenter
+        Custom Widget
+          Text:Text Fonts:Subheading text size c
+    l
+
+  function Void PreDraw (Widget self)
+    var c
+      switch
+        focus 2.5 * Colors:Primary
+        otherwise (Vec3 0.15)
+    DrawPanel self.pos self.size c 0.5 1 0
+    # DrawPanel self.pos (Vec2 4 self.size.y) c 0.5 1.0 0.0
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse && (! focus)
+      focus = true
+      self.Rebuild
+      Sound_Play "ui/hover.wav" 0.008
+
+    if (! self.focusMouse) && focus
+      focus = false
+      self.Rebuild
+
+    if self.focusMouse
+      if Mouse_LeftPressed
+        self.SendUp onPress
+
+function Widget Create (Data onPress String text Float size)
+  Components:CaptureMouse
+    Components:Padding (Vec2 6 6) 6
+      Stack
+        Custom Widget
+          Button onPress text size

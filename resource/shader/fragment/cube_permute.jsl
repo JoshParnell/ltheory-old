@@ -1,0 +1,13 @@
+#include frag.jsl
+#include cube.jsl
+#include quat.jsl
+
+uniform samplerCube source;
+uniform vec4 orientation;
+
+void main() {
+  vec2 uvp = uv;
+  vec3 p = GetCubePosition(uvp, true);
+  RETURN(sqrt(textureCube(source, p) *
+              textureCube(source, quatMul(orientation, p))));
+}

@@ -1,0 +1,82 @@
+type MessageLock
+  Bool locked
+
+type HUDWidget
+  Widget child
+  Vec2 size
+  Vec2 offset 0
+  Widget posWidget Widget
+  Widget scaleWidget Widget
+  Vec2 scalingDir 0
+  Bool locked true
+  Bool moving false
+  Bool scaling false
+
+  function Void CaptureFocus (Widget self)
+    if locked.!
+      var c Cursor_Get
+      var p1 (Max self.pos ClipRegion_GetMin)
+      var p2 (Min self.pos + self.size ClipRegion_GetMax)
+      self.focusMouse = (p1 <= c && c <= p2)
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += child
+    l
+
+  function Void PrePosition (Widget self)
+    if moving
+      offset += Cursor_GetDelta
+    if scaling
+      var delta 0.5 * scalingDir * Cursor_GetDelta
+      size += scalingDir * Cursor_GetDelta
+
+    self.minSize = (Max size self.minSize)
+    self.pos += offset
+
+  function Void PostDraw (Widget self)
+    if locked.!
+      var c
+        switch
+          self.focusMouse Colors:Secondary
+          otherwise Colors:Primary
+      DrawPanel self.pos self.size 0.1 0.95 1 0
+      Draw (Glyph_Line self.TopLeft self.TopRight 1 1) 0 1 c 1.0
+      Draw (Glyph_Line self.TopRight self.BottomRight 1 1) 0 1 c 1.0
+      Draw (Glyph_Line self.BottomRight self.BottomLeft 1 1) 0 1 c 1.0
+      Draw (Glyph_Line self.BottomLeft self.TopLeft 1 1) 0 1 c 1.0
+      DrawText Fonts:Default child.GetName.UpperCase self.Center 16.0 1 1 true
+      DrawText Fonts:Default self.size.x + " X " + self.size.y self.Center + (Vec2 0 16) 14.0 0.3 1 true
+      Draw Icons:Gear self.TopRight + (Vec2 -16.0 16.0) 10 Colors:Primary 1.0
+
+    if Key_B.Pressed
+      switch
+        locked
+          locked = false
+          self.RemoveChild child
+        otherwise
+          locked = true
+          self.AddChild child
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse && Mouse_LeftPressed
+      switch
+        Key_Shift
+          scaling = true
+          scalingDir = (Sign (Cursor_Get - self.Center))
+        otherwise
+          moving = true
+
+    if (moving || scaling) && Mouse_LeftReleased
+      moving = false
+      scaling = false
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageLock")
+      ref msg (cast MessageLock data)
+      locked = msg.locked
+
+function Widget Create (Vec2 size Widget widget)
+  Stack
+    Custom Widget
+      HUDWidget (Components:Expand widget) size

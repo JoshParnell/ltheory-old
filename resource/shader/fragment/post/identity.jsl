@@ -1,0 +1,9 @@
+#include frag.jsl
+
+uniform sampler2D texture;
+uniform float opacity;
+
+void main() {
+  vec4 c = texture2D(texture, uv);
+  RETURN(vec4(c.xyz, opacity));
+}

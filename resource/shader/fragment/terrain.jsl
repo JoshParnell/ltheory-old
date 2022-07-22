@@ -1,0 +1,56 @@
+#include frag.jsl
+#include color.jsl
+#include math.jsl
+#include texturing.jsl
+
+uniform sampler2D detailMap;
+uniform sampler2D normalMap;
+uniform sampler2D bumpMap;
+uniform sampler2D noiseMap;
+uniform vec3 eye;
+
+uniform vec3 color1;
+uniform vec3 color2;
+
+uniform float a;
+uniform float b;
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+
+const float uvTile = 32.;
+
+void main() {
+  vec2 normalTex = uv*a + vec2(b);
+  vec3 surfaceNormal =
+    mix(normal, normalize(2.*tex2D(normalMap, normalTex).xzy - 1.), .5);
+
+  vec3 bumpNormal = getBumpNormal(surfaceNormal, tex2D(bumpMap, uv * uvTile / 2).xyz);
+
+  float l = (lum(tex2D(detailMap, uv * uvTile / 4).rgb) +
+             lum(tex2D(detailMap, uv * uvTile * 1).rgb) +
+             lum(tex2D(detailMap, uv * uvTile * 4).rgb)) / 3.;
+  float glow = 0.;
+
+  vec4 noise = tex2D(noiseMap, uv);
+  vec3 color = vec3(.8, .5, .3);
+
+  float slope = saturate(abs(surfaceNormal.y));
+  slope *= slope;
+  slope *= slope;
+  slope = 1. - slope;
+  slope += .25 * (noise.x - .5);
+
+  color = mix(color, vec3(.4, .3, .3), saturate(contrast(slope, 10.)));
+
+  color *= mix(.7, 1., l);
+
+  const vec3 lightDir = normalize(vec3(1, 1, 0));
+  vec3 refl = reflect(normalize(eye - position), bumpNormal);
+  float light = pow(saturate(dot(surfaceNormal, lightDir)), 1);
+
+  light *= saturate(dot(bumpNormal, lightDir));
+  color *= light;
+
+  RETURN(vec4(color, 0.));
+}

@@ -1,0 +1,52 @@
+type ScrollFrameV
+  Float scroll 0.0
+  Float scrollTarget 0.0
+  Float innerSize 0.0
+  Float excess 0.0
+
+  function Void PrePosition (Widget self)
+    innerSize = self.minSize.y
+    self.minSize.y = 0.0
+
+  function Void PostPosition (Widget self)
+    for it self.GetChildren it.HasMore it.Advance
+      var widget it.Get
+      widget.pos.y -= scroll
+    excess = (Max 0.0 innerSize - self.size.y)
+
+  function Void PreDraw (Widget self)
+    ClipRegion_Push (Vec2 -100000.0 self.pos.y) (Vec2 200000.0 self.size.y)
+
+  function Void PostDraw (Widget self)
+    ClipRegion_Pop
+    if excess > 0.0
+      var t scroll / excess
+      var z 0.5 * self.size.y * (self.size.y / innerSize)
+      var y (Mix self.TopRight.y self.BottomRight.y - z t)
+      var p1 (Vec2 self.TopRight.x - 2.0 y)
+      var p2 p1 + (Vec2 0 z)
+      DrawPanel (Vec2 self.TopRight.x - 4.0 self.pos.y) (Vec2 2 self.size.y) 0.1 0.5 0.5 0
+      DrawPanel (Vec2 self.TopRight.x - 6.0 y) (Vec2 6 z) 0.2 1 0.5 0
+
+  function Void PreUpdate (Widget self)
+    ClipRegion_Push (Vec2 -100000.0 self.pos.y) (Vec2 200000.0 self.size.y)
+
+  function Void PostUpdate (Widget self)
+    ClipRegion_Pop
+    if self.focusKey
+      if Key_PageDown.Pressed
+        scrollTarget += self.size.y
+      if Key_PageUp.Pressed
+        scrollTarget -= self.size.y
+      if Key_Home.Pressed
+        scrollTarget = 0
+      if Key_End.Pressed
+        scrollTarget = excess
+
+    if self.focusScroll
+      scrollTarget -= 0.1 * self.size.y * Mouse_GetScrollDelta
+
+    scrollTarget = (Clamp scrollTarget 0.0 excess)
+    scroll = (Mix scroll scrollTarget 1.0 - (ExpDecay FrameTimer_Get 0.1))
+
+type ScrollFrameH

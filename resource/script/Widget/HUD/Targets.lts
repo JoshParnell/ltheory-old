@@ -1,0 +1,19 @@
+type Targets
+  Player player
+  Object object
+
+  function List CreateChildren (Widget self)
+    var l List
+    for it object.GetTargets it.HasMore it.Advance
+      l +=
+        Components:MinSize 128
+          ObjectBadge:Create player it.Get false
+    l
+
+  function String GetName () "Targets"
+
+function Widget Create (Player player Object object)
+  Dynamic
+    ListH 4
+      Custom Widget
+        Targets player object

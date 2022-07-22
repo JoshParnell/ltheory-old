@@ -1,0 +1,405 @@
+function Icon ArrowLeft ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Triangle (Vec2 -0.75 0) (Vec2 0.25 -0.75) (Vec2 0.25 0.75) 1 1)
+      icon
+  self
+
+function Icon ArrowRight ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Triangle (Vec2 0.75 0) (Vec2 -0.25 -0.75) (Vec2 -0.25 0.75) 1 1)
+      icon
+  self
+
+function Icon Assets ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Circle 0 1 1 1)
+      var k 5
+      for i 0 i < k (++ i)
+        var angle 2.0 * Pi * (i / k)
+        var offset 0.8 * (Vec2 angle.Cos angle.Sin)
+        icon += (Glyph_Circle offset 1 1 1)
+        icon += (Glyph_Line 0 offset 1 0.2)
+      icon
+  self
+
+function Icon Badge ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Arc (Vec2 0 -0.3) 0.4 0.02 1 1 0.375 0.375)
+      icon += (Glyph_LineFade (Vec2 0 0.1) (Vec2 0 0.6) 1 1)
+      icon += (Glyph_Circle (Vec2 0 0.85) 1 1 1)
+      icon
+  self
+
+function Icon Cancel ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Line (Vec2 -0.7 -0.7) (Vec2  0.7 0.7) 1 1.5)
+      icon += (Glyph_Line (Vec2  0.7 -0.7) (Vec2 -0.7 0.7) 1 1.5)
+      icon
+  self
+
+function Icon CircleDot ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Circle 0 4 1 1)
+      icon += (Glyph_Arc 0 1 0.01 1 1 0 1)
+      icon
+  self
+
+function Icon Clock ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Circle 0 1 1 1)
+      icon += (Glyph_Line 0 0.75 * (Polar (-3 / 12) * 2Pi) 2 1)
+      icon += (Glyph_Line 0 0.50 * (Polar ( 1 / 12) * 2Pi) 2 1)
+      for i 0 i < 12 i.++
+        var dir (Polar (i / 12) * 2Pi)
+        var s (? ((Mod i 3) == 0 1.50) (otherwise 0.75))
+        icon += (Glyph_Circle dir 1 s 1)
+      icon
+  self
+
+function Icon Credits ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Arc (Vec2 0.2 0) 0.8 0.01 1 1 0 0.3)
+      icon += (Glyph_Arc (Vec2 0.2 0) 0.4 0.01 1 0.5 0.5 0.3)
+      icon += (Glyph_Line (Vec2 -1.0 0.0) (Vec2 0.9 0.0) 1 1)
+      icon
+  self
+
+function Icon City ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Box (Vec2 -0.8 0.6) (Vec2 0.10 0.4) 1 1)
+      icon += (Glyph_Box (Vec2 -0.4 0.7) (Vec2 0.05 0.3) 1 1)
+      icon += (Glyph_Box (Vec2  0.0 0.0) (Vec2 0.10 1.0) 1 1)
+      icon += (Glyph_Box (Vec2  0.4 0.3) (Vec2 0.05 0.7) 1 1)
+      icon += (Glyph_Box (Vec2  0.8 0.7) (Vec2 0.05 0.3) 1 1)
+      icon
+  self
+
+function Icon Cargo ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Box (Vec2 -0.2 -0.2) 0.1 1 1)
+      icon += (Glyph_Box (Vec2 -0.55 -0.2) 0.1 1 1)
+      icon += (Glyph_Box (Vec2 -0.2 -0.55) 0.1 1 1)
+      icon += (Glyph_Box (Vec2  0.4 -0.4) 0.25 1 1)
+      icon += (Glyph_Box (Vec2 -0.4  0.4) 0.25 1 1)
+      icon += (Glyph_Box (Vec2  0.4  0.4) 0.25 1 1)
+      icon
+  self
+
+function Icon Comm ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Circle (Vec2 0 0.3) 1 1 1)
+      icon += (Glyph_Arc (Vec2 0 0.3) 0.3 0.01 1 1 0.25 0.15)
+      icon += (Glyph_Arc (Vec2 0 0.3) 0.6 0.01 1 1 0.25 0.15)
+      icon += (Glyph_Arc (Vec2 0 0.3) 0.9 0.01 1 1 0.25 0.15)
+      icon
+  self
+
+function Icon Database ()
+  static self
+    block
+      var icon Icon
+      var rng (RNG_MTG 15)
+      for i 0 i < 6 i.++
+        var y 2.0 * ((i + 1) / (6 + 1)) - 1.0
+        var w rng.Float
+        icon += (Glyph_Box (Vec2 w - 1.0 y) (Vec2 0.5 * w 1.0 / 20.0) 1 0.75)
+        icon += (Glyph_Box (Vec2 w y) (Vec2 0.5 * (1.0 - w) 1.0 / 20.0) 1 0.75)
+      icon
+  self
+
+function Icon Dot ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Circle 0 4 1 1)
+      icon
+  self
+
+function Icon ExclamationMark ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Box (Vec2 0 -0.25) (Vec2 0.05 0.5) 1 1)
+      icon += (Glyph_Circle (Vec2 0 0.95) 1.5 1 1)
+      icon
+  self
+
+function Icon Gear ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Arc 0 0.5 0.1 1 1 0 1)
+      for i 0 i < 8 i.++
+        icon += (Glyph_Arc 0 0.8 0.1 1 1 i / 8 0.15 / 8.0)
+      icon
+  self
+
+function Icon Hardpoints ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Circle 0 1 1 1)
+      var k 4
+      for i 0 i < k (++ i)
+        var angle 2.0 * Pi * (i / k)
+        var offset 0.9 * (Vec2 angle.Cos angle.Sin)
+        icon += (Glyph_Arc offset 0.1 0.01 1 1 0 1)
+        icon += (Glyph_Line 0 offset 1 0.2)
+      icon
+  self
+
+function Icon Hexagon ()
+  static self
+    block
+      var icon Icon
+      for i 0 i < 6 i.++
+        var p1 1.1 * (Polar 2Pi * (((cast Float i) + 0.65) / 6.0))
+        var p2 1.1 * (Polar 2Pi * (((cast Float i) + 1.35) / 6.0))
+        icon += (Glyph_Circle 1.1 * (Polar 2Pi * (((cast Float i) + 0.5) / 6.0)) 0.5 1 2)
+        icon += (Glyph_Line p1 p2 1 1.5)
+      icon
+  self
+
+function Icon JumpTo ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Circle (Vec2 -0.7 0) 1 1 1)
+      icon += (Glyph_Arc (Vec2 0.7 0) 0.1 0.01 1 1 0 1)
+      icon += (Glyph_LineFade (Vec2 0.3 0) (Vec2 -0.5 0) 1 1)
+      icon += (Glyph_LineFade (Vec2 0.3 0) (Vec2 0  0.2) 1 1)
+      icon += (Glyph_LineFade (Vec2 0.3 0) (Vec2 0 -0.2) 1 1)
+      icon
+  self
+
+function Icon Lock ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Arc (Vec2 0 -0.3) 0.5 0.1 1 1 0.25 0.25)
+      icon += (Glyph_Box (Vec2 0  0.3) (Vec2 0.8 0.5) 1 1)
+      icon
+  self
+
+function Icon Log ()
+  static self
+    block
+      var icon Icon
+      var k 5
+      for i 0 i < k i.++
+        var y 2.0 * ((i + 1) / (k + 1)) - 1.0
+        icon += (Glyph_Circle (Vec2 -0.75 y) 1 1 1)
+        icon += (Glyph_Line (Vec2 -0.30 y) (Vec2 0.75 y) 1 0.5)
+      icon
+  self
+
+function Icon MagnifyingGlass ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Arc (Vec2 0.3 -0.3) 0.4 0.05 1 1 0 1)
+      icon += (Glyph_LineFade (Vec2 -0.7 0.7) (Vec2 -0.1 0.1) 1 2)
+      icon += (Glyph_Circle (Vec2 -0.7 0.7) 1 1 1)
+      icon
+  self
+
+function Icon Mail ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Box 0 (Vec2 0.9 0.5) 1 0.1)
+      icon += (Glyph_Line (Vec2 -0.9 -0.5) (Vec2  0.0  0.1) 1 0.8)
+      icon += (Glyph_Line (Vec2  0.9 -0.5) (Vec2  0.0  0.1) 1 0.8)
+      icon += (Glyph_Line (Vec2 -0.9 -0.5) (Vec2  0.9 -0.5) 1 0.3)
+      icon += (Glyph_Line (Vec2 -0.9  0.5) (Vec2  0.9  0.5) 1 0.3)
+      icon += (Glyph_Line (Vec2 -0.9  0.5) (Vec2 -0.9 -0.5) 1 0.3)
+      icon += (Glyph_Line (Vec2  0.9  0.5) (Vec2  0.9 -0.5) 1 0.3)
+      icon
+  self
+
+function Icon Medic ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Box 0 (Vec2 0.50 0.15) 1 1)
+      icon += (Glyph_Box 0 (Vec2 0.15 0.50) 1 1)
+      icon += (Glyph_Arc 0 0.9 0.01 1 1 0 1)
+      icon
+  self
+
+function Icon Person ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Circle (Vec2 0 -0.6) 3.5 1 0.5)
+      icon += (Glyph_Arc (Vec2 0 -0.6) 0.40 0.01 1 1 0.75 0.1)
+      icon += (Glyph_LineFade (Vec2 -0.25 -0.2) (Vec2 0 0.8) 1 1)
+      icon += (Glyph_LineFade (Vec2  0.25 -0.2) (Vec2 0 0.8) 1 1)
+      # icon += (Glyph_Box (Vec2 0 0.3) (Vec2 0.15 0.6) 1 1)
+      icon += (Glyph_Circle (Vec2 -0.4 0.2) 1 1 1)
+      icon += (Glyph_Circle (Vec2  0.4 0.2) 1 1 1)
+      # icon += (Glyph_Box (Vec2  0.4 0.05) (Vec2 0.06 0.3) 1 1)
+      # icon += (Glyph_Box (Vec2 -0.4 0.05) (Vec2 0.06 0.3) 1 1)
+      icon.Transform 0 1.25
+      icon
+  self
+
+function Icon Planet ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Arc 0 0.9 0.01 1 1 0 1)
+      icon += (Glyph_Arc 0.6 1.0 0.01 1 1 0.25 0.1)
+      icon += (Glyph_Arc -0.6 1.0 0.01 1 1 0.75 0.1)
+      icon
+  self
+
+function Icon QuestionMark ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Arc (Vec2 0 -0.5) 0.4 0.02 1 1 0.375 0.375)
+      icon += (Glyph_LineFade (Vec2 0 0.0) (Vec2 0 0.4) 1 1)
+      icon += (Glyph_Circle (Vec2 0 0.8) 1.5 1 1)
+      icon
+  self
+
+function Icon Refresh ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Arc 0 0.7 0.01 1 1 0.0 0.15)
+      icon += (Glyph_Arc 0 0.7 0.01 1 1 0.5 0.15)
+      icon += (Glyph_LineFade 0.7 * (Polar 2Pi * 0.15) 1.0 * (Polar 2Pi * 0.1) 1 1)
+      icon += (Glyph_LineFade 0.7 * (Polar 2Pi * 0.15) 0.4 * (Polar 2Pi * 0.1) 1 1)
+      icon += (Glyph_LineFade 0.7 * (Polar 2Pi * 0.65) 1.0 * (Polar 2Pi * 0.6) 1 1)
+      icon += (Glyph_LineFade 0.7 * (Polar 2Pi * 0.65) 0.4 * (Polar 2Pi * 0.6) 1 1)
+      icon
+  self
+
+function Icon Scanner ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Arc 0 0.00 0.05 1 1 0.0 1.0)
+      icon += (Glyph_Arc 0 0.3 0.01 1 1 0.0 0.1)
+      icon += (Glyph_Arc 0 0.6 0.01 1 1 0.0 0.1)
+      icon += (Glyph_Arc 0 0.9 0.01 1 1 0.0 0.1)
+      icon += (Glyph_Arc 0 0.3 0.01 1 1 0.5 0.1)
+      icon += (Glyph_Arc 0 0.6 0.01 1 1 0.5 0.1)
+      icon += (Glyph_Arc 0 0.9 0.01 1 1 0.5 0.1)
+      icon += (Glyph_LineFade 0 (Vec2 0 0.9) 1 1)
+      icon
+  self
+
+function Icon Smiley ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Circle (Vec2 -0.5 -0.5) 2 1 1)
+      icon += (Glyph_Circle (Vec2  0.5 -0.5) 2 1 1)
+      icon += (Glyph_Arc 0 0.7 0.1 1 1 0.75 0.2)
+      icon
+  self
+
+function Icon Star ()
+  static self
+    block
+      var icon Icon
+      for i 0 i < 5 i.++
+        var center (Polar 2.0 * Pi * (((cast Float i) - 0.25) / 5.0))
+        var left (Polar 2.0 * Pi * (((cast Float i) - 0.4 - 0.25) / 5.0))
+        var right (Polar 2.0 * Pi * (((cast Float i) + 0.4 - 0.25) / 5.0))
+        icon += (Glyph_LineFade 0.25 * left center 1 0.75)
+        icon += (Glyph_LineFade 0.25 * right center 1 0.75)
+      icon
+  self
+
+function Icon Station ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Arc 0 0.8 0.05 1 0.8 0.0 1.0)
+      icon += (Glyph_Arc 0 0.4 0.05 1 0.8 0.0 1.0)
+      for i 0 i < 8 i.++
+        icon += (Glyph_Arc 0 0.9 0.1 1 0.8 i / 8 1.0 / 64.0)
+      for i 0 i < 3 i.++
+        icon += (Glyph_Arc 0 0.6 0.2 1 0.8 0.25 + i / 3 0.001)
+      icon
+  self
+
+function Icon Target ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Ring 0 0.6 1 1 0)
+      for i 0 i < 4 (++ i)
+        var angle 2.0 * Pi * (i / 4) + 0.25 * Pi
+        var offset (Vec2 angle.Cos angle.Sin)
+        icon += (Glyph_LineFade 0.8 * offset 0.3 * offset 2 1)
+      icon
+  self
+
+function Icon Trade ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_LineFade (Vec2  0.8 -0.5) (Vec2 -0.8 -0.5) 1 1)
+      icon += (Glyph_LineFade (Vec2 -0.8  0.5) (Vec2  0.8  0.5) 1 1)
+      icon += (Glyph_LineFade (Vec2  0.8 -0.5) (Vec2  0.3 -0.8) 1 1)
+      icon += (Glyph_LineFade (Vec2 -0.8  0.5) (Vec2 -0.3  0.8) 1 1)
+
+      # icon += (Glyph_LineFade (Vec2  0.8 -0.5) (Vec2  0.3 -0.2) 1 1)
+      # icon += (Glyph_LineFade (Vec2 -0.8  0.5) (Vec2 -0.3  0.2) 1 1)
+
+      icon += (Glyph_LineFade (Vec2 -0.3 0.3) (Vec2 -0.3  0.0) 2 1)
+      icon += (Glyph_LineFade (Vec2  0.0 0.3) (Vec2  0.0 -0.2) 2 1)
+      icon += (Glyph_LineFade (Vec2  0.3 0.3) (Vec2  0.3 -0.4) 2 1)
+      icon
+  self
+
+function Icon Turret ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Ring 0 0.6 1 1 0)
+      for i 0 i < 4 (++ i)
+        var angle 2.0 * Pi * (i / 4) + 0.25 * Pi
+        var offset (Vec2 angle.Cos angle.Sin)
+        icon += (Glyph_LineFade 0.8 * offset 0.3 * offset 2 1)
+      icon
+  self
+
+function Icon Wormhole ()
+  static self
+    block
+      var icon Icon
+      icon += (Glyph_Circle 0 2 1 1)
+      for i 0 i < 7 (++ i)
+        var angle 2.0 * Pi * (i / 7)
+        var offset (Vec2 angle.Cos angle.Sin)
+        icon += (Glyph_LineFade 0.9 * offset 0.6 * offset 2 1)
+      icon
+  self

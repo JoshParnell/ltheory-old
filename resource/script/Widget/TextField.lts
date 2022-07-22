@@ -1,0 +1,68 @@
+type TextField
+  String label
+  Float size
+  (Pointer String) contents
+  Int cursor 0
+  Bool focus false
+  Float t 0.0
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:AlignLeftCenter
+        Widgets:Text Fonts:Default (deref contents) size 1.0
+    l
+  
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.15 0.5 1.0 0.0
+    var c (Vec3 0.15)
+    if focus
+      c = 2.5 * Colors:Primary
+    DrawPanel self.pos (Vec2 4.0 self.size.y) c 0.5 1.0 0.0
+
+  function Void PostDraw (Widget self)
+    if focus
+      var s
+        GetTextSize
+          Fonts:Default
+          Substring (deref contents) 0 cursor
+          size
+
+      var alpha t.Sin
+      alpha = 0.5 + 0.5 * alpha.Sign * alpha.Abs ^ 0.2
+      Draw
+        Glyph_Box 0.5 (Vec2 0.5 0.3) 1 1
+        self.pos + (Vec2 14.0 + s.x 0.0)
+        Vec2 0.5 self.size.y
+        2.0 * Colors:Primary
+        alpha
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse && Mouse_LeftPressed
+      focus = true
+      t = 0.0
+    if (! self.focusMouse) && Mouse_LeftPressed
+      focus = false
+
+    if focus
+      if Key_Return.Down
+        focus = false
+      var lastCursor cursor
+
+      ref newContents (deref contents)
+      Keyboard_ModifyString newContents cursor
+
+      if cursor != lastCursor
+        Sound_Play "ui/entertext.wav" 0.1
+        self.Rebuild
+
+    t += 12.0 * FrameTimer_Get
+
+function Widget Create (String label Float size (Pointer String) contents)
+  Components:FocusGlow
+    Components:CaptureMouse
+      Components:Padding (Vec2 12 4) (Vec2 8 4)
+        Components:MinSize (Vec2 128 0)
+          Stack
+            Custom Widget
+              TextField label size contents

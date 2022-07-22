@@ -1,0 +1,25 @@
+type Status
+  function List CreateChildren (Widget self)
+    var l List
+    var ms (Round FrameTimer_GetEMA01 * 1000.0)
+    l += Widgets:EmptySpaceH
+    l += 
+      Widgets:ListH2 2
+        Components:AlignCenter
+          Widgets:Text Fonts:Default "RENDERED IN" 14 0.3
+        Components:AlignCenter
+          Widgets:Text Fonts:Medium ms + " ms" 14 Colors:Primary
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.1 0.50 1.0 0
+  
+  function Void PreUpdate (Widget self)
+    self.Rebuild
+
+function Widget Create ()
+  Components:Backdrop 0.1 0 1 0
+    Components:Padding 8 8
+      ListH 8
+        Custom Widget
+          Status

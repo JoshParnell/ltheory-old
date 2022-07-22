@@ -1,0 +1,10 @@
+uniform sampler2D depthBuffer;
+FRAG_IN vec4 ndcPos;
+
+V2 GetSSPosition() {
+  return 0.5 * (ndcPos.xy / ndcPos.w) + 0.5;
+}
+
+float GetDepthDifference() {
+  return saturate((texture2D(depthBuffer, GetSSPosition()).r - linearDepth) / farPlane);
+}

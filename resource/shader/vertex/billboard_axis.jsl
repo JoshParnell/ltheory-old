@@ -1,0 +1,29 @@
+#include vert.jsl
+#include math.jsl
+
+uniform vec3 eye;
+uniform vec3 axis;
+uniform vec2 size;
+
+VERT_OUT float opacityMult;
+VERT_OUT vec3 attrib;
+VERT_OUT vec3 position;
+
+void main() {
+  VS_PROLOGUE;
+
+  vec3 toCam = normalize(eye - worldPos.xyz);
+  vec3 up = normalize(axis);
+  vec3 right = normalize(cross(toCam, up));
+
+  opacityMult = 1.0;
+  attrib = vertex_normal;
+
+  worldPos.xyz += size.x * u * right;
+  worldPos.xyz += size.y * v * up;
+  gl_Position = PROJ * (VIEW * worldPos);
+  linearDepth = gl_Position.z;
+  gl_Position.z = LogDepth(gl_Position.z, gl_Position.w);
+
+  position = worldPos.xyz;
+}

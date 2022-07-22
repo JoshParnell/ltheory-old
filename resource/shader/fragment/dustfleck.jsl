@@ -1,0 +1,20 @@
+#include frag.jsl
+#include bezier.jsl
+#include lighting.jsl
+#include noise.jsl
+
+FRAG_IN vec3 position;
+FRAG_IN float opacity;
+
+uniform vec2 size;
+
+void main() {
+  vec2 uvp = uv;
+  float y = 0.5 * uv.y + 0.5;
+  float d = 0.0;
+  d += exp(-sqrt(16.0 * max(0.0, abs(uv.x) - 0.01)));
+  d *= 0.1;
+  vec3 c = vec3(1.0) * d;
+  c *= 1.0 - exp(-length(position) / 100.0);
+  RETURN(vec4(c, 0.5 * opacity));
+}

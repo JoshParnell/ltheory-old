@@ -1,0 +1,247 @@
+function Widget EmptySpaceH ()
+  Widget/Components:GreedyX
+    Widget/Components:Expand
+      Widget
+
+function Widget EmptySpaceV ()
+  Widget/Components:GreedyY
+    Widget/Components:Expand
+      Widget
+
+function Widget FocusWindow (Float opacity Widget widget)
+  Widget/Components:CaptureKey
+    Widget/Components:CaptureMouse
+      Widget/Components:CaptureScroll
+        Widget/Components:Expand
+          Stack
+            Custom Widget
+              Widget/FocusWindow:FocusWindow opacity widget
+
+function Widget Grid (Float cellSize Float spacing Int minCols Widget widget)
+  Custom widget
+    Widget/Grid:Grid cellSize spacing minCols 0.0
+
+type WidgetGlyph
+  Glyph glyph
+  Vec2 size
+  Vec3 color
+
+  function Void PreDraw (Widget self)
+    glyph.Draw self.Center self.size color self.alpha
+
+  function Void PrePosition (Widget self)
+    self.minSize = size
+
+function Widget Icon (Icon icon Vec3 color)
+  Custom Widget
+    Widget/Icon:WidgetIcon icon color
+
+function Widget IconButton (Data onPress Icon icon)
+  Widget/Components:CaptureMouse
+    Custom Widget
+      Widget/IconButton:IconButton onPress icon
+
+function Widget IconRing (Icon icon Vec3 color)
+  Custom Widget
+    Widget/Icon:IconRing icon color
+
+function Widget IconTextButton (Data onPress Icon icon String text)
+  Widget/Components:CaptureMouse
+    ListH 8
+      Custom Widget
+        Widget/IconButton:IconTextButton onPress icon text
+
+function Widget ListH1 (Float spacing Widget w1)
+  var self (ListH spacing Widget)
+  self.AddChild w1
+  self
+
+function Widget ListH2 (Float spacing Widget w1 Widget w2)
+  var self (ListH spacing Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self
+
+function Widget ListH3 (Float spacing Widget w1 Widget w2 Widget w3)
+  var self (ListH spacing Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self.AddChild w3
+  self
+
+function Widget ListH4 (Float spacing Widget w1 Widget w2 Widget w3 Widget w4)
+  var self (ListH spacing Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self.AddChild w3
+  self.AddChild w4
+  self
+
+function Widget ListH5 (Float spacing Widget w1 Widget w2 Widget w3 Widget w4 Widget w5)
+  var self (ListH spacing Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self.AddChild w3
+  self.AddChild w4
+  self.AddChild w5
+  self
+
+function Widget ListH6 (Float spacing Widget w1 Widget w2 Widget w3 Widget w4 Widget w5 Widget w6)
+  var self (ListH spacing Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self.AddChild w3
+  self.AddChild w4
+  self.AddChild w5
+  self.AddChild w6
+  self
+
+function Widget ListV1 (Float spacing Widget w1)
+  var self (ListV spacing Widget)
+  self.AddChild w1
+  self
+
+function Widget ListV2 (Float spacing Widget w1 Widget w2)
+  var self (ListV spacing Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self
+
+function Widget ListV3 (Float spacing Widget w1 Widget w2 Widget w3)
+  var self (ListV spacing Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self.AddChild w3
+  self
+
+function Widget ListV4 (Float spacing Widget w1 Widget w2 Widget w3 Widget w4)
+  var self (ListV spacing Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self.AddChild w3
+  self.AddChild w4
+  self
+
+function Widget ListV5 (Float spacing Widget w1 Widget w2 Widget w3 Widget w4 Widget w5)
+  var self (ListV spacing Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self.AddChild w3
+  self.AddChild w4
+  self.AddChild w5
+  self
+
+function Widget Stack1 (Widget w1)
+  var self (Stack Widget)
+  self.AddChild w1
+  self
+
+function Widget Stack2 (Widget w1 Widget w2)
+  var self (Stack Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self
+
+function Widget Stack3 (Widget w1 Widget w2 Widget w3)
+  var self (Stack Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self.AddChild w3
+  self
+
+function Widget Stack4 (Widget w1 Widget w2 Widget w3 Widget w4)
+  var self (Stack Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self.AddChild w3
+  self.AddChild w4
+  self
+
+function Widget Stack5 (Widget w1 Widget w2 Widget w3 Widget w4 Widget w5)
+  var self (Stack Widget)
+  self.AddChild w1
+  self.AddChild w2
+  self.AddChild w3
+  self.AddChild w4
+  self.AddChild w5
+  self
+
+function Widget Pair (Float spacing Widget left Widget right)
+  var self
+    Widget/Components:Expand
+      ListH spacing
+        Widget
+
+  self.AddChild (Widget/Components:AlignLeftCenter left)
+  self.AddChild
+    Widget/Components:Expand
+      Widget/Components:GreedyX Widget
+  self.AddChild (Widget/Components:AlignRightCenter right)
+  self
+
+function Widget WidgetGlyph (Glyph glyph Vec2 size Vec3 color)
+  Custom Widget
+    WidgetGlyph glyph size color
+
+function Widget RadialList (Float radius Widget widget)
+  Custom widget
+    Widget/RadialList:RadialList radius
+
+function Widget ScrollFrame (Bool vertical Widget widget)
+  var self
+    Widget/Components:CaptureKey
+      Widget/Components:CaptureScroll
+        Widget/Components:Expand
+          Widget/Components:GreedyY
+            Custom
+              Stack
+                Widget
+              ?
+                vertical
+                  cast Data Widget/ScrollFrame:ScrollFrameV
+                otherwise
+                  cast Data Widget/ScrollFrame:ScrollFrameH
+
+  self.AddChild
+    Widget/Components:Margin 0 (Vec2 8 0)
+      widget
+  self
+
+function Widget ScrollFrameH (Widget widget)
+  ScrollFrame false widget
+
+function Widget ScrollFrameV (Widget widget)
+  ScrollFrame true widget
+
+function Widget SpacerH (Float size)
+  Widget/Components:Expand
+    Widget/Components:AlignCenter
+      Custom Widget
+        Widget/Spacer:SpacerH size
+
+function Widget SpacerV (Float size)
+  Widget/Components:Expand
+    Widget/Components:AlignCenter
+      Custom Widget
+        Widget/Spacer:SpacerV size
+
+function Widget Tab (String group String text)
+  Widget/Components:CaptureMouse
+    Widget/Components:Padding (Vec2 12 4) (Vec2 8 4)
+      Stack
+        Custom Widget
+          Widget/Tab:Tab group text
+
+function Widget TabIcon (String group String text Icon icon Vec3 color Vec3 focusColor Bool drawRing Bool drawText Bool selected)
+  Widget/Components:CaptureMouse
+    Widget/Components:Tooltip
+      Custom Widget
+        Widget/Tab:TabIcon group text icon color focusColor drawRing drawText selected
+
+function Widget Text (Font font String text Float size Vec3 color)
+  Custom Widget
+    Widget/Text:Text font text size color
+
+function Widget TextGlow (Font font String text Float size Vec3 color)
+  Custom Widget
+    Widget/Text:TextGlow font text size color

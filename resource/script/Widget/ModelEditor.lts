@@ -1,0 +1,120 @@
+type Toolbar
+  (Pointer ModelEditor/Types:GlobalOptions) options
+
+  function Void CreateChildren (Widget self)
+    var l List
+    ref gOptions (deref options)
+    l +=
+      Components:Expand
+        Widget/ToggleButton:Create (address gOptions.symmetryX) "X SYMMETRY"
+    l +=
+      Components:Expand
+        Widget/ToggleButton:Create (address gOptions.symmetryY) "Y SYMMETRY"
+    l +=
+      Components:Expand
+        Widget/ToggleButton:Create (address gOptions.symmetryZ) "Z SYMMETRY"
+    l
+
+type ModelEditor
+  ModelEditor/Types:ModelT model ModelEditor/Types:ModelT
+  ModelEditor/Types:GlobalOptions options ModelEditor/Types:GlobalOptions
+  Widget mainWindow Widget
+  Widget previewWindow Widget
+  Bool previewMode false
+
+  function Void Create (Widget self)
+    var pm Model_Create
+    pm.Add (Mesh_BoxRounded 16 0.125) Material_Metal
+
+    model.pieces += (ModelEditor/Types:Piece (Vec3 0.0 0 0.25) (Vec3 0.25 0.1 0.5) 0.125 pm)
+    model.pieces += (ModelEditor/Types:Piece (Vec3 0.15 0 0.2) (Vec3 0.1 0.1 0.6 + 0.2) 0.125 pm)
+    model.pieces += (ModelEditor/Types:Piece (Vec3 0 0 0) (Vec3 0.1 0.1 1.7) 0.125 pm)
+    model.pieces += (ModelEditor/Types:Piece (Vec3 0 0 0.65) (Vec3 0.15 0.05 0.05) 0.25 pm)
+    model.pieces += (ModelEditor/Types:Piece (Vec3 0 0 0.75) (Vec3 0.15 0.05 0.05) 0.25 pm)
+
+    model.pieces += (ModelEditor/Types:Piece (Vec3 0.125 0 -0.65) (Vec3 0.2 0.01 0.15) 0.125 pm)
+    model.pieces += (ModelEditor/Types:Piece (Vec3 0 0 -0.6) (Vec3 0.2 0.125 0.6) 0.25 pm)
+    model.pieces += (ModelEditor/Types:Piece (Vec3 0.25 0 -0.6) (Vec3 0.1 0.05 0.3) 0.25 pm)
+    
+    for i 0 i < 8 i.++
+      var t i / 4
+      model.pieces += (ModelEditor/Types:Piece (Vec3  0.225 0 0.5 - 0.6 * t) (Vec3 0.0625 0.125 0.125) 0.25 pm)
+      model.pieces += (ModelEditor/Types:Piece (Vec3  0.10 0 0.5 - 0.6 * t) (Vec3 0.125 0.25 0.125) 0.25 pm)
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Expand
+        Components:Padding (Vec2 24 12) (Vec2 24 12)
+          Components:AlignCenter
+            Widgets:ListH2 16
+              Components:AlignCenter
+                Widgets:Text Fonts:Medium "MODEL EDITOR" 20 1
+              Components:AlignCenter
+                Components:MinSize 32
+                  Widgets:Icon Icons:Comm 1.5 * Colors:Primary
+        
+    mainWindow = 
+      Components:GreedyY
+        Components:Expand
+          Widgets:Stack1
+            Components:Expand
+              Widgets:ListH2 0
+                Components:Backdrop 0.05 0.75 1 0
+                  Components:Expand
+                    Components:MinSize (Vec2 196 0)
+                      ListV 4
+                        Custom Widget
+                          Toolbar (address options)
+                Components:BackdropGrid Colors:Primary 0.25
+                  ModelEditor/Editor:Create (address options) (address model)
+
+    l += mainWindow
+    l
+
+  function Void PostUpdate (Widget self)
+    if Key_Tab.Pressed
+      previewMode = previewMode.!
+      switch
+        previewMode
+          var pm (PlateMesh_Create 16)
+          var scale 15.0
+          for i 0 i < model.pieces.Size i.++
+            ref piece (model.pieces.Get i)
+            pm.Add scale * piece.center 0.5 * scale * piece.scale 0 piece.bevel
+            if options.symmetryX && piece.center.x.Abs > 0.0
+              pm.Add scale * (Vec3 -1 1 1) * piece.center 0.5 * scale * piece.scale 0 piece.bevel
+            if options.symmetryY && piece.center.y.Abs > 0.0
+              pm.Add scale * (Vec3 1 -1 1) * piece.center 0.5 * scale * piece.scale 0 piece.bevel
+            if options.symmetryZ && piece.center.z.Abs > 0.0
+              pm.Add scale * (Vec3 1 1 -1) * piece.center 0.5 * scale * piece.scale 0 piece.bevel
+
+            if options.symmetryX && options.symmetryY
+              pm.Add scale * (Vec3 -1 -1 1) * piece.center 0.5 * scale * piece.scale 0 piece.bevel
+            if options.symmetryX && options.symmetryZ
+              pm.Add scale * (Vec3 -1 1 -1) * piece.center 0.5 * scale * piece.scale 0 piece.bevel
+            if options.symmetryY && options.symmetryZ
+              pm.Add scale * (Vec3 1 -1 -1) * piece.center 0.5 * scale * piece.scale 0 piece.bevel
+
+            if options.symmetryX && options.symmetryY && options.symmetryZ
+              pm.Add scale * (Vec3 -1 -1 -1) * piece.center 0.5 * scale * piece.scale 0 piece.bevel
+
+          var mesh pm.GetMesh
+          mesh.Center
+          mesh.Mesh_ComputeOcclusion
+          var model Model_Create
+          model.Add mesh Material_Metal
+          var renderable (Renderable model)
+
+          previewWindow = (ModelEditor/Preview:Create renderable)
+          mainWindow.AddChild previewWindow
+
+        otherwise
+          mainWindow.RemoveChild previewWindow
+
+function Widget Create ()
+  Components:Backdrop 0.05 0.95 1 0
+    Components:Expand
+      ListV 0
+        Custom Widget
+          ModelEditor

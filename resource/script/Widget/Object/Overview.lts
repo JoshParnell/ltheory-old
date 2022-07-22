@@ -1,0 +1,427 @@
+function Widget AlignLeft (Widget widget)
+  Components:MinSize (Vec2 80 0)
+    Components:AlignCenter
+      Widgets:ListH2 0
+        Components:Expand (Components:GreedyX Widget)
+        widget
+
+type MiniLocation
+  Player player
+  Object object
+
+  function List CreateChildren (Widget self)
+    var l List
+    var container object.GetContainer
+    var name (? (container.IsNull "???") (otherwise container.GetName.UpperCase))
+    var icon (? (container.IsNull Icons:QuestionMark) (otherwise container.GetIcon))
+    l +=
+      Widgets:ListH3 8
+        AlignLeft
+          Components:AlignCenter
+            Widgets:Text Fonts:Heading "LOCATION" 12 Colors:Primary
+        Components:AlignCenter
+          Components:MinSize 32
+            Widgets:Icon Icons:Scanner Colors:Primary
+        Components:AlignCenter
+          Widgets:Text Fonts:Medium name 20 1
+    l
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageClick")
+      var container object.GetContainer
+      if container.IsNotNull
+        var data (cast Data (Messages:CreateObjectInfo player container))
+        self.SendUp data
+        ref msg (cast Messages:CreateObjectInfo data)
+        self.SendUp (Messages:MessageLink msg.widget)
+
+type MiniCargo
+  Player player
+  Object object
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Widgets:ListH3 8
+        AlignLeft
+          Widgets:Text Fonts:Heading "CARGO" 12 Colors:Primary
+        Components:AlignCenter
+          Components:MinSize 32
+            Widgets:Icon Icons:Cargo Colors:Primary
+        Components:AlignCenter
+          Widgets:ListH3 2
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium object.GetUsedCapacity 20 Colors:Primary
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium "/" 20 1
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium object.GetCapacity 20 1
+    l
+
+type MiniHealth
+  Player player
+  Object object
+
+  function List CreateChildren (Widget self)
+    var l List
+    var color (Mix Colors:Hostile Colors:Friendly object.GetHealthNormalized)
+    l +=
+      Widgets:ListH3 8
+        AlignLeft
+          Widgets:Text Fonts:Heading "INTEGRITY" 12 color
+        Components:AlignCenter
+          Components:MinSize 32
+            Widgets:Icon Icons:Medic color
+        Components:AlignCenter
+          Widgets:ListH3 2
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium object.GetHealth 20 color
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium "/" 20 1
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium object.GetMaxHealth 20 1
+    l
+
+type MiniStats
+  Player player
+  Object object
+
+  function List CreateChildren (Widget self)
+    var l List
+    var width 96
+    l +=
+      Widgets:ListH2 16
+        Components:MinSize (Vec2 width 0)
+          Widgets:ListH2 0
+            Components:Expand (Components:GreedyX Widget)
+            Widgets:Text Fonts:Heading "MASS" 12 Colors:Primary
+        Components:AlignCenter
+          Widgets:Text Fonts:Medium object.GetMass / 1000.0 + " Mg" 14 1
+
+    l +=
+      Widgets:ListH2 16
+        Components:MinSize (Vec2 width 0)
+          Widgets:ListH2 0
+            Components:Expand (Components:GreedyX Widget)
+            Widgets:Text Fonts:Heading "TOTAL INTEGRITY" 12 Colors:Primary
+        Components:AlignCenter
+          Widgets:Text Fonts:Medium object.GetMaxHealth 14 1
+
+    desc "Damage"
+      var output 0.0
+      for it object.GetSockets it.HasMore it.Advance
+        var child it.Get
+        var stype child.GetSupertype
+        if stype.IsNotNull
+          output += stype.GetCapability.Attack
+        for it2 child.GetSockets it2.HasMore it2.Advance
+          var child it2.Get
+          var stype child.GetSupertype
+          if stype.IsNotNull
+            output += stype.GetCapability.Attack
+          
+      l +=
+        Widgets:ListH2 16
+          Components:MinSize (Vec2 width 0)
+            Widgets:ListH2 0
+              Components:Expand (Components:GreedyX Widget)
+              Widgets:Text Fonts:Heading "TOTAL FIREPOWER" 12 Colors:Primary
+          Components:AlignCenter
+            Widgets:Text Fonts:Medium output + " /s" 14 1
+
+    desc "Power"
+      var output 0.0
+      for it object.GetSockets it.HasMore it.Advance
+        var stype it.Get.GetSupertype
+        if stype.IsNotNull
+          output += stype.GetCapability.Power
+      l +=
+        Widgets:ListH2 16
+          Components:MinSize (Vec2 width 0)
+            Widgets:ListH2 0
+              Components:Expand (Components:GreedyX Widget)
+              Widgets:Text Fonts:Heading "POWER OUTPUT" 12 Colors:Primary
+          Components:AlignCenter
+            Widgets:Text Fonts:Medium output / 1000.0 + " kW" 14 1
+
+    var bound object.GetRenderable.GetBound
+    var size object.GetScale * (bound.upper - bound.lower)
+    l +=
+      Widgets:ListH2 16
+        Components:MinSize (Vec2 width 0)
+          Widgets:ListH2 0
+            Components:Expand (Components:GreedyX Widget)
+            Widgets:Text Fonts:Heading "DIMENSIONS" 12 Colors:Primary
+        Widgets:ListH5 2
+          Components:AlignCenter
+            Widgets:Text Fonts:Medium size.x + " m" 14 1
+          Components:AlignCenter
+            Widgets:Text Fonts:Medium "/" 14 Colors:Primary
+          Components:AlignCenter
+            Widgets:Text Fonts:Medium size.y + " m" 14 1
+          Components:AlignCenter
+            Widgets:Text Fonts:Medium "/" 14 Colors:Primary
+          Components:AlignCenter
+            Widgets:Text Fonts:Medium size.z + " m" 14 1
+    l
+
+  function Void PreDraw (Widget self)
+    var p1 self.TopLeft + (Vec2 96 + 6 + 16 16)
+    var p2 self.BottomLeft + (Vec2 96 + 6 + 16 -16)
+    Draw (Glyph_Line p1 p2 1 1) 0 1 Colors:Primary 0.1
+    Draw (Glyph_Circle 0 1 1 1) p1 16 Colors:Primary 1.0
+    Draw (Glyph_Circle 0 1 1 1) p2 16 Colors:Primary 1.0
+
+type MiniActivity
+  Player player
+  Object object
+
+  function List CreateChildren (Widget self)
+    var l List
+    var font Fonts:Heading
+    var owner object.GetOwner
+    var task object.GetCurrentTask
+    switch
+      task.IsNotNull
+        l +=
+          Widgets:ListH3 8
+            AlignLeft
+              Widgets:Text font "ACTIVITY" 12 Colors:Primary
+            Components:AlignCenter
+              Components:MinSize 32
+                Widgets:Icon Icons:Refresh Colors:Primary
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium task.task.GetName 20 1
+      otherwise
+        l +=
+          Widgets:ListH3 8
+            AlignLeft
+              Widgets:Text font "ACTIVITY" 12 Colors:Primary
+            Components:AlignCenter
+              Components:MinSize 32
+                Widgets:Icon Icons:Refresh Colors:Primary
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium "IDLE" 20 1
+    l
+
+type FactionWidget
+  Player player
+  Object object
+
+  function List CreateChildren (Widget self)
+    var l List
+    var font Fonts:Heading
+    var owner object.GetOwner
+    l +=
+      Widgets:ListH3 8
+        AlignLeft
+          Widgets:Text font "PROPERTY OF" 12 Colors:Primary
+        Components:AlignCenter
+          Components:MinSize 32
+            Widgets:Icon Icons:Person 2.0 * Colors:Primary
+        switch
+          owner.IsNotNull
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium owner.GetName.UpperCase 20 1
+          otherwise
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium "NO OWNER" 20 1
+    l
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageClick")
+      var owner object.GetOwner
+      if owner.IsNotNull
+        var data (cast Data (Messages:CreateObjectInfo player owner))
+        self.SendUp data
+        ref msg (cast Messages:CreateObjectInfo data)
+        self.SendUp (Messages:MessageLink msg.widget)
+
+type MiniWidget
+  function Void PreDraw (Widget self)
+    var c (? (self.focusMouse Colors:Primary) (otherwise (Vec3 0.08)))
+    DrawPanel self.pos self.size c 0.25 1 0
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse && Mouse_LeftPressed
+      self.SendDown Messages:MessageClick
+
+type SignatureWidget
+  Object object
+  ScannerOutput output
+
+  function Void PostDraw (Widget self)
+    var x0 self.pos.x
+    var x1 self.pos.x + self.size.x
+    var y self.pos.y + 0.5 * self.size.y
+    var color 2.0 * Colors:Primary
+
+    for i 0 i < output.Size (++ i)
+      var t i / output.Size
+      var x (Mix x0 x1 t)
+      var v 1.0 - (ExpDecay (output.Get i) 1.0)
+      Draw
+        Glyph_Line (Vec2 x y) (Vec2 x y + 0.5 * v * self.size.y) 1 1
+        0
+        1
+        color
+        1
+      Draw
+        Glyph_Line (Vec2 x y) (Vec2 x y - 0.5 * v * self.size.y) 1 1
+        0
+        1
+        color
+        1
+
+  function Void PrePosition (Widget self)
+    self.minSize = (Vec2 256 64)
+
+  function Void PreUpdate (Widget self)
+    var newOutput (Object_GetSignature object 128)
+    output.Blend newOutput (1.0 - (ExpDecay FrameTimer_Get 0.25))
+
+type RenderablePreview
+  Player player
+  Object object
+  Float t 0.0
+
+  function List CreateChildren (Widget self)
+    var l List
+    # l +=
+      Components:Margin 8 8
+        Components:ExpandX
+          Components:AlignBottomCenter
+            Custom
+              Widget
+              SignatureWidget object (Object_GetSignature object 128)
+    l
+
+  function Void PreDraw (Widget self)
+    t += 0.1 * FrameTimer_Get
+
+    var renderable object.GetRenderable
+    if renderable.IsNotNull
+      var fovy 0.01 * (Pi / 180.0)
+      var bound renderable.GetBound
+      var size bound.upper - bound.lower
+      var d 1.00 * (Max size.z (size.x * self.size.x / self.size.y))
+      d *= 0.5 / (Tan 0.5 * fovy)
+
+      switch
+        false
+          var pos 1.0 * d * (Vec3 t.Cos 0 t.Sin)
+          var look -1.0 * pos.Normalize
+          var up (Vec3 0 1 0)
+          DrawRenderable renderable Transform_Identity pos look up fovy self.pos self.size Colors:Primary 1.0 t
+        otherwise
+          var pos d * (Vec3 0 -1 0)
+          var look -1.0 * pos.Normalize
+          var up (Vec3 0 0 1)
+          DrawRenderable renderable Transform_Identity pos look up fovy self.pos self.size Colors:Primary 1.0 t
+
+      var rx 12
+      var ry 6
+      for i 0 i < rx i.++
+        var t i / (rx - 1)
+        var p (self.GetPoint t 0.0)
+        Draw (Glyph_Line p p + (Vec2 0 6) 1 1) 0 1 Colors:Primary 0.5
+        if i
+          var p2 (self.GetPoint (Mix 0.0 1.0 ((i - 1) / (rx - 1))) 0.0)
+          Draw (Glyph_Line p p2 1 1) 0 1 Colors:Primary 0.1
+
+      for i 0 i < ry i.++
+        var t i / (ry - 1)
+        var p (self.GetPoint 1.0 t)
+        Draw (Glyph_Line p p - (Vec2 6 0) 1 1) 0 1 Colors:Primary 0.5
+        if i
+          var p2 (self.GetPoint 1.0 (Mix 0.0 1.0 ((i - 1) / (ry - 1))))
+          Draw (Glyph_Line p p2 1 1) 0 1 Colors:Primary 0.1
+
+function Widget CreateMiniWidget (Widget widget)
+  var self
+    Components:CaptureMouse
+      Components:Expand
+        Stack
+          Custom Widget
+            MiniWidget
+
+  self.AddChild
+    Components:Padding (Vec2 16 12) (Vec2 16 12)
+      Components:AlignLeftCenter
+        widget
+  self
+
+type Overview
+  Player player
+  Object object
+
+  function List CreateChildren (Widget self)
+    var l List
+    if object.HasComponentAsset
+      l +=
+        CreateMiniWidget 
+          Stack
+            Custom Widget
+              FactionWidget player object
+
+    if object.HasComponentIntegrity
+      l +=
+        CreateMiniWidget 
+          ListV 4
+            Custom Widget
+              MiniHealth player object
+
+    if object.HasComponentCargo
+      l +=
+        CreateMiniWidget 
+          ListV 4
+            Custom Widget
+              MiniCargo player object
+          
+    if object.HasComponentOrientation
+      l +=
+        CreateMiniWidget 
+          ListV 4
+            Custom Widget
+              MiniLocation player object
+
+    if object.HasComponentTasks
+      l +=
+        CreateMiniWidget 
+          ListV 4
+            Custom Widget
+              MiniActivity player object
+
+    l +=
+      Components:GreedyY
+        Components:Expand
+          Components:MinSize 16
+            Widget
+
+    if object.HasComponentDrawable
+      l +=
+        CreateMiniWidget 
+          ListV 4
+            Custom Widget
+              MiniStats player object
+
+    l
+
+function Widget Create (Player player Object object)
+  Components:Expand
+    switch
+      object.HasComponentInterior && object.HasComponentDockable.!
+        Map:Create player object
+      otherwise
+        Widgets:ListH2 16
+          Components:Expand
+            Components:Padding 0 0
+              ListV 8
+                Custom Widget
+                  Overview player object
+          Components:Margin 16 16
+            Components:GreedyX
+              Components:Expand
+                Stack
+                  Custom Widget
+                    RenderablePreview player object

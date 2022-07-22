@@ -1,0 +1,9 @@
+function Renderable Generate ()
+  var self (PlateMesh_Create 8)
+  self.Add (Vec3 0 0.25 2.0) (Vec3 0.2 0.4 1.8) 0 0.05
+  self.Add (Vec3 0 0.25 1.2) (Vec3 0.8 0.2 1.2) 0 0.05
+  var mesh self.GetMesh
+  mesh.Mesh_ComputeOcclusion
+  var model Model_Create
+  model.Add mesh Material_Metal
+  Renderable model

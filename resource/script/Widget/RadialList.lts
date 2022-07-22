@@ -1,0 +1,127 @@
+function Float RadialSeparation () 6.0
+
+type RadialSubMenu
+  Float radius
+  Float angle
+  Float angleSize
+  Widget widget
+    
+  # function List CreateChildren (Widget self)
+    widget.CreateChildren
+
+  function Void PreUpdate (Widget self)
+    "Jamp!"
+
+  function Void PreDraw (Widget self)
+    var dir (Vec2 (Cos 2Pi * angle) (Sin 2Pi * angle))
+    var offset radius * dir
+    var c (Vec3 0.05)
+    if self.focusMouse
+      c = Colors:Primary
+
+    DrawPanelRadial
+      self.Center + dir * RadialSeparation
+      0.5 * radius
+      1.0 * radius - RadialSeparation
+      angle
+      angleSize
+      c
+      1.0
+      1.0
+      0.0
+
+type RadialList
+  Float radius
+  Widget widget Widget
+
+  function Void Create (Widget self)
+    Sound_Play "ui/objectmenuopen.wav" 0.4
+
+  function Void Destroy (Widget self)
+    Sound_Play "ui/objectmenuclose.wav" 0.4
+
+  # function List CreateChildren (Widget self)
+    var l List
+    var children widget.CreateChildren
+
+    for i 0 i < children.Size i.++
+      var angle (Fract (i / children.Size) - 0.25)
+      var angleSize 1 / children.Size
+      l +=
+        Custom Widget
+          RadialSubMenu radius angle angleSize (children.Get i)
+    l
+
+  function Void PreDraw (Widget self)
+    var c Colors:Primary
+    var i 0
+    var childCount self.GetChildren.Size
+    var center self.pos
+
+    DrawPanelRadial
+      center
+      0.5 * radius
+      1.0 * radius
+      0.0
+      1.0
+      0.03
+      1.0
+      0.0
+      0.0
+    
+    for it self.GetChildren it.HasMore it.Advance
+      var child it.Get
+      var angle (Fract (i / childCount) - 0.25)
+      var dir (Vec2 (Cos 2Pi * angle) (Sin 2Pi * angle))
+      var offset radius * dir
+      var myCenter center + dir * RadialSeparation
+      var c (Vec3 0.05)
+      if child.focusMouse
+        c = Colors:Primary
+
+      DrawPanelRadial
+        myCenter
+        0.5 * radius
+        1.0 * radius - RadialSeparation
+        angle
+        1.0 / (Float childCount)
+        c
+        1.0
+        1.0
+        0.0
+      ++ i
+
+  function Void PrePosition (Widget self)
+    self.minSize = radius
+
+  function Void PostPosition (Widget self)
+    var childCount self.GetChildren.Size
+    var center self.pos
+    var i 0
+    for it self.GetChildren it.HasMore it.Advance
+      var angle 2.0 * Pi * (Fract (i / childCount) - 0.25)
+      var offset 0.75 * radius * (Vec2 angle.Cos angle.Sin)
+      var child it.Get
+      child.pos += center + offset
+      # child.pos = self.pos
+      ++ i
+
+  function Void PreUpdate (Widget self)
+    var childCount self.GetChildren.Size
+    var dir Cursor_Get - self.pos
+
+    if childCount > 0 && (dir.Length > 0.5 * radius)
+      var closest self.GetChildren.Get
+      var maxDot -1.0
+
+      var i 0
+      for it self.GetChildren it.HasMore it.Advance
+        var angle 2.0 * Pi * (Fract (i / childCount) - 0.25)
+        var offset (Vec2 angle.Cos angle.Sin)
+        var dot (Dot dir offset)
+        if dot > maxDot
+          maxDot = dot
+          closest = it.Get
+        ++ i
+
+      closest.focusMouse = true

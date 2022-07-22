@@ -1,0 +1,16 @@
+#include frag.jsl
+#include lighting.jsl
+#include scattering.jsl
+
+uniform sampler2D texture;
+
+FRAG_IN vec3 attrib;
+FRAG_IN vec3 position;
+
+void main() {
+  vec2 uvp = uv;
+  vec4 texMask = texture2D(texture, .5 + .5*uv);
+  vec3 rd = position - eye;
+  vec4 atmo = getScatteringInside(eye, normalize(rd), length(rd), 1.);
+  RETURN(vec4(mix(atmo.xyz, texMask.xyz, atmo.w), texMask.w));
+}

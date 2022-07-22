@@ -1,0 +1,25 @@
+type Backdrop
+  Vec3 color
+  Float innerAlpha
+  Float alpha
+  Float bevel
+  
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size color innerAlpha alpha bevel
+
+type BackdropGrid
+  Vec3 color
+  Float alpha
+  
+  function Void PreDraw (Widget self)
+    Draw (Glyph_Grid self.TopLeft self.BottomRight 1 1 0 0.25) 0 1 color alpha
+
+type BackdropTexture
+  Texture texture
+  Float alpha
+  
+  function Void PreDraw (Widget self)
+    ClipRegion_Push self.pos self.size
+    var size (Vec2 texture.GetWidth texture.GetHeight)
+    Draw texture self.TopLeft size alpha
+    ClipRegion_Pop

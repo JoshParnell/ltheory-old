@@ -1,0 +1,12 @@
+#include frag.jsl
+
+uniform sampler2D texture;
+uniform sampler3D colorTable;
+const float kRes = 5.0;
+
+void main() {
+  vec3 c = saturate(texture2D(texture, uv).xyz);
+  c = (c * (kRes - 1.0) + 0.5) / kRes;
+  vec3 result = texture3D(colorTable, c).xyz;
+  RETURN(vec4(result, 1.0));
+}

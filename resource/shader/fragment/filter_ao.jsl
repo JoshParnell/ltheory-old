@@ -1,0 +1,34 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+uniform sampler2D texture;
+uniform float strength;
+uniform float radius;
+uniform int samples;
+
+void main() {
+  vec2 uvp = uv;
+  uvp.y = 1. - uvp.y;
+  float occlusion = 0.;
+  float h = texture2D(texture, uvp).x;
+  float totalWeight = 0.0;
+
+  for (int i = 0; i < samples; ++i) {
+    float angle = radians(360.0) * float(i) / float(samples);
+    float thisRadius = noise(vec3(uvp, float(i)));
+    float thisWeight = 1;
+    thisRadius *= radius;
+    float x = saturate(thisRadius * cos(angle) + uvp.x);
+    float y = saturate(thisRadius * sin(angle) + uvp.y);
+    float thisHeight = texture2D(texture, vec2(x, y)).x;
+
+    float diff = saturate(thisHeight - h);
+    occlusion += thisWeight * diff;
+    totalWeight += thisWeight;
+  }
+
+  occlusion /= totalWeight;
+  occlusion = saturate(strength * sqrt(occlusion));
+  RETURN(vec4(h * (1.0 - occlusion)));
+}

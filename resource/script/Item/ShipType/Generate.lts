@@ -1,0 +1,105 @@
+function Int MeshQuality () 12
+
+type VerticalCompress
+  Float magnitude
+  Float offset
+  Float size
+  Float power
+  Float variance
+
+  function Vec3 GetDelta (Vec3 p)
+    Vec3 0 magnitude * (ExpDecay (Max 0.0 (Abs p.x - offset) - size) ^ power variance) 0
+
+type HExpand
+  Float magnitude
+  Float offset
+  Float size
+  Float power
+  Float variance
+
+  function Vec3 GetDelta (Vec3 p)
+    Vec3 p.x.Sign * magnitude * (ExpDecay (Max 0.0 (p.z - offset) - size) ^ power variance) 0 0
+
+type Box
+  Vec3 center
+  Vec3 size
+
+function Renderable Main (Float scale Int seed)
+  var kBevel 0.25
+
+  function Vec3 GetAxis (RNG rng)
+    var side (Int rng 6)
+    switch
+      side == 0 (Vec3 -1  0  0)
+      side == 1 (Vec3  1  0  0)
+      side == 2 (Vec3  0 -1  0)
+      side == 3 (Vec3  0  1  0)
+      side == 4 (Vec3  0  0 -1)
+      otherwise (Vec3  0  0  1)
+
+  var self (PlateMesh_Create MeshQuality)
+  var rng (RNG_MTG seed + 102)
+  var plates 2 + (Int (Sqrt scale))
+
+  var boxes List
+  var boxesPassive List
+  var s (Vec3 1.0)
+  boxes += (Box (Vec3 0 0 0) s * (Vec3 2.0 0.5 0.5))
+  boxes += (Box (Vec3 0 0 0) s * (Vec3 0.5 1.0 2.0))
+
+  var boundLower (Vec3 -3 -2 -6)
+  var boundUpper (Vec3  3  2  6)
+
+  for i 0 i < plates (++ i)
+    var index (rng.Int boxes.Size)
+    var box (cast Box (boxes.Get i))
+    var dir rng.GetAxis
+    var newSize box.size * (rng.Vec3 0.9 0.99)
+    var newCenter (box.center + dir * (box.size + newSize))
+    newCenter = (Clamp newCenter boundLower + newSize boundUpper - newSize)
+    var reps (rng.RNG_Int 1 5)
+
+    for j 0 j < reps (++ j)
+      boxes += (Box newCenter newSize)
+      boxesPassive += (Box newCenter newSize * (Vec3 0.5 0.5 1.5))
+      newCenter += newSize * (Vec3 0 0 3.0)
+
+  for i 0 i < boxesPassive.Size i.++
+    boxes += (cast Box (boxesPassive.Get i))
+
+  for i 0 i < boxes.Size (++ i)
+    var box (cast Box (boxes.Get i))
+    self.Add box.center * (Vec3  1.0 1.0 1.0) box.size * (Vec3 1.00) 0 kBevel
+    self.Add box.center * (Vec3 -1.0 1.0 1.0) box.size * (Vec3 0.99) 0 kBevel
+    if scale >= 10.0
+      self.Add box.center * (Vec3  1.0 -0.5 1.0) box.size * (Vec3 1.25 0.50 2.00) 0 kBevel
+      self.Add box.center * (Vec3 -1.0 -0.5 1.0) box.size * (Vec3 1.24 0.49 1.99) 0 kBevel
+
+  if rng.Float < 0.0
+    # self.Add (Warp_AttractorPoint (Vec3 0 0 10) 2)
+  if rng.Float < 0.0
+    self.Add (Warp_AttractorPoint (Vec3 2 0 0) 1.0)
+    self.Add (Warp_AttractorPoint (Vec3 -2 0 0) 1.0)
+
+  self.Add (Warp_Custom (VerticalCompress 1.0 0.0 1.25 1.0 1.0))
+  self.Add (Warp_Custom (HExpand 0.5 1.0 0.0 2.0 0.25))
+
+  var mesh self.GetMesh
+  mesh.Center
+  mesh.Mesh_ComputeOcclusion
+  var model Model_Create
+  var material Material_Metal
+
+  #
+    var decal (Texture2D_CreateHDR 512 512)
+    decal.BeginDrawTo
+    DrawClear 0 0
+    DrawTextGlow Fonts:ChineseSimp "紅玻璃 燒" (Vec2 256 256) 128 Colors:Primary 1 true
+    decal.EndDrawTo
+    decal.SaveTo "decal.png"
+    decal.GenerateMipmap
+    material = material.Clone
+    material.Set "decal" decal
+
+  model.Add mesh material
+  Renderable model

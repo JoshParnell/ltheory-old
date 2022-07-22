@@ -1,0 +1,24 @@
+#include frag.jsl
+#include noise.jsl
+#include math.jsl
+
+#output 0 float field_value
+
+uniform vec3 halfTexel;
+uniform vec3 texelScale;
+uniform vec3 origin;
+uniform vec3 du;
+uniform vec3 dv;
+uniform sampler3D fieldSampler;
+uniform vec3 fieldOrigin;
+uniform vec3 fieldExtent;
+
+float field(vec3 p) {
+  return texture3D(fieldSampler, (p - fieldOrigin) / fieldExtent).x;
+}
+
+void main() {
+  vec2 uvp = texelScale.xy * (vec2(uv.x, 1. - uv.y) - halfTexel.xy);
+  vec3 p = origin + uvp.x * du + uvp.y * dv;
+  field_value = field(p);
+}

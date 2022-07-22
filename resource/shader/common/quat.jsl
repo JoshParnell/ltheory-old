@@ -1,0 +1,15 @@
+#ifndef common_quat
+#define common_quat
+
+vec3 quatMul(vec4 q, vec3 v) {
+  vec3 t = 2.0 * cross(q.xyz, v);
+  return v + q.w * t + cross(q.xyz, t);
+}
+
+vec4 quatRotation(vec3 axis, float angle) {
+  float ca = cos(angle);
+  float sa = sin(angle);
+  return vec4(sa * axis, ca);
+}
+
+#endif

@@ -1,0 +1,76 @@
+#include frag.jsl
+#include color.jsl
+#include lighting.jsl
+#include math.jsl
+#include texturing.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+FRAG_IN vec3 vertposscaled;
+
+uniform mat4 WORLDIT;
+uniform sampler2D depthBuffer;
+
+uniform sampler2D albedoMap;
+uniform sampler2D normalMap;
+uniform sampler2D detailMap;
+uniform sampler2D decal;
+
+#include fdm.jsl
+
+void main() {
+  PREPASS
+  EARLY_Z
+
+  float value = emix(
+    sampleTriplanar(albedoMap, vertpos / 8.0).x,
+    sampleTriplanar(albedoMap, vertposscaled / 32.0).x,
+    0.5);
+
+#if 1
+  float dn = length(normal - normalize(normal));
+  float dd = exp(-16.0 * value);
+  vec3 big = vec3(sampleTriplanar(albedoMap, vertpos / 12.0).xxx);
+  float color =
+    sampleTriplanar(albedoMap, vertpos / 16.0 + 3).x *
+    sampleTriplanar(albedoMap, vertpos / 32.0 + 7).x;
+  vec3 c = mix(vec3(1.00), big, 0.75) + dd;
+  // c = mix(c, 3.0 * vec3(1.0, 0.3, 0.1), step(0.3, color));
+  c *= mix(vec3(0.05), vec3(1.0), (exp(-4096.0 * dn)));
+
+#if 0
+  vec2 duv = vertpos.zy * vec2(1, -1);
+  duv += vec2(5, 1);
+  duv *= 0.25;
+  duv.y = saturate(duv.y);
+  c += 4.0 * texture2D(decal, duv).xyz;
+#endif
+
+  float spec = 1.0 - saturate(dd);
+
+#else
+  float spec = compress(sampleTriplanar(albedoMap, vertpos / 5.0).x, 0.5);
+#endif
+
+  c *= pow2(uv.x * sampleFDM(detailMap, vertpos).x);
+  c *= 16.0;
+
+  vec3 bump = sampleTriplanarBumpmap(normalMap, vertpos / 8.0);
+  bump = (WORLDIT * vec4(bump, 0)).xyz;
+  vec3 n = normalize(mix(normalize(normal), normalize(bump), 0.0001));
+  float r = mix(0.01, 0.2, spec);
+
+#if 0
+  outputAlbedo(vec3(uv.x));
+  outputAlpha(1.0);
+  outputNormal(n);
+  outputMaterial(MATERIAL_NOSHADE);
+  outputRoughness(1.0);
+#else
+  outputAlbedo(c);
+  outputAlpha(1.0);
+  outputNormal(n);
+  outputMaterial(MATERIAL_COOKT);
+  outputRoughness(r);
+#endif
+}

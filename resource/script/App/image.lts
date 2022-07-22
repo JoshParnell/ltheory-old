@@ -1,0 +1,35 @@
+type App
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Widget/Components:Expand
+        Widget/Components:Margin 16 16
+          Widget/ImageEditor:Create
+            ?
+              false (Texture_LoadFrom (Location_File "1.png"))
+              true
+                Texture_LoadFrom (Location_File "data/screenshot/29.png")
+              otherwise (Texture/RandomScreenshot:Get)
+            "image.png"
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.01 1 1 0
+    Draw (Glyph_Grid self.TopLeft self.BottomRight 1 1 0 0.25) 0 1 Colors:Primary 0.2
+
+  function Void PostDraw (Widget self)
+    Draw Icon/Cursors:Pointer Cursor_Get 12 4.0 * Colors:Primary 0.3
+
+  function Void PostUpdate (Widget self)
+    Thread_SleepMS 16
+
+function Data Main ()
+  widget:Create
+    Layer
+      ?
+        false (Compositor_Basic 0.1 0.1 (Vec3 0.4 0.50 0.9))
+        otherwise Compositor_None
+      Mesh_Quad
+      1.0
+      Stack
+        Custom Widget App

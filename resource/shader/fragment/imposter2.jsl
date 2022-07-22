@@ -1,0 +1,57 @@
+#include frag.jsl
+#include lighting.jsl
+#include math.jsl
+#include noise.jsl
+#include texturing.jsl
+
+FRAG_IN vec3 blend;
+FRAG_IN vec3 position;
+FRAG_IN vec3 texOffset;
+
+uniform mat4 WORLDIT;
+uniform sampler2D albedoMap;
+uniform sampler2D depthBuffer;
+uniform sampler2D normalMap;
+
+void main() {
+  //EARLY_Z
+  vec2 uvp = 0.5 + 0.5 * uv;
+  uvp.y /= 6.0;
+
+  vec2 uv0 = vec2(uvp.x, texOffset.x + uvp.y);
+  vec2 uv1 = vec2(uvp.x, texOffset.y + uvp.y);
+  vec2 uv2 = vec2(uvp.x, texOffset.z + uvp.y);
+
+  vec4 albedo;
+
+  vec3 weights = blend + 0.4 * noise3(noise(gl_FragCoord.xy * rcpFrame));
+
+  if (weights.x >= weights.y && weights.x >= weights.z)
+    albedo = texture2D(albedoMap, uv0);
+  else if (weights.y >= weights.x && weights.y >= weights.z)
+    albedo = texture2D(albedoMap, uv1);
+  else
+    albedo = texture2D(albedoMap, uv2);
+
+  if (albedo.w < 1.0) {
+    discard;
+    return;
+  }
+
+  PREPASS
+
+  vec4 normalMat;
+  if (weights.x >= weights.y && weights.x >= weights.z)
+    normalMat = texture2D(normalMap, uv0);
+  else if (weights.y >= weights.x && weights.y >= weights.z)
+    normalMat = texture2D(normalMap, uv1);
+  else
+    normalMat = texture2D(normalMap, uv2);
+
+  // vec3 normal = decodeNormal(normalMat.xy);
+  //normal = normalize((WORLDIT * vec4(normal, 0)).xyz);
+  // normalMat.xy = encodeNormal(normal);
+
+  fragment_color0 = albedo;
+  fragment_color1 = normalMat;
+}

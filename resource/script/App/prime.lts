@@ -1,0 +1,15 @@
+function Bool IsPrime (Int n)
+  var prime true
+  for i 2 i < n i.++
+    if (Mod n i) == 0
+      prime = false
+  prime
+
+type Prime
+  function Void Initialize ()
+    for i 2 i < 1000 i.++
+      if (IsPrime i)
+        @ i
+
+function Prime Main ()
+  Prime

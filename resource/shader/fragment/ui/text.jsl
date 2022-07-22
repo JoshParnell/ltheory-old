@@ -1,0 +1,73 @@
+#include ui.jsl
+
+FRAG_IN vec4 attrib1;
+FRAG_IN vec4 attrib2;
+FRAG_IN vec4 attrib3;
+
+uniform sampler2D font;
+uniform int additive;
+
+vec4 cubic(float v) {
+  vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - v;
+  vec4 s = n * n * n;
+  float x = s.x;
+  float y = s.y - 4.0 * s.x;
+  float z = s.z - 4.0 * s.y + 6.0 * s.x;
+  float w = 6.0 - x - y - z;
+  return vec4(x, y, z, w);
+}
+
+vec4 sampleCubic(sampler2D texture, vec2 uv) {
+  vec2 coord = uv * frame;
+  float fx = fract(coord.x);
+  float fy = fract(coord.y);
+  coord.x -= fx;
+  coord.y -= fy;
+
+  vec4 xcubic = cubic(fx);
+  vec4 ycubic = cubic(fy);
+
+  vec4 c = vec4(coord.x - 0.5, coord.x + 1.5, coord.y - 0.5, coord.y + 1.5);
+  vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
+  vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
+
+  vec4 sample0 = texture2D(texture, vec2(offset.x, offset.z) / frame);
+  vec4 sample1 = texture2D(texture, vec2(offset.y, offset.z) / frame);
+  vec4 sample2 = texture2D(texture, vec2(offset.x, offset.w) / frame);
+  vec4 sample3 = texture2D(texture, vec2(offset.y, offset.w) / frame);
+
+  float sx = s.x / (s.x + s.y);
+  float sy = s.z / (s.z + s.w);
+
+  return mix(
+    mix(sample3, sample2, sx),
+    mix(sample1, sample0, sx), sy);
+}
+
+void main() {
+  vec4 color = attrib1;
+  vec2 uv = attrib2.xy;
+  float scale = attrib2.z;
+#if 1
+  float d = sampleCubic(font, uv - 0.5 / frame).x;
+#else
+  float d = texture2D(font, uv).x;
+#endif
+  float a = 1.0 * d * scale;
+
+  vec4 c;
+  if (additive == 0) {
+    a = 1.0 - saturate(a);
+    c = 1.0 * exp(-0.25 * d) * vec4(0.0, 0.0, 0.0, color.w);
+    c.w = saturate(c.w);
+    c = mix(c, color, color.w * a);
+    RETURN(c);
+  } else {
+    float mult = 0.0;
+    float dist = scale * d;
+    mult += 1.0 * exp(-2.0 * dist);
+    mult += 0.2 * exp(-pow(0.5 * dist, 0.75));
+    c = color * mult;
+    RETURN(color * mult);
+  }
+}

@@ -1,0 +1,39 @@
+#include vert.jsl
+#include math.jsl
+
+uniform vec3 eye;
+uniform vec3 camUp;
+uniform float size;
+uniform sampler2D depthBuffer;
+
+VERT_OUT vec3 attrib;
+VERT_OUT float opacity;
+
+void main() {
+  VS_PROLOGUE;
+
+  vec3 toCam = normalize(eye - worldPos.xyz);
+  vec3 right = normalize(cross(camUp, toCam));
+  vec3 up = cross(right, toCam);
+
+  float age = vertex_normal.y;
+
+  attrib = vertex_color;
+
+  vec4 center = PROJ * (VIEW * worldPos);
+  float centerDepth = center.z / farPlane;
+  center /= center.w;
+
+  vec2 samplePos = (center.xy);
+  samplePos = .5 + .5 * samplePos;
+  float depth = texture2D(depthBuffer, samplePos).x / farPlane;
+  float weight = exp(-farPlane * max(0., (centerDepth - 4.0 / farPlane) - depth));
+  opacity = weight;
+
+  worldPos.xyz += size * u * right;
+  worldPos.xyz += size * v * up;
+  gl_Position = PROJ * (VIEW * worldPos);
+
+  linearDepth = gl_Position.z;
+  gl_Position.z = 0.;
+}

@@ -1,0 +1,17 @@
+#include frag.jsl
+#include noise.jsl
+
+uniform sampler2D layer;
+
+const float kA = 1.75;
+const float kB = 1.25;
+
+void main() {
+  vec4 c = texture2D(layer, uv);
+  c.xyz = sign(c.xyz) * (1.0 - exp(-kA * pow(abs(c.xyz), vec3(kB))));
+  c.xyz -= noise3(noise(uv + 3.0)) / 256.0;
+  c.w = saturate(c.w);
+  c.xyz /= max(0.00001, c.w);
+  c.xyz = max(vec3(0.0), c.xyz);
+  RETURN(c);
+}

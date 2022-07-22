@@ -1,0 +1,43 @@
+function String FontPath () "../lt/resource/font/"
+
+type FontPreview
+  function List CreateChildren (Widget self)
+    var l List
+
+    var fonts FontPath.ListDir
+    for i 0 i < fonts.Size && i < 6 i.++
+      var name (fonts.Get i)
+      var path name + "/Regular.ttf"
+      var full FontPath + path
+      if full.IsFile
+        l +=
+          Widgets:ListH3 0
+            Components:MinSize (Vec2 128 0)
+              Widgets:Text Fonts:Medium name 16 0.5
+            Widgets:EmptySpaceH
+            Widgets:ListV3 8
+              Widgets:Text (Font_Get path) "AWESOME FONT's need a preview 57812-3:0123/" 24 1
+              Widgets:Text (Font_Get path) "01234567890  !@#$%^&*()-=[]<>" 18 1
+              Widgets:ListH2 8
+                Components:AlignBottomLeft
+                  Widgets:Text (Font_Get path) "BIG STUFF" 48 1
+                Components:AlignBottomLeft
+                  Widgets:Text (Font_Get path) "in a small world :)" 20 Colors:Primary
+         l += (Widgets:SpacerH 0)
+    l
+  
+function Widget Create ()
+  Components:Backdrop 0.08 0.95 1 0
+    Widgets:ListV2 0
+      Components:Backdrop 0.1 0.5 1 0
+        Components:Padding 16 16
+          Components:Expand
+            Widgets:ListH2 16
+              Components:MinSize 24
+                Widgets:Icon Icons:QuestionMark 2.0 * Colors:Secondary
+              Widgets:Text Fonts:Medium "FONT PREVIEW" 20 1
+      Widgets:ScrollFrameV
+        Components:Margin 16 16
+          ListV 16
+            Custom Widget
+              FontPreview

@@ -1,0 +1,99 @@
+function Int ShipCount () 10
+
+type App
+  Object system
+  Player player
+  Interface ui
+  Interface gameView
+  Camera camera
+
+  function Void Initialize ()
+    var kOrigin (Vec3d 0 0 0)
+    var rng (RNG_MTG 0)
+
+    # Create the camera
+    camera = Camera_Create
+    camera.Push
+
+    # Create the interfaces
+    ui = (Interface_Create "UI")
+    gameView = (Interface_Create "Game View")
+
+    # Set up the game view
+    var passes Vector<Reference<RenderPassT>>
+    passes.Append (RenderPass_Clear (Vec4 0.0))
+    passes.Append (RenderPass_Camera camera)
+    # passes.Append (RenderPass_MotionBlur 0.8)
+    passes.Append (RenderPass_SMAA)
+    passes.Append (RenderPass_Interface ui)
+    passes.Append (RenderPass_PostFilter "post/dither.jsl")
+    gameView.Add (Widget_Rendered passes)
+
+    # Create the system
+    system = (Object_System (Vec3 15.012) 369369)
+
+    # Create the player ship
+    var shipType (Item_ShipType 1000000 55 1 1 1 1 1 1)
+    var ship shipType.Instantiate
+    ship.SetPos kOrigin
+    var weaponType (Item_WeaponType 74)
+    for i 0 i < 4 i.++
+      ship.Plug weaponType
+    system.AddInterior ship
+
+    var planet (Instantiate (Item_PlanetType 155))
+    planet.SetScale 100000
+    planet.SetPos (Vec3 -400000 0 0)
+    system.AddInterior planet
+
+    # Create the player
+    player = Player_Human
+    player.AddAsset ship
+    player.Pilot ship
+
+    # Add a combat zone
+    var zone
+      Object_Zone
+        system
+        0
+        kOrigin + (Vec3 1000)
+        Vec3 100000
+        SDF_Sphere 0 1
+        128
+        1.0
+        0.0
+        0.0
+        0.0
+    # system.AddInterior zone
+
+    var type1 (Item_ShipType 100000 20 1 1 1 1 1 1)
+
+    for i 0 i < ShipCount i.++
+      var choice (rng.Int 1 2)
+      var enemy type1.Instantiate
+      enemy.SetPos 5000.0 * rng.Direction
+      system.AddInterior enemy
+      var weaponType (Item_WeaponType rng.Int)
+      for j 0 j < 4 j.++
+        enemy.Plug weaponType
+      enemy.PushTask (Task_Destroy ship)
+
+    # Set up the UI
+    ui.Add (Widget/HUD:Create player)
+
+  function Void Update ()
+    if Key_T.Pressed
+      Shader_RecompileAll
+
+    var dt FrameTimer_Get
+    dt = (Min dt 0.1)
+    if Key_H.Down dt *= 20.0
+
+    system.Update dt
+    ui.Update
+    gameView.Update
+    gameView.Draw
+
+function App Main ()
+  var self App
+  self

@@ -1,0 +1,61 @@
+type MessageAddContextMenu
+  Widget widget
+
+type MessageAddWidget
+  Widget widget
+
+type MessageCancel
+
+type MessageClick
+
+type MessageGatherWidgets
+  (Array Widget) widgets (Array Widget)
+
+type MessageGetLabel
+  String label
+  Data contents
+
+type MessageRefresh
+
+type MessageSelected
+  Widget widget
+
+type MessageLink
+  Widget widget
+
+type CreateObjectInfo
+  Player player
+  Object object
+  Widget widget Widget
+
+type SelectItem
+  Item item
+
+type UnselectItem
+  Item item
+
+type MessageSetPos
+  Vec2 pos
+
+function Data GetLabel (Widget widget String label)
+  var data (cast Data (MessageGetLabel label ""))
+  widget.Send data
+  widget.SendUp data
+  ref msg (cast MessageGetLabel data)
+  msg.contents
+
+function (Array Widget) GatherWidgets (Object object)
+  var data (cast Data MessageGatherWidgets)
+  object.Send data
+  ref msg (cast MessageGatherWidgets data)
+  msg.widgets
+
+type MessageGetObject
+  Object object
+
+function Object GetObject (Widget widget)
+  var data (cast Data (MessageGetObject Object))
+  widget.Send data
+  widget.SendDown data
+  ref message (cast MessageGetObject data)
+  message.object

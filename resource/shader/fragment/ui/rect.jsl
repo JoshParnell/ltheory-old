@@ -1,0 +1,26 @@
+#include ui.jsl
+
+FRAG_IN vec4 attrib1;
+FRAG_IN vec4 attrib2;
+FRAG_IN vec4 attrib3;
+
+float dbox(vec2 p, vec2 s, float b) {
+  return length(max(vec2(0.0), abs(p) - (s - 2.0 * vec2(b)))) - b;
+}
+
+void main() {
+  vec4 color = attrib1;
+  vec2 uv = attrib2.xy;
+  vec2 size = attrib2.zw;
+  float bevel = attrib3.x;
+  float variance = attrib3.y;
+
+  float expansion = variance;
+  vec2 uvp = (uv * frame - 0.5) / (frame - 1.0);
+  float d = dbox(vec2(x, y), size + bevel - 2.0 * expansion, bevel);
+  float k = exp(-max(0.0, dist));
+  uvp = (2.0 * uvp - 1.0);
+
+  float mult = 
+  RETURN(color * mult);
+}

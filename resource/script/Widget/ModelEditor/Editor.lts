@@ -1,0 +1,91 @@
+type EditorWindow
+  (Pointer Types:GlobalOptions) pOptions
+  (Pointer Types:ModelT) pModel
+  Float zoom 1
+  Vec2 pan (Vec2 0 0)
+  Int dragging -1
+  Int selected -1
+  Int selectedLast -1
+
+  function Void PreDraw (Widget self)
+    ClipRegion_Push self.pos self.size
+
+    selected = -1
+    ref options (deref pOptions)
+    ref model (deref pModel)
+    var size (Min self.size.x self.size.y)
+
+    var camPos (Vec3 0 -100.0 0)
+    var camLook (Vec3 0 1 0)
+    var camUp (Vec3 0 0 1)
+    var camFov 1.0 * (Pi / 180.0)
+
+    for i 0 i < model.pieces.Size i.++
+      ref piece (model.pieces.Get i)
+      var p ((Vec2 piece.center.x -1.0 * piece.center.z) + pan) / zoom
+      var s (Vec2 piece.scale.x piece.scale.z) / zoom
+      p = self.Center + 0.5 * size * p
+      s = 0.5 * s * size
+
+      var focus (Cursor_Get >= (p - 0.5 * s) && Cursor_Get <= (p + 0.5 * s))
+      if focus
+        if selected < 0
+          selected = i
+
+      var r piece.bevel * (Min s.x s.y)
+      DrawPanel p - 0.5 * s s 0.1 1.0 1 r
+      var transform (Transform_ST 0.5 * piece.scale piece.center)
+      DrawRenderable piece.model transform camPos camLook camUp camFov self.pos self.size Colors:Primary 1.0 0.0
+
+      if options.symmetryX && piece.center.x.Abs > 0.0
+        var p self.Center + 0.5 * size * ((Vec2 -1.0 * piece.center.x -1.0 * piece.center.z) + pan) / zoom
+        DrawPanel p - 0.5 * s s 0.1 0.2 0.5 r
+      if options.symmetryZ && piece.center.z.Abs > 0.0
+        var p self.Center + 0.5 * size * ((Vec2 piece.center.x piece.center.z) + pan) / zoom
+        DrawPanel p - 0.5 * s s 0.1 0.5 0.5 r
+
+      if focus
+        DrawPanel p - 0.5 * s s Colors:Primary 1.0 1 r
+
+    selectedLast = selected
+
+  function Void PostDraw (Widget self)
+    ClipRegion_Pop
+
+  function Void PostUpdate (Widget self)
+    if (Mouse_LeftPressed && selected >= 0)
+      dragging = selected
+
+    if (dragging >= 0)
+      ref model (deref pModel)
+      ref piece (model.pieces.Get dragging)
+      var dp Cursor_GetDelta / self.size
+      piece.center.x += 4.0 * dp.x * zoom
+      piece.center.z -= 2.0 * dp.y * zoom
+
+    if self.focusScroll
+      zoom *= 1.0 - 0.1 * Mouse_GetScrollDelta
+
+    if self.focusKey
+      var amount FrameTimer_Get * zoom
+      if Key_W.Down
+        pan.y -= amount
+      if Key_S.Down
+        pan.y += amount
+      if Key_A.Down
+        pan.x -= amount
+      if Key_D.Down
+        pan.x += amount
+
+    if (Mouse_LeftReleased)
+      dragging = -1
+
+function Widget Create ((Pointer Types:GlobalOptions) options (Pointer Types:ModelT) model)
+  Components:Expand
+    Components:GreedyX
+      Components:Backdrop 0.05 0.5 1 0
+        Components:CaptureMouse
+          Components:CaptureKey
+            Components:CaptureScroll
+              Custom Widget
+                EditorWindow options model

@@ -1,0 +1,60 @@
+type Node
+  Vec2 p
+  Vec2 v
+  Vec3 color
+  Float age
+
+type SplashScreen
+  (Array Node) nodes (Array Node)
+
+  function Void Create (Widget self)
+    nodes += (Node (Vec2 0.25 0.5) 0 Colors:Primary 0)
+
+  function List CreateChildren (Widget self)
+    var l List
+    var c Colors:Primary
+    var font (Font_Get "Rajdhani/Light.ttf")
+    var size 72
+
+    l +=
+      Components:AlignCenter
+        Components:Margin 0 (Vec2 0 32)
+          Widgets:ListH3 32
+            Components:AlignCenter
+              Widgets:TextGlow font "HARMONIC" size c
+            Components:AlignCenter
+              Components:MinSize 96
+                Widgets:Icon Icons:Assets c
+            Components:AlignCenter
+              Widgets:TextGlow font "REALITY" size c
+    l
+
+  function Void PreUpdate (Widget self)
+    var dt FrameTimer_Get
+    for i 0 i < nodes.Size i.++
+      ref node (nodes.Get i)
+      node.age += dt
+      node.v += dt * node.p
+      node.v *= (ExpDecay dt 1.0)
+
+  function Void PreDraw (Widget self)
+    var icon Icon_Create
+    icon += (Glyph_Circle 0 1 1 1)
+
+    for i 0 i < nodes.Size i.++
+      ref node (nodes.Get i)
+      var sp 0.5 + 0.5 * node.p
+      sp = self.pos + sp * self.size
+      Draw icon sp 16 node.color 1
+
+function Widget Create ()
+  Layer
+    Compositor_Basic 0.1 0.3 (Vec3 0.2 0.4 0.75)
+    Mesh_Quad
+    1
+    Components:Backdrop 0.05 1 1 0
+      Components:BackdropGrid Colors:Primary 0.10
+        Components:Expand
+          Stack
+            Custom Widget
+              SplashScreen

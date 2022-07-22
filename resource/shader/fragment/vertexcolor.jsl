@@ -1,0 +1,9 @@
+#include frag.jsl
+
+FRAG_IN vec3 color;
+
+uniform float glow;
+
+void main() {
+  RETURN(vec4(color, glow));
+}

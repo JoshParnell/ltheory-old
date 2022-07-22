@@ -1,0 +1,7 @@
+ThrusterType (
+  color = (2.5, 1.2, .5)
+  name = "Thruster"
+  offset = (0, 0, 1)
+  power = (Motion = 1)
+  scale = 1
+)

@@ -1,0 +1,21 @@
+type FocusWindow
+  Float opacity
+  Widget widget
+
+  function Void Create (Widget self)
+    Sound_Play "ui/windowopen.wav" 0.1
+
+  function Void Destroy (Widget self)
+    Sound_Play "ui/windowclose.wav" 0.2
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += widget
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.05 1.0 opacity 0
+
+  function Void PostUpdate (Widget self)
+    if self.GetChildren.Size == 0
+      self.Delete

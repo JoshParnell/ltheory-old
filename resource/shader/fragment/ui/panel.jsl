@@ -1,0 +1,58 @@
+#include ui.jsl
+
+FRAG_IN vec4 attrib1;
+FRAG_IN vec4 attrib2;
+FRAG_IN vec4 attrib3;
+
+uniform float shadowSize;
+
+const float kOpacity = 1.0;
+
+float dbox(vec2 p, vec2 s, float b) {
+  return length(max(vec2(0.0), abs(p) - (s - 2.0 * vec2(b)))) - b;
+}
+
+void main() {
+  vec2 uv = attrib1.xy;
+  vec2 size = attrib1.zw;
+  vec4 color = attrib2;
+  float innerAlpha = attrib3.x;
+  float bevel = attrib3.y;
+
+  vec2 uvp = uv;
+  float x = size.x * (2.0 * uvp.x - 1.0);
+  float y = size.y * (2.0 * uvp.y - 1.0);
+
+  float dist = dbox(vec2(x, y), size + bevel - 2.0 * shadowSize, bevel);
+  float k = exp(-max(0.0, dist));
+  float mult =
+    innerAlpha * kOpacity * k +
+    0.75 * saturate(exp(-pow(0.2 * max(0.0, dist), 0.75)) - k);
+
+#if 1
+  /* Future / curved */
+  color.xyz *= mix(exp(-uvp.y), 0.5, 0.5);
+#else
+  /* Flat / metro */
+  color.xyz *= 0.6;
+#endif
+
+#if 1
+  #if 0
+    color.xyz += 0.25 * vec3(0.4, 0.7, 1.0) * exp(-4.0 * length(uvp - vec2(0.5, 0.0)));
+  #else
+    color.xyz += 0.17 * vec3(0.5, 0.5, 0.5) * exp(-3.0 * length(uvp - vec2(0.5, 0.0)));
+  #endif
+
+#else
+  if (y > (size.y + bevel - 2.0 * shadowSize - 8.0) ||
+      -1.0 * y > (size.y + bevel - 2.0 * shadowSize - 8.0))
+    color.xyz *= 0.50;
+
+  color.xyz *= 1.5;
+#endif
+
+  color.xyz = mix(color.xyz, vec3(0.005), 1.0 - exp(-2.0 * max(0.0, dist)));
+  mult = saturate(mult);
+  RETURN(vec4(color.xyz, color.w * mult));
+}

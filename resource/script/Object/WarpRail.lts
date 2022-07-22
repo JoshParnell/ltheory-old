@@ -1,0 +1,52 @@
+type ObjectWarpRail
+  Object node1
+  Object node2
+  RNG rng (RNG_MTG 512)
+
+  function Bool Update (Object self)
+    if (Camera_CanSee self 40000)
+      var ps ParticleSystem_Get
+      var particle Particle_Firefly
+      var p1 node1.GetPos
+      var p2 node2.GetPos
+      var look (Normalize p2 - p1)
+
+      for i 0 i < 16 (++ i)
+        var dir ((rng.Float -1 1) * 50.0 * look)
+        var energy 1.0 + 0.5 * rng.Exp ^ 2.0
+
+        ps.Add
+          particle
+          Mix p1 p2 rng.Float
+          energy * dir
+          50.0 * rng.Float
+          rng.Float 1 5
+          energy * (Vec3 1.0 1.5 2.0)
+
+    true
+
+function Object Create (Object node1 Object node2)
+  var self
+    Object_Custom
+      ObjectWarpRail
+        node1
+        node2
+
+  var myMesh (Mesh_BoxSphere 10 true)
+  myMesh.SetOcclusion 1.0
+
+  var myModel Model_Create
+  myModel.Add
+    myMesh
+    Material_Ice
+
+  # self.SetRenderable myModel
+  var p1 node1.GetPos
+  var p2 node2.GetPos
+  self.SetScale (Vec3 1 1 0.5 * (Length p1 - p2))
+  self.SetLook (Normalize p1 - p2)
+  self.SetPos 0.5 * (p1 + p2)
+
+  node1.Send (MessageLink node2)
+  node2.Send (MessageLink node1)
+  self

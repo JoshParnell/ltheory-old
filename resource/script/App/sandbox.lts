@@ -1,0 +1,33 @@
+# X was created in Y, during the Varxastian War, to give the ships
+# of Varxst a marginal advantage over the Preems.
+
+# I am Captain Piccard of the United Federation of Planets.
+# What is it that you need?
+# Why have you contacted me?
+
+# On X, a ship belonging to faction Y was attacked and destroyed by
+# Z pirates in Zone W.  It is believed that the ship was carrying
+# approximately 1,000,000 cr worth of Valerite ore at the time.
+
+# [on date] [object description] [event description] [in location].
+# [additional details on object]
+
+type Context
+  Object pov
+  Data subject
+  Data time
+  (Array Data) phrases
+  RNG rng
+
+type PhraseOnDate
+  function Void Render (Context context) 0
+
+type Sandbox
+  function Void Initialize ()
+    var time Time_Current
+    var ts time.hour + ":" + time.minute + ":" + time.second
+    var ds time.month + "/" + time.day + "/" + time.year
+    @ ts " " ds
+
+function Sandbox Main ()
+  Sandbox

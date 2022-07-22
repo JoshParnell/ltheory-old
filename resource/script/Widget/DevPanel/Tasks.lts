@@ -1,0 +1,103 @@
+type TaskNode
+  String name
+  Int status
+
+type TaskData
+  (Array TaskNode) tasks (Array TaskNode)
+  Int active -1
+
+type TaskWidget
+  (Pointer TaskData) pTaskData
+  Int index
+
+  function List CreateChildren (Widget self)
+    var l List
+    ref task (Get (tasks (deref pTaskData)) index)
+    l += 
+      Components:AlignCenter
+        Components:MinSize 8
+          ?
+            task.status == 0
+              Widgets:Icon Icons:Dot Colors:Primary
+            task.status == 1
+              Widgets:Icon Icons:CircleDot Colors:Secondary
+            otherwise
+              Widgets:Icon Icons:CircleDot Colors:Good
+
+    l +=
+      Components:AlignCenter
+        Widgets:Text Fonts:Default task.name.UpperCase 14 1.0
+    l
+
+function Widget CreateTaskWidget ((Pointer TaskData) pTaskData Int index)
+  Components:Backdrop 0.05 0.5 1 1
+    Components:Expand
+      ListH 16
+        Components:Padding (Vec2 16 12) (Vec2 16 12) 
+          Custom Widget
+            TaskWidget pTaskData index
+
+type TasksWidget
+  TaskData taskData TaskData
+  String taskName ""
+
+  function Void Create (Widget self)
+    taskData.tasks.Clear
+    taskData.tasks += (TaskNode "PBR" 1)
+    taskData.tasks += (TaskNode "GGX" 1)
+    taskData.tasks += (TaskNode "Better Lens Flare" 1)
+    taskData.tasks += (TaskNode "Lens Flare Ghosts" 1)
+    taskData.tasks += (TaskNode "Sharpen" 1)
+    taskData.tasks += (TaskNode "Motion Blur" 1)
+    taskData.tasks += (TaskNode "Film Grain" 1)
+    taskData.tasks += (TaskNode "Pure Linear" 1)
+    taskData.tasks += (TaskNode "PlateMesh Editor" 1)
+    taskData.tasks += (TaskNode "Ship / Station Generation" 0)
+    taskData.tasks += (TaskNode "Fleets" 0)
+    taskData.tasks += (TaskNode "Observatory Sandbox" 0)
+    taskData.tasks += (TaskNode "Fleets & formation editor" 0)
+    taskData.tasks += (TaskNode "Decals" 0)
+    taskData.tasks += (TaskNode "Glow Text" 2)
+    taskData.tasks += (TaskNode "Triangle Glyph" 2)
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += 
+      Components:Margin (Vec2 0 8) (Vec2 0 8)
+        Components:Expand
+          Widgets:ListH2 16
+            Components:Expand
+              Components:GreedyX
+                Widget/TextField:Create "newTask" 16 (address taskName)
+            Components:Expand
+              Widget/Button:Create Messages:MessageClick "ADD" 16
+    
+    for i 0 i < taskData.tasks.Size i.++
+      l += (CreateTaskWidget (address taskData) i)
+    l
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageClick")
+      if taskName.Length > 0
+        var task (TaskNode taskName 0)
+        taskData.tasks += task
+        self.AddChild (CreateTaskWidget (address taskData) taskData.tasks.Size - 1)
+
+function Widget Create ()
+  Widgets:ListV2 2
+    Components:Backdrop 0.1 0.25 1 0
+      Components:Padding (Vec2 24 16) (Vec2 24 16)
+        Components:Expand
+          Widgets:ListH2 16
+            Components:AlignCenter
+              Components:MinSize 32
+                Widgets:Icon Icons:Log 1.5 * Colors:Primary
+            Components:AlignCenter
+              Widgets:Text Fonts:Default "TASK MANAGER" 20 1
+    Components:Backdrop 0.08 0.75 1 0
+      Widgets:ScrollFrameV
+        Components:Margin 8 8
+            Components:Expand
+              ListV 8
+                Custom Widget
+                  TasksWidget

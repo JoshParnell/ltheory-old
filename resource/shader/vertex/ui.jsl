@@ -1,0 +1,16 @@
+#include vert.jsl
+
+uniform vec2 size;
+
+VERT_OUT float width;
+VERT_OUT float height;
+
+void main() {
+  uv = vertex_uv;
+  vertpos = vertex_position;
+  vertnormal = vertex_normal;
+  vertcolor = vertex_color;
+  gl_Position = PROJ * vec4(vertex_position, 1.);
+  width = size.x;
+  height = size.y;
+}

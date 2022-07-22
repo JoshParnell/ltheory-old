@@ -1,0 +1,15 @@
+type IconRing
+  Icon icon
+  Vec3 color
+
+  function Void PreDraw (Widget self)
+    var r 0.5 * (Min self.size.x self.size.y)
+    Draw (Glyph_Arc 0 1 0.001 1 1 0 1) self.Center r color 0.1 * self.alpha
+    Draw icon self.Center 0.7 * r color self.alpha
+
+type WidgetIcon
+  Icon icon
+  Vec3 color
+
+  function Void PreDraw (Widget self)
+    Draw icon self.Center 0.5 * (Min self.size.x self.size.y) color self.alpha

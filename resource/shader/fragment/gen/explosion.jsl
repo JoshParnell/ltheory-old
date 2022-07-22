@@ -1,0 +1,21 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+void main() {
+  vec2 uvp = uv;
+  vec2 d = 2.0 * uvp - 1.0;
+  float r = saturate(dot(d, d));
+  uvp *= 8.0;
+  const float t = 0.4;
+  float tx = t * frcnoise(uvp / 4.0, 23.0, 4, 2);
+  float ty = t * frcnoise(uvp / 4.0, 25.0, 4, 2);
+
+  float alpha = 1.0;
+  alpha *= exp(-15.0*sqrt(r));
+  float edgeFactor = pow2(1.0 - sqrt(r));
+  alpha += 0.01 * edgeFactor;
+
+  vec3 color = mix(vec3(0.0), vec3(2.0, 0.5, 0.5 - 0.5*alpha), alpha);
+  RETURN(vec4(color, edgeFactor));
+}

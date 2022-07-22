@@ -1,0 +1,25 @@
+#include frag.jsl
+#include color.jsl
+#include lighting.jsl
+
+FRAG_IN vec3 position;
+
+uniform sampler2D texture;
+
+void main() {
+#if 0
+  float r = length(uv);
+  float a = texture2D(texture, 0.5 * uv + 0.5).x;
+#else
+  float r = length(uv);
+  float a =
+    0.50 * exp(-pow2(32.0 * r)) +
+    0.20 * exp(-sqrt(81.0 * r));
+#endif
+
+  float fog = getFoginess(farPlane);
+  vec3 c = vertnormal;
+  vec4 bg = textureCube(envMap, vertpos);
+  c *= mix(vec3(1.0), bg.xyz, saturate(0.5 * bg.w));
+  RETURN(vec4(c * a * (1.0 - 0.75 * fog), 1.0));
+}

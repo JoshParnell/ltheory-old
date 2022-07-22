@@ -1,0 +1,15 @@
+#include frag.jsl
+#include color.jsl
+#include cube.jsl
+
+uniform samplerCube texture1;
+uniform samplerCube texture2;
+
+void main() {
+  vec3 p = GetCubePosition(uv, true);
+  vec4 c1 = textureCube(texture1, p);
+  vec4 c2 = textureCube(texture2, p);
+  // RETURN(vec4((c1 * c2).xyz, c1.w));
+  c1.xyz = 0.15 * (c1.xyz / lum(c2.xyz));
+  RETURN(c1);
+}

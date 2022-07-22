@@ -1,0 +1,15 @@
+#include frag.jsl
+#include math.jsl
+#include lighting.jsl
+#include scattering.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+FRAG_IN vec3 origin;
+
+void main() {
+  vec3 rd = position - eye;
+  float depth = length(rd);
+  vec4 scattering = toGamma(getScattering(origin, eye, normalize(rd), depth));
+  RETURN(vec4(scattering.xyz, 1.0) * (1.0 - getFoginess(depth)));
+}

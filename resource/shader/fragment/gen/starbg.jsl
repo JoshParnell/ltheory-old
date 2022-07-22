@@ -1,0 +1,10 @@
+#include frag.jsl
+#include math.jsl
+
+void main() {
+  float r = length(2.0 * uv - 1.0);
+  float a =
+    3.00 * exp(-pow2(32.0 * r)) +
+    0.50 * exp(-9.0 * sqrt(r));
+  RETURN(vec4(a));
+}

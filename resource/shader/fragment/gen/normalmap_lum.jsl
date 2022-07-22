@@ -1,0 +1,27 @@
+#include frag.jsl
+#include math.jsl
+
+uniform sampler2D texture;
+uniform float invWidth;
+uniform float invHeight;
+uniform float height;
+
+uniform float cellW;
+uniform float cellH;
+
+float getHeight(float x, float y) {
+  return avg(texture2D(texture, vec2(x, y)).xyz);
+}
+
+void main() {
+  vec2 uvp = uv;
+  float dx = getHeight(uvp.x + invWidth, uvp.y) - getHeight(uvp.x - invWidth, uvp.y);
+  float dy = getHeight(uvp.x, uvp.y + invHeight) - getHeight(uvp.x, uvp.y - invHeight);
+  dx *= height;
+  dy *= height;
+  vec3 normal = cross(
+    vec3(cellW * invWidth, 0.0, height * dx),
+    vec3(0.0, cellH * invHeight, height * dy));
+  normal = normalize(normal);
+  RETURN(vec4(0.5 * normal + 0.5, 1.0));
+}

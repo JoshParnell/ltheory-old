@@ -1,0 +1,74 @@
+#include frag.jsl
+#include lighting.jsl
+#include math.jsl
+#include noise.jsl
+#include texturing.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 origin;
+FRAG_IN vec3 position;
+FRAG_IN vec3 vertposscaled;
+FRAG_IN vec3 scale;
+
+uniform mat4 WORLDIT;
+uniform sampler2D albedoMap;
+uniform sampler2D depthBuffer;
+uniform sampler2D normalMap;
+uniform float objectRadius;
+
+#include fdm.jsl
+
+void main() {
+  PREPASS
+  EARLY_Z
+
+  vec3 c = sampleFDM(albedoMap, vertposscaled).xyz;
+  float a = sampleTriplanar(albedoMap, 0.5 * vertpos).x;
+
+  c = (c / avg(c)) * pow(3.25 * avg(c), 4.0);
+  vec3 bump = sampleFDMBumpmap(normalMap, vertposscaled);
+  vec3 n = normalize(mix(normalize(normal), normalize((WORLDIT * vec4(bump, 0)).xyz), 0.75));
+  c *= pow4(uv.x);
+  float r = 1.0;
+
+#if 0
+  float w = step(0.35, a);
+  r = mix(r, 0.1, w);
+  c = mix(c, lum(c) * 8.0 * vec3(1.0, 0.35, 0.1), w);
+#endif
+
+#if 0
+  vec3 vp = vertpos;
+  vp.y *= 0.5;
+  float v = 
+    sampleTriplanar(albedoMap, vp / 2.0).x *
+    sampleTriplanar(albedoMap, vp / 16.0 + .5012).x *
+    sampleTriplanar(albedoMap, vp / 32.0 + 50.4120389).x;
+  v = 0.5 + 0.5 * sin(8.0 * radians(360.0) * v);
+  v = exp(-64.0 * pow2(max(0.0, abs(v - 0.3) - 0.1)));
+  v *= 128.0;
+  r = mix(r, 0.2, saturate(v));
+  c += v * vec3(1.0, 0.1, 0.01);
+#endif
+
+#if 0
+  float clipValue = noise(gl_FragCoord.xy);
+  float alpha = exp(-0.5 * max(0.0, length(eye - origin) / objectRadius - 32.0));
+  if (alpha < clipValue)
+    discard;
+#endif
+
+#if 0
+  outputAlbedo(vec3(uv.x));
+  outputAlpha(1.0);
+  outputNormal(n);
+  outputMaterial(MATERIAL_NOSHADE);
+  outputRoughness(1.0);
+#else
+  outputAlbedo(c);
+  outputAlpha(1.0);
+  outputNormal(n);
+  outputMaterial(MATERIAL_COOKT);
+  outputRoughness(r);
+#endif
+}

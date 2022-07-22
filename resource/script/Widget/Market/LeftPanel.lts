@@ -1,0 +1,104 @@
+type Category
+  Object market
+  String category
+
+  function List CreateChildren (Widget self)
+    var l List
+    var count 0
+    for it market.GetMarketListings it.HasMore it.Advance
+      var element it.Get
+      var ts element.item.GetTypeString
+      if (category == "all" || (ts.LowerCase.Contains category))
+        count += 1
+
+    switch
+      count > 0
+        l +=
+          Components:Expand
+            Components:GreedyX
+              Widgets:Tab "category" category.UpperCase
+
+        l +=
+          Components:AlignCenter
+            Widgets:Text Fonts:Default count 14.0 1.5 * Colors:Primary
+
+      otherwise
+        l += 
+          Components:Expand
+            Components:GreedyX
+              Components:Margin (Vec2 12 4) (Vec2 8 4)
+                Widgets:Text Fonts:Default category.UpperCase 13.0 0.3
+
+    l
+
+function Widget CreateCategory (Object market String name)
+  Components:Expand
+    ListH 8
+      Custom Widget
+        Category market name
+
+type CategoryList
+  Object market
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += (CreateCategory market "all")
+    l += (CreateCategory market "ammo")
+    l += (CreateCategory market "armor")
+    l += (CreateCategory market "blueprint")
+    l += (CreateCategory market "commodity")
+    l += (CreateCategory market "compound")
+    l += (CreateCategory market "data")
+    l += (CreateCategory market "drone")
+    l += (CreateCategory market "jump drive")
+    l += (CreateCategory market "ore")
+    l += (CreateCategory market "production lab")
+    l += (CreateCategory market "power generator")
+    l += (CreateCategory market "scanner")
+    l += (CreateCategory market "shield")
+    l += (CreateCategory market "ship")
+    l += (CreateCategory market "station")
+    l += (CreateCategory market "tech lab")
+    l += (CreateCategory market "thruster")
+    l += (CreateCategory market "transfer unit")
+    l += (CreateCategory market "weapon")
+    l += (CreateCategory market "worker")
+    l
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "TabSelect")
+        self.SendDown data
+
+type CategoryBar
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:AlignCenter
+        Widgets:Text Fonts:Subheading "CATEGORY" 16.0 0.4
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.1 0.5 1.0 0.0
+
+type LeftPanel
+  Object market
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Expand
+        Components:AlignCenter
+          Components:Padding 8 8
+            Stack
+              Custom Widget
+                CategoryBar
+
+    l +=
+      Widgets:ScrollFrameV
+        Components:Expand
+          Components:GreedyY
+            ListV 0
+              Custom Widget
+                CategoryList market
+    l

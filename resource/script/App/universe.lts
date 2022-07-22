@@ -1,0 +1,127 @@
+function Int UniverseSize () 512
+
+type Node
+  Vec2 p
+  Int x 0
+  Int y 0
+  Int n1 0
+  Int n2 0
+  Int n3 0
+
+type App
+  (Array Node) nodes (Array Node)
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += (Widgets:Text (Fonts:Heading) "Universe Lattice Simulation" 16.0 1.0)
+    l
+
+  function Void PreUpdate (Widget self)
+    if nodes.Size == 0
+      var radius 0.0
+      var count 1
+      var countLast 0
+      var remaining 1
+      var total 0
+
+      var sideLength (cast Int (Sqrt (cast Float UniverseSize)))
+      for i 0 i < UniverseSize i.++
+        var angle 2Pi * (remaining / count)
+        var p radius * (Vec2 angle.Cos angle.Sin)
+        nodes += (Node p)
+
+        remaining -= 1
+        if remaining == 0
+          var newCount count * 3 - countLast
+          countLast = count
+          count = newCount
+          remaining = count
+          radius += 0.1 * (Sqrt (cast Float newCount))
+
+        total += 1
+
+      for i 0 i < nodes.Size i.++
+        ref node (nodes.Get i)
+        var n1 (Mod i + 1 nodes.Size)
+        var d1 1000000.0
+        var n2 (Mod i + 2 nodes.Size)
+        var d2 1000000.0
+        var n3 (Mod i + 3 nodes.Size)
+        var d3 1000000.0
+
+        for j 0 j < nodes.Size j.++
+          if i != j
+            ref neighbor (nodes.Get j)
+            var d (Length neighbor.p - node.p)
+            switch
+              d < d1
+                d3 = d2
+                n3 = n2
+                d2 = d1
+                n2 = n1
+                d1 = d
+                n1 = j
+              d < d2
+                d3 = d2
+                n3 = n2
+                d2 = d
+                n2 = j
+              d < d3
+                d3 = d
+                n3 = j
+
+        node.n1 = n1
+        node.n2 = n2
+        node.n3 = n3
+
+    for i 0 i < nodes.Size i.++
+      ref node (nodes.Get i)
+      ref n1 (nodes.Get node.n1)
+      ref n2 (nodes.Get node.n2)
+      ref n3 (nodes.Get node.n3)
+      var sum node.x + n1.x + n2.x + n3.x
+      node.y -= sum
+      var out (Int_Divide sum 3)
+      n1.y += out
+      n2.y += out
+      n3.y += out
+      node.y += (3 * out - sum)
+
+    for i 0 i < nodes.Size i.++
+      ref node (nodes.Get i)
+      node.x += node.y
+      node.y = 0
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.1 1 1 0
+    Draw Icon/Cursors:Cross Cursor_Get 12 4.0 * Colors:Primary 0.3
+    Widget/Dev/FrameInfo:Draw self
+
+    var glyph (Glyph_Circle 0 1 1 1)
+    var bar (Glyph_Box 0.5 0.5 1 1)
+    var center self.Center
+    var scale 0.5 * (Vec2 (Max self.size.x self.size.y))
+
+    for i 0 i < nodes.Size i.++
+      ref node (nodes.Get i)
+      ref n1 (nodes.Get node.n1)
+      ref n2 (nodes.Get node.n2)
+      ref n3 (nodes.Get node.n3)
+      var pos center + scale * node.p
+      var p1 center + scale * n1.p
+      var p2 center + scale * n2.p
+      var p3 center + scale * n3.p
+      Draw glyph pos 16.0 * (cast Float node.x) Colors:Primary 1.0
+      Draw (Glyph_Line pos p1 1 1) 0 1 0.1 1
+      Draw (Glyph_Line pos p2 1 1) 0 1 0.1 1
+      Draw (Glyph_Line pos p3 1 1) 0 1 0.1 1
+
+function Data Main ()
+  widget:Create
+    Layer
+      Compositor_None
+      Mesh_Quad
+      1.0
+      Widget/Components:Padding 16 16
+        ListV 8.0
+          Custom Widget App

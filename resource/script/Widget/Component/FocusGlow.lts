@@ -1,0 +1,25 @@
+type FocusGlow
+  Float t 0.0
+
+  function Void PostDraw (Widget self)
+    if t > 0.001
+      var c 2.0 * Colors:Primary
+      var p1 self.pos + (Vec2 -2 -2) + (Vec2 0 0) * self.size
+      var p2 self.pos + (Vec2  2 -2) + (Vec2 1 0) * self.size
+      var p3 self.pos + (Vec2 -2  2) + (Vec2 0 1) * self.size
+      var p4 self.pos + (Vec2  2  2) + (Vec2 1 1) * self.size
+      if true
+        Draw (Glyph_Line p1 p2 1 1) 0 1 c t
+        Draw (Glyph_Line p3 + (Vec2 0 -2) p1 + (Vec2 0 2) 1 1) 0 1 c t
+        Draw (Glyph_Line p4 p3 1 1) 0 1 c t
+        Draw (Glyph_Line p2 + (Vec2 0 2) p4 + (Vec2 0 -2) 1 1) 0 1 c t
+
+  function Void PostUpdate (Widget self)
+    var factor 1.0 - (ExpDecay FrameTimer_Get 0.1)
+    switch
+      self.focusMouse
+        if t < 0.001
+          Sound_Play "ui/hover.wav" 0.008
+        t = (Mix t 1.0 factor)
+      otherwise
+        t = (Mix t 0.0 factor)

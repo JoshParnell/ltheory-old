@@ -1,0 +1,13 @@
+#include frag.jsl
+#include math.jsl
+
+uniform sampler2D flareBuffer;
+uniform sampler2D depthBuffer;
+
+void main() {
+  vec4 flare = texture2D(flareBuffer, uv);
+  float depth = flare.z;
+  float delta = texture2D(depthBuffer, 0.5 * flare.xy + 0.5).x - depth;
+  float visibility = exp(min(0.0, delta + depth / 100.0));
+  RETURN(vec4(visibility));
+}

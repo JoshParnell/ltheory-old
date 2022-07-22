@@ -1,0 +1,22 @@
+#include frag.jsl
+#include math.jsl
+#include lighting.jsl
+
+FRAG_IN vec3 position;
+
+uniform float time;
+
+void main() {
+  vec2 uvp = 4. * fract(abs(vertpos.xy));
+  float r = max(abs(uvp.x), abs(uvp.y));
+  float wave = sqrt(exp(-(r + abs(cos(10. * r + 10. * time)))));
+  float x = uvp.x;
+  float y = uvp.y;
+  float m = abs(sin(x + 2. * time) * sin(y) + cos(x * 1.7 + time) * sin(y * .84));
+  m *= abs(sin(x*8) * cos(y * 5. + time / 3.));
+  m = sqrt(m);
+  m = .5 + .5 * m;
+  m *= exp(-(1. - abs(vertpos.z)) * 10.);
+  float alpha = 1. - .9 * getFoginess(length(position - eye));
+  RETURN(wave * m * vec4(m * m, 2.0 * m, 4.0, alpha));
+}

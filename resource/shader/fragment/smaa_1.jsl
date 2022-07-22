@@ -1,0 +1,14 @@
+#include frag.jsl
+
+#define SMAA_ONLY_COMPILE_PS
+#include smaa.jsl
+
+uniform sampler2D texture;
+uniform sampler2D depthBuffer;
+
+FRAG_IN vec4 offset[3];
+
+void main() {
+  vec4 c = SMAAColorEdgeDetectionPS(uv, offset, texture);
+  RETURN(c);
+}

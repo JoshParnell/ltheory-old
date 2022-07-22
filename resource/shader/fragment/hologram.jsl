@@ -1,0 +1,31 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+#include texturing.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+FRAG_IN vec3 scale;
+
+uniform float seed;
+uniform vec3 baseColor;
+uniform float baseAlpha;
+uniform float time;
+
+void main() {
+  vec3 c = baseColor;
+  vec3 n = normalize(normal);
+  float dn = length(normal - normalize(normal));
+  float spec = abs(dot(normalize(position), n));
+  float alpha = 0.25;
+  alpha += 1.000 * exp(-1024.0 * dn);
+  alpha += 64.00 * dn;
+  alpha += 2.000 * exp(-4.0 * abs(spec - 0.25));
+  alpha += 2.000 * exp(-4.0 * abs(spec - 0.50));
+  alpha += 2.000 * exp(-4.0 * abs(spec - 0.00));
+  alpha *= 0.075;
+  alpha *= 1.0 - 0.15 * log(1.0 - noise(19.0 * gl_FragCoord.xy + seed));
+  alpha *= 0.5 + 0.5 * sin(alpha);
+  alpha *= baseAlpha;
+  RETURN(vec4(c, 1.0) * alpha);
+}

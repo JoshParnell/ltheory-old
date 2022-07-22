@@ -1,0 +1,71 @@
+function Int Resolution () 64
+
+type Miniscanner
+  Player player
+  Object object
+  ScannerOutput output
+  ScannerOutput outputNew
+  Widget child Widget
+  Float time 0.0
+  Float timer 0.0
+
+  function String GetName () "Mini-Scanner"
+
+  function Void PostDraw (Widget self)
+    var dy 0.5 * self.size.y
+    var y self.pos.y + 0.5 * self.size.y
+    var color
+      switch
+        self.focusMouse 2.0 * Colors:Secondary
+        otherwise 2.0 * Colors:Primary
+
+    Draw (Glyph_Line self.LeftCenter self.RightCenter 1 1) 0 1 Colors:Primary 0.5
+
+    var last0 (Vec2 0)
+    var last1 (Vec2 0)
+    var res (cast Int (Floor self.size.x / 6.0))
+    for i 0 i < output.Size i.++
+      var t i / output.Size
+      var x self.pos.x + self.size.x * t
+      var v 1.0 - (ExpDecay (output.Get i) 3.0)
+      v += 0.25 * (0.5 + 0.5 * (Sin 3.0 * time + 32.0 * (i / output.Size))) * (1.0 - t)
+      var p0 (Vec2 x y - v * dy)
+      var p1 (Vec2 x y + v * dy)
+      var p2 (Vec2 x y)
+      if i
+        Draw (Glyph_Line last0 p0 1 1) 0 1 color 0.500
+        Draw (Glyph_Line last1 p1 1 1) 0 1 color 0.125
+      Draw (Glyph_Box 0 1 1 1) 0.5 * (p2 + p0) (Vec2 0.45 * self.size.x / (cast Float output.Size - 1) 0.5 * (Abs p0.y - p2.y)) color 0.0500
+      Draw (Glyph_Box 0 1 1 1) 0.5 * (p2 + p1) (Vec2 0.45 * self.size.x / (cast Float output.Size - 1) 0.5 * (Abs p1.y - p2.y)) color 0.0125
+      last0 = p0
+      last1 = p1
+
+  function Void PreUpdate (Widget self)
+    var dt FrameTimer_Get
+    timer -= dt
+    if timer < 0.0
+      outputNew = (Object_GetScannerOutput object Resolution)
+      timer = 1.0
+
+    output.Blend outputNew (1.0 - (ExpDecay dt 0.25))
+    time += FrameTimer_Get
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageClick")
+      switch
+        child.HasParent
+          child.Delete
+          child = Widget
+        otherwise
+          child = (Scanner:Create player object)
+          self.SendUp (Messages:MessageAddWidget child)
+
+function Widget Create (Player player Object object)
+  var output (Object_GetScannerOutput object Resolution)
+  var self
+    Custom Widget
+      Miniscanner player object output output
+  self =
+    Components:CaptureMouse
+      Components:Clickable Messages:MessageClick self self
+  self

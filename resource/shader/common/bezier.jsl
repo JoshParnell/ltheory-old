@@ -1,0 +1,32 @@
+#ifndef common_bezier
+#define common_bezier
+
+float bezier(float t, float p1, float p2, float p3) {
+  float p12 = mix(p1, p2, t);
+  float p23 = mix(p2, p3, t);
+  return mix(p12, p23, t);
+}
+
+float bezier(float t, float p1, float p2, float p3, float p4) {
+  float p12 = mix(p1, p2, t);
+  float p23 = mix(p2, p3, t);
+  float p34 = mix(p3, p4, t);
+  float p123 = mix(p12, p23, t);
+  float p234 = mix(p23, p34, t);
+  return mix(p123, p234, t);
+}
+
+float bezier(float t, float p1, float p2, float p3, float p4, float p5) {
+  float p12 = mix(p1, p2, t);
+  float p23 = mix(p2, p3, t);
+  float p34 = mix(p3, p4, t);
+  float p45 = mix(p4, p5, t);
+  float p123 = mix(p12, p23, t);
+  float p234 = mix(p23, p34, t);
+  float p345 = mix(p34, p45, t);
+  float p1234 = mix(p123, p234, t);
+  float p2345 = mix(p234, p345, t);
+  return mix(p1234, p2345, t);
+}
+
+#endif

@@ -1,0 +1,39 @@
+name "Subsystem Engineering"
+children
+  name "Construction Module"
+  type ConstructionModuleType;
+
+  name "Extraction"
+  type TransporterType
+  children
+    name "Mineral Extraction";
+    name "Transporter";
+
+  name "Power Generator"
+  type PowerGeneratorType;
+
+  name "Propulsion"
+  children
+    name "Afterburner";
+    name "Jump Drive";
+    name "Thruster" type ThrusterType;
+
+  name "Research Module";
+
+  name "Sensor"
+  type SensorType
+  children
+    name "Cargo Scanner";
+    name "Mineral Scanner";
+    name "Long-Range Sensor";
+
+  name "Shield Generator"
+  type ShieldType;
+
+  name "Weapon"
+  type WeaponType
+  children
+    name "Beam";
+    name "Mass Driver";
+    name "Missile";
+    name "Pulse";

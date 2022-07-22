@@ -1,0 +1,24 @@
+#include frag.jsl
+#include lighting.jsl
+#include math.jsl
+#include texturing.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+
+uniform sampler2D depthBuffer;
+
+void main() {
+  EARLY_Z
+
+  float d = length(position - eye);
+  vec3 V = normalize(position - eye);
+
+  vec3 c = toLinear(textureCube(envMap, normal).xyz);
+  vec3 N = normalize(normal);
+  float alpha = 1.0 - exp(-max(0.0, d / 10000.0 - 2.0));
+  alpha *= exp(-4.0 * abs(c.r - 0.1));
+  alpha *= 1.0 - getFoginess(d);
+  alpha *= 0.0;
+  RETURN(vec4(c, 1.0) * alpha);
+}

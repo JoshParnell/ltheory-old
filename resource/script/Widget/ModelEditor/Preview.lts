@@ -1,0 +1,115 @@
+type CustomObject
+
+type PreviewWindow3D
+  Renderable renderable
+  Object system Object
+  Camera camera Camera_Create
+  Float radius 1
+  Float radiusT 1
+  Float pitch -0.02 * Pi2
+  Float pitchT -0.02 * Pi2
+  Float yaw 0
+  Float yawT 0
+
+  function Void Create (Widget self)
+    system = (Object_System (Vec3 15.012) 1340)
+
+    var customObject (Object_Custom CustomObject)
+    customObject.SetRenderable renderable
+    customObject.SetScale 100
+    system.AddInterior customObject
+    camera.SetTarget customObject
+    camera.SetRigidity 32.0
+    
+    radius = customObject.GetRadius
+    radiusT = radius
+
+  function List CreateChildren (Widget self)
+    var l List
+    var passes Vector<Reference<RenderPassT>>
+    passes.Append (RenderPass_Clear 0)
+    passes.Append (RenderPass_Camera camera)
+    passes.Append (RenderPass_SMAA)
+    passes.Append (RenderPass_PostFilter "post/dither.jsl")
+    l += (Widget_Rendered passes)
+    l
+
+  function Void PreDraw (Widget self)
+    camera.Push
+
+  function Void PostDraw (Widget self)
+    Camera_Pop
+
+  function Void PreUpdate (Widget self)
+    system.Update FrameTimer_Get
+
+  function Void PostUpdate (Widget self)
+    if self.focusScroll
+      radiusT *= 1.0 - 0.1 * Mouse_GetScrollDelta
+    if Mouse_RightDown
+      yawT -= 0.01 * Cursor_GetDelta.x
+      pitchT += 0.01 * Cursor_GetDelta.y
+
+    var factor 1.0 - (ExpDecay FrameTimer_Get 0.10)
+    radius = (Mix radius radiusT factor)
+    pitch = (Mix pitch pitchT 1.0)
+    yaw = (Mix yaw yawT 1.0)
+
+    var p radius * (Vec3 pitch.Sin * yaw.Cos pitch.Cos pitch.Sin * yaw.Sin)
+    camera.SetRelativePos p
+    camera.SetRigidity 32.0
+
+type PreviewWindow
+  Renderable renderable
+  Float radius 1.0
+  Float yaw -1.0 * Pi2
+  Float pitch -1.0 * Pi2
+  Float t 0.0
+  Texture buffer (Texture2D_Create 1 1)
+
+  function Void PreDraw (Widget self)
+    var scale 1.0
+    var tx (cast Int (Floor scale * self.size.x))
+    var ty (cast Int (Floor scale * self.size.y))
+    if (buffer.IsNull || buffer.GetWidth != tx || buffer.GetHeight != ty)
+      buffer = (Texture2D_CreateHDR tx ty)
+
+    buffer.BeginDrawTo
+    DrawClear 0.0 1
+
+    desc "Hologram"
+      var fovy 45.0 * (Pi / 180.0)
+      var bound renderable.GetBound
+      var size bound.upper - bound.lower
+      var d 1.1 * (Max size.z (size.x * self.size.x / self.size.y))
+      d *= 0.5 / (Tan 0.5 * fovy)
+
+      var pos d * (Spherical radius pitch yaw)
+      var look -1.0 * pos.Normalize
+      var up (Spherical 1 pitch + Pi2 yaw)
+      DrawRenderable renderable Transform_Identity pos look up fovy 0 scale * self.size 1.5 * Colors:Primary 1.0 t
+
+    buffer.EndDrawTo
+    buffer.GenerateMipmap
+    Draw (Glyph_Grid self.TopLeft self.BottomRight 1 1 0 0.25) 0 1 Colors:Primary 0.2
+    DrawAdditive buffer self.pos self.size 1.5
+
+  function Void PreUpdate (Widget self)
+    t += FrameTimer_Get
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse
+      if Mouse_RightDown
+        var dp Cursor_GetDelta
+        yaw += 0.01 * dp.x
+        pitch += 0.01 * dp.y
+      radius *= 1.0 - 0.05 * Mouse_GetScrollDelta
+
+function Widget Create (Renderable renderable)
+  Components:Expand
+    Components:Backdrop 0.05 1 1 0
+      Components:CaptureMouse
+        Components:CaptureScroll
+          Stack
+            Custom Widget
+              PreviewWindow3D renderable

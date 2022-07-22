@@ -1,0 +1,23 @@
+type ToggleButton
+  (Pointer Bool) value
+  String text
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += (Widgets:Text Fonts:Default text 14 1)
+    l
+
+  function Void PreDraw (Widget self)
+    var c (? ((deref value) Colors:Primary) (otherwise (Vec3 0.1)))
+    DrawPanel self.pos self.size c 0.75 1 0
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse && Mouse_LeftPressed
+      (deref value) = (! (deref value))
+
+function Widget Create ((Pointer Bool) value String text)
+  Components:Padding 16 16
+    Components:CaptureMouse
+      Stack
+        Custom Widget
+          ToggleButton value text

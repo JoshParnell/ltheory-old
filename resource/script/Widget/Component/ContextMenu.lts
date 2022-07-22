@@ -1,0 +1,25 @@
+type ContextMenu
+  Widget widget
+  Widget menu Widget
+  Bool visible false
+
+  function Void PostUpdate (Widget self)
+    if visible.! && self.focusMouse && Mouse_RightPressed
+      visible = true
+      menu =
+        Components:Positioned Cursor_Get
+          Stack Widget
+      menu.AddChild widget
+      self.SendUp (Messages:MessageAddContextMenu menu)
+
+    if visible && (! Mouse_RightDown)
+      visible = false
+      menu.Delete
+
+# TODO : ContextMenu uses Positioned...need two-pass compilation :/
+function Widget Create (Widget menu Widget widget)
+  Components:CaptureMouse
+    Custom
+      widget
+      ContextMenu
+        menu

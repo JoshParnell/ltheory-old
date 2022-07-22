@@ -1,0 +1,24 @@
+#include frag.jsl
+#include math.jsl
+
+const int kMaxHits = 16;
+
+FRAG_IN vec3 position;
+FRAG_IN vec3 normal;
+
+uniform vec3 hitPos[kMaxHits];
+uniform float hitAge[kMaxHits];
+uniform float time;
+uniform int activeHits;
+
+void main() {
+  float alpha = 0.;
+  for (int i = 0; i < activeHits; ++i) {
+    float dist = length(hitPos[i] - position);
+    alpha +=
+      exp(-hitAge[i] * 10) *
+      exp(-dist * .25) *
+      mix(0.2, 1.0, pow(abs(cos(2*dist - 10*hitAge[i])), 1. + dist) / (.1 + dist));
+  }
+  RETURN(vec4(0.3, 0.6, 1.8, 1.0) * alpha);
+}

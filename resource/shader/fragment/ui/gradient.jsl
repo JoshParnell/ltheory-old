@@ -1,0 +1,15 @@
+#include ui.jsl
+
+FRAG_IN vec4 attrib1;
+FRAG_IN vec4 attrib2;
+FRAG_IN vec4 attrib3;
+
+void main() {
+  vec4 color1 = attrib1;
+  vec4 color2 = attrib2;
+  vec2 uv = attrib3.xy;
+  vec2 size = attrib3.zw;
+
+  vec2 uvp = (uv * frame - 0.5) / (frame - 1.0);
+  RETURN(mix(color1, color2, uv.y * uv.y));
+}

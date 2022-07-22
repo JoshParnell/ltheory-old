@@ -1,0 +1,126 @@
+type Socket
+  Player player
+  Object object
+  Bool active true
+
+  function HashT GetHash () object.GetHash
+  function String GetName () object.GetName
+
+  function Void PreDraw (Widget self)
+    var color
+      switch
+        active Colors:Primary
+        otherwise (Vec3 0.2)
+
+    Draw (Glyph_Arc 0 1 0.001 1 1 0 1) self.Center 0.5 * self.size color 0.1
+    if self.focusMouse
+      Draw (Glyph_Arc 0 1 0.001 1 1 0 1) self.Center 0.6 * self.size 2.0 * Colors:Secondary 1.0
+
+    var icon object.GetIcon
+    for it object.GetSockets it.HasMore it.Advance
+      icon = it.Get.GetIcon
+    Draw icon self.Center 0.5 * self.size - 8.0 color 1.0
+
+  function Void PostUpdate (Widget self)
+    if (self.focusMouse && Mouse_LeftPressed)
+      var obj object
+      if obj.GetSockets.HasMore
+        obj = obj.GetSockets.Get
+
+      self.SendUp
+        Messages:MessageAddWidget
+          ObjectInfo:CreateWindow player obj
+
+    if (self.focusMouse && Mouse_RightPressed)
+      active = active.!
+
+type ActivateGroup
+  Int index
+
+type Group
+  Int index
+  Bool active
+
+  function HashT GetHash () index
+  function String GetName () "Group #" + (index + 1)
+
+  function Void PreDraw (Widget self)
+    Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.5 * self.size 1.0 0.1
+    if self.focusMouse
+      Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.6 * self.size 2.0 * Colors:Secondary 1.0
+
+    if active
+      Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.5 * self.size 2.0 * Colors:Primary 1.0
+
+    DrawText Fonts:Default "G" + (index + 1) self.Center 12 1 1 true
+
+  function Void PostUpdate (Widget self)
+    if (self.focusMouse && Mouse_LeftPressed)
+      self.SendUp (ActivateGroup index)
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "ActivateGroup")
+      ref msg (cast ActivateGroup data)
+      active = (msg.index == index)
+
+type Sockets
+  Player player
+  Object object
+  (Array (Array Object)) fireGroups (Array (Array Object))
+  Int active 0
+
+  function Void Create (Widget self)
+    var empty (Array Object)
+    for i 0 i < 4 i.++
+      fireGroups += empty
+
+  function List CreateChildren (Widget self)
+    var l List
+    for i 0 i < 4 i.++
+      l +=
+        Components:Tooltip
+          Components:CaptureMouse
+            Custom Widget
+              Group i (i == active)
+    for it object.GetSockets it.HasMore it.Advance
+      l +=
+        Components:Tooltip
+          Components:CaptureMouse
+            Custom Widget
+              Socket player it.Get
+    l
+
+  function String GetName () "Hardpoints"
+
+  function Void PostPosition (Widget self)
+    var offset (Vec2 0)
+
+    var area self.size.x * self.size.y
+    var cellSize (Floor (Sqrt area / (cast Float self.GetChildren.Size)) - 2.0)
+    var margin cellSize * 0.3
+    var parity false
+
+    for it self.GetChildren it.HasMore it.Advance
+      var child it.Get
+      child.pos = offset + self.pos
+      child.size = cellSize - margin
+      offset.x += cellSize
+
+      if offset.x + cellSize > self.size.x
+        parity = parity.!
+        offset.x =
+          switch
+            parity 0.5 * cellSize
+            otherwise 0.0
+        offset.y += 0.5 * cellSize * (Sqrt 3.0)
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "ActivateGroup")
+      ref msg (cast ActivateGroup data)
+      active = msg.index
+      self.SendDown data
+
+function Widget Create (Player player Object object)
+  Dynamic
+    Custom Widget
+      Sockets player object

@@ -1,0 +1,13 @@
+function Widget Create (Widget widget)
+  var array (Array Widget)
+  array += widget
+  Components:Backdrop 0.075 0.95 1 16
+    Components:CaptureKey
+      Components:Expand
+        ListV 0
+          Custom Widget
+            Browser array
+
+function Widget Create ()
+  Window:Create "Settings"
+    WidgetSettings

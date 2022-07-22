@@ -1,0 +1,13 @@
+function Icon Cross ()
+  var cursor Icon
+  cursor += (Glyph_LineFade (Vec2 -1  0) 0 1 1)
+  cursor += (Glyph_LineFade (Vec2  1  0) 0 1 1)
+  cursor += (Glyph_LineFade (Vec2  0 -1) 0 1 1)
+  cursor += (Glyph_LineFade (Vec2  0  1) 0 1 1)
+  cursor
+
+function Icon Pointer ()
+  var cursor Icon
+  cursor += (Glyph_LineFade 0 (Vec2 1 2) 1 1)
+  cursor += (Glyph_LineFade 0 (Vec2 2 1) 1 1)
+  cursor

@@ -1,0 +1,32 @@
+type AppsWidget
+  function List CreateChildren (Widget self)
+    var l List
+    var appDir "../lt/resource/script/App/"
+    var apps appDir.ListDir
+    for i 0 i < apps.Size i.++
+      var thisApp (apps.Get i)
+      l +=
+        Components:Backdrop 0.1 0.1 1 4.0
+          Components:Padding 8 8
+            Components:Expand
+              Widgets:Stack1
+                Widgets:Text Fonts:Default thisApp.UpperCase 14 1
+    l
+
+function Widget Create ()
+  Widgets:ListV2 2
+    Components:Backdrop 0.1 0.25 1 0
+      Components:Padding (Vec2 24 16) (Vec2 24 16)
+        Components:Expand
+          Widgets:ListH2 16
+            Components:AlignCenter
+              Components:MinSize 32
+                Widgets:Icon Icons:Gear 1.5 * Colors:Primary
+            Components:AlignCenter
+              Widgets:Text Fonts:Default "APPLICATIONS" 20 1
+    Widgets:ScrollFrameV
+      Components:Margin 8 8
+          Components:Expand
+            ListV 4
+              Custom Widget
+                AppsWidget

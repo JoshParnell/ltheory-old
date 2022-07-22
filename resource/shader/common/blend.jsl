@@ -1,0 +1,18 @@
+float screen(float x, float y) {
+  return 1. - (1. - x) * (1. - y);
+}
+
+float overlay(float x, float y) {
+  if (x < .5)
+    return 2. * x * y;
+  else
+    return 1. - 2. * (1. - x) * (1. - y);
+}
+
+vec3 screen(vec3 a, vec3 b) {
+  return vec3(screen(a.x, b.x), screen(a.y, b.y), screen(a.z, b.z));
+}
+
+vec3 overlay(vec3 a, vec3 b) {
+  return vec3(overlay(a.x, b.x), overlay(a.y, b.y), overlay(a.z, b.z));
+}

@@ -1,0 +1,42 @@
+type Buttons
+  function List CreateChildren (Widget self)
+    var l List
+    l += (Components:Expand (Button:Create 0 "SAVE GAME" 18))
+    l += (Components:Expand (Button:Create 0 "SETTINGS" 18))
+    l += (Components:Expand (Button:Create 0 "HELP" 18))
+    l += (Components:Expand (Button:Create 0 "EXIT TO MAIN MENU" 18))
+    l += (Components:Expand (Button:Create 0 "EXIT GAME" 18))
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.1 0.9 1.0 8.0
+
+type GameMenu
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:AlignBottomCenter
+        Components:Margin 8 8
+          Widgets:Text
+            Fonts:Heading
+            "LIMIT THEORY v0.82.2"
+            24.0
+            1.0
+
+    l +=
+      Components:AlignCenter
+        Components:Padding 8 8
+          ListV 8
+            Custom Widget Buttons
+    l
+
+  function Void PreUpdate (Widget self)
+    if Key_Escape.Pressed
+      self.Delete
+
+function Widget Create ()
+  Widgets:FocusWindow 0.8
+    Components:Expand
+      Stack
+        Custom Widget
+          GameMenu

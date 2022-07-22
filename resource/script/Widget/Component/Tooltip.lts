@@ -1,0 +1,27 @@
+function Float DelayTime () 0.2
+
+type Tooltip
+  Float timer
+
+  function Void PostDraw (Widget self)
+    if self.focusMouse
+      timer += FrameTimer_Get
+      var alpha 1.0 - (ExpDecay (Max 0.0 timer - DelayTime) 0.05)
+      var p1 self.pos + (Vec2 1 0) * self.size
+      var dir (Vec2 1 -1)
+      if (self.pos.y < 64.0)
+        p1.y = self.pos.y + self.size.y
+        dir = (Vec2 1 1)
+      p1 = p1 + 4.0 * dir
+      var p2 p1 + 28.0 * dir
+      var p3 p1 + 32.0 * dir
+
+      ClipRegion_PushNoClip
+      var name self.GetName
+      DrawText Fonts:Medium name p3 16 1 alpha false
+      Draw (Glyph_Circle 0 1 1 1) p1 32 Colors:Primary 2.0 * alpha
+      Draw (Glyph_LineFade p1 p2 1 1) 0 1 Colors:Primary alpha
+      ClipRegion_Pop
+
+    if (! self.focusMouse)
+      timer = 0

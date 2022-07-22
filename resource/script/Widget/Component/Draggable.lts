@@ -1,0 +1,22 @@
+function Float SnapSize () 32.0
+
+type Draggable
+  Vec2 pos 0
+  Vec2 offset 0
+  Bool dragging false
+
+  function Void PrePosition (Widget self)
+    if dragging
+      pos += Cursor_GetDelta
+    self.pos += pos
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse && Mouse_LeftPressed
+      dragging = true
+      Sound_Play "ui/dragbegin.wav" 0.05
+    if dragging && Mouse_LeftReleased
+      Sound_Play "ui/dragend.wav" 0.05
+      dragging = false
+      pos = SnapSize * (Round pos / SnapSize)
+    # pos = (Max pos (Vec2 0))
+    # pos = (Min pos (self.maxSize - pos))

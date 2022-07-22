@@ -1,0 +1,75 @@
+type MessageInfo
+
+type CircleIcon
+  Icon icon
+  Vec3 color
+
+  function Void PreDraw (Widget self)
+    Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.5 * self.size color 0.1
+    if self.focusMouse
+      Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.6 * self.size 2.0 * Colors:Primary 1.0
+    Draw icon self.Center 0.3 * self.size color 1.0
+
+type MenuBar
+  Player player
+  Widget widgetInfo
+
+  function List CreateChildren (Widget self)
+    var l List
+    var color 1.5 * Colors:Primary
+    var size 42.0
+    # Assets
+    # Account
+    # Log
+    # Missions
+    # Relations
+    # Projects
+    l +=
+      Components:CaptureMouse
+        Components:Tooltip
+          Components:Clickable MessageInfo self
+            Components:MinSize size
+              Custom Widget
+                CircleIcon Icons:Person color
+
+    l +=
+      Components:CaptureMouse
+        Components:Tooltip
+          Components:MinSize size
+            Custom Widget
+              CircleIcon Icons:Assets color
+
+    l +=
+      Components:CaptureMouse
+        Components:Tooltip
+          Components:MinSize size
+            Custom Widget
+              CircleIcon Icons:Credits color
+
+    l +=
+      Components:CaptureMouse
+        Components:Tooltip
+          Components:MinSize size
+            Custom Widget
+              CircleIcon Icon_Refresh color
+
+    l
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageInfo")
+        var parent widgetInfo.HasParent
+        if parent
+          widgetInfo.Delete
+          widgetInfo = Widget
+        if (! parent)
+          widgetInfo =
+            Browser:Create
+              ObjectInfo:CreateWindow player player
+          self.SendUp (Messages:MessageAddWidget widgetInfo)
+
+function Widget Create (Player player)
+  ListH 8
+    Custom
+      Widget
+      MenuBar player Widget

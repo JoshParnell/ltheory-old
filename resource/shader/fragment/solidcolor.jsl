@@ -1,0 +1,12 @@
+#include frag.jsl
+
+uniform vec3 color;
+
+FRAG_IN vec3 normal;
+
+void main() {
+  outputAlbedo(color);
+  outputNormal(normalize(normal));
+  outputMaterial(MATERIAL_NOSHADE)
+  outputRoughness(0.);
+}

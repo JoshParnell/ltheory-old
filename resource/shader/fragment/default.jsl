@@ -1,0 +1,6 @@
+#include frag.jsl
+#include math.jsl
+
+void main() {
+  RETURN(vec4(uv, 0, 1));
+}

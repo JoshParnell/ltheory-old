@@ -1,0 +1,20 @@
+type CaptureKey
+  function Void CaptureFocus (Widget self)
+    var c Cursor_Get
+    var p1 (Max self.pos ClipRegion_GetMin)
+    var p2 (Min self.pos + self.size ClipRegion_GetMax)
+    self.focusKey = (p1 <= c && c <= p2)
+
+type CaptureMouse
+  function Void CaptureFocus (Widget self)
+    var c Cursor_Get
+    var p1 (Max self.pos ClipRegion_GetMin)
+    var p2 (Min self.pos + self.size ClipRegion_GetMax)
+    self.focusMouse = (p1 <= c && c <= p2)
+
+type CaptureScroll
+  function Void CaptureFocus (Widget self)
+    var c Cursor_Get
+    var p1 (Max self.pos ClipRegion_GetMin)
+    var p2 (Min self.pos + self.size ClipRegion_GetMax)
+    self.focusScroll = (p1 <= c && c <= p2)

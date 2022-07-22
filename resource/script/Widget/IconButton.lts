@@ -1,0 +1,56 @@
+type IconButton
+  Data onPress
+  Icon icon
+  Bool focus false
+
+  function Void PreDraw (Widget self)
+    var r 0.5 * (Min self.size.x self.size.y)
+    var c (? (focus 3.0 * Colors:Secondary) (otherwise 1.5 * Colors:Primary))
+    Draw icon self.Center 0.6 * r c self.alpha
+    Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center r c 0.05
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse && focus.!
+      focus = true
+      Sound_Play "ui/hover.wav" 0.008
+
+    if self.focusMouse.! && focus
+      focus = false
+      self.Rebuild
+
+    if self.focusMouse
+      if Mouse_LeftPressed
+        self.SendUp onPress
+
+type IconTextButton
+  Data onPress
+  Icon icon
+  String text
+  Bool focus false
+
+  function List CreateChildren (Widget self)
+    var l List
+    l
+
+  function Void PreDraw (Widget self)
+    var r self.size.y
+    var c (? (focus 3.0 * Colors:Secondary) (otherwise 1.5 * Colors:Primary))
+    DrawPanel self.pos self.size 0.1 0.75 1.0 0
+    Draw icon self.LeftCenter + (Vec2 0.5 * r 0) 0.25 * r c 1
+    Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.LeftCenter + (Vec2 0.5 * r 0) 0.4 * r c 0.05
+    DrawText Fonts:Medium text self.LeftCenter + (Vec2 r + 16.0 0) 16 1 1 false
+    if focus
+      Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.LeftCenter + (Vec2 0.5 * r 0) 0.5 * r c 1.0
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse && focus.!
+      focus = true
+      Sound_Play "ui/hover.wav" 0.008
+
+    if self.focusMouse.! && focus
+      focus = false
+      self.Rebuild
+
+    if self.focusMouse
+      if Mouse_LeftPressed
+        self.SendUp onPress

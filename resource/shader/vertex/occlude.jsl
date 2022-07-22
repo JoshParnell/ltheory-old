@@ -1,0 +1,15 @@
+#include vert.jsl
+
+VERT_OUT float position;
+VERT_OUT float opacity;
+
+uniform sampler2D depthBuffer;
+uniform vec2 center;
+uniform float depth;
+
+void main() {
+  uv = vertex_uv;
+  float delta = texture2D(depthBuffer, 0.5 * center + 0.5).x - depth;
+  opacity = exp(min(0.0, delta + depth / 100.0));
+  gl_Position = vec4(vertex_position, 1.0);
+}

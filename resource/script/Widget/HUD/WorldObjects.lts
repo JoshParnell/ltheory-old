@@ -1,0 +1,53 @@
+function Float ViewDistance () 1000.0
+
+type WorldObjects
+  Player player
+  Bool visible false
+
+  function List CreateChildren (Widget self)
+    var l List
+    if visible
+      var camera Camera_Get
+      for it player.GetSystem.GetInteriorObjects it.HasMore it.Advance
+        var object it.Get
+        if
+          object.HasComponentInterior ||
+            object.HasComponentNavigable ||
+              object.HasComponentPilotable ||
+                object.HasComponentResources ||
+                  object.IsCustom
+
+          var viewDistance ViewDistance * object.GetRadius
+          if (Camera_CanSee object viewDistance)
+            l += (WorldObject:Create player object)
+            if object.IsPlanet
+              for it object.GetChildren it.HasMore it.Advance
+                l += (WorldObject:Create player it.Get)
+    l
+
+  function Void PostPosition (Widget self)
+    var camera Camera_Get
+    for it self.GetChildren it.HasMore it.Advance
+      var widget it.Get
+      var object (Messages:GetObject widget)
+      var proj (Camera_Project camera object.GetPos)
+      var size 32.0
+      var distance (Length camera.GetPos - object.GetPos)
+      var viewDistance ViewDistance * object.GetRadius
+      switch
+        proj.z > 0.0 && distance < viewDistance
+          widget.alpha = 1.0 - distance / viewDistance
+          widget.pos = (Clamp (Position_Frame proj) 4 self.size - 8) - size / 2.0
+          widget.size = size
+        otherwise
+          widget.alpha = 0
+          widget.pos = 0
+          widget.size = 0
+
+  function Void PreUpdate (Widget self)
+    if Key_G.Pressed
+      visible = (! visible)
+
+function Widget Create (Player player)
+  Dynamic
+    Custom Widget (WorldObjects player)

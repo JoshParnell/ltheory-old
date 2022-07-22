@@ -1,0 +1,13 @@
+#include vert.jsl
+
+#define SMAA_ONLY_COMPILE_VS
+#include smaa.jsl
+
+VERT_OUT vec4 offset[3];
+
+void main() {
+  uv = vertex_uv;
+  gl_Position = vec4(vertex_position, 1.0);
+
+  SMAAEdgeDetectionVS(uv, offset);
+}

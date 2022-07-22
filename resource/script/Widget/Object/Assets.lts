@@ -1,0 +1,188 @@
+type AssetBadge
+  Player player
+  Object object
+  (Pointer Object) activeObject
+
+  function Void PreDraw (Widget self)
+    var parent self.GetParent
+    var focus parent.focusMouse
+    var selected (deref activeObject) == object
+
+    var c (? (selected 3.0 * Colors:Primary) (otherwise 1.5 * Colors:Primary))
+    var opacity (? (selected 0.5) (otherwise 0.1))
+    Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.4 * self.size c opacity
+    if focus
+      Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.5 * self.size c 1.0
+    Draw object.GetIcon self.Center 0.3 * self.size c 1.0
+
+type Asset
+  Player player
+  Object object
+  (Pointer Object) activeObject
+  Float size 56
+  Bool selected false
+  
+  function List CreateChildren (Widget self)
+    var l List
+
+    l +=
+      Components:MinSize size
+        Custom Widget
+          AssetBadge player object activeObject
+
+    var container object.GetContainer
+    l +=
+      Components:MinSize (Vec2 196 0)
+        Components:AlignCenter
+          Widgets:ListV2 2
+            Components:AlignLeftCenter
+              Widgets:Text Fonts:Default object.GetName 16 1
+            Components:AlignLeftCenter
+              Widgets:Text Fonts:Heading
+                ? (container.IsNotNull container.GetName.UpperCase) (otherwise "---")
+                14
+                Colors:Primary
+
+    var healthColor (Mix Colors:Hostile Colors:Friendly object.GetHealthNormalized)
+    l +=
+      Components:MinSize (Vec2 64 0)
+        Components:AlignCenter
+          Widgets:ListH2 8
+            Components:AlignCenter
+              Components:MinSize 16
+                Widgets:Icon Icons:Medic healthColor
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium (Round 100.0 * object.GetHealthNormalized) + "%" 14 healthColor
+
+    if object.HasComponentTasks
+      var task object.GetCurrentTask
+
+      l +=
+        Components:AlignCenter
+          Widgets:ListH2 8
+            Components:AlignCenter
+              Components:MinSize 16
+                Widgets:Icon Icons:Refresh Colors:Primary
+            Components:AlignCenter
+              Widgets:Text Fonts:Medium (? (task.IsNotNull task.task.GetName) (otherwise "Idle")) 14 Colors:Primary
+
+    l
+
+  function HashT GetHash () object.GetHash
+
+  function Void PostUpdate (Widget self)
+    if selected && (deref activeObject) != object
+      selected = false
+      self.Rebuild
+
+  function Void PreDraw (Widget self)
+    var opacity (? (self.focusMouse || selected 0.75) (otherwise 0.25))
+    DrawPanel self.pos self.size 0.1 opacity 1.0 0
+    if selected
+      var half 0.5 * size
+      var h2 half + 2.0
+      Draw (Glyph_Line self.TopLeft + (Vec2 h2 0) self.TopRight - (Vec2 h2 0) 1 1) 0 1 Colors:Primary 2.0
+      Draw (Glyph_Line self.BottomLeft + (Vec2 h2 0) self.BottomRight - (Vec2 h2 0) 1 1) 0 1 Colors:Primary 2.0
+      Draw (Glyph_Arc 0 0.99 0.01 1 1 0.0 0.25) self.LeftCenter + (Vec2 half 0) half Colors:Primary 2.0
+      Draw (Glyph_Arc 0 0.99 0.01 1 1 0.5 0.25) self.RightCenter - (Vec2 half 0) half Colors:Primary 2.0
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "MessageClick")
+      (deref activeObject) = object
+      selected = true
+      self.Rebuild
+
+type AssetListContents
+  Player player
+  Object object
+  (Pointer Object) activeObject
+
+  function List CreateChildren (Widget self)
+    var l List
+    for it object.GetAssets it.HasMore it.Advance
+      var widget
+        Components:CaptureMouse
+          Components:Expand
+            ListH 8
+              Custom Widget
+                Asset player it.Get activeObject
+      l +=
+        Components:Clickable Messages:MessageClick widget widget
+    l
+
+type AssetList
+  Player player
+  Object object
+  (Pointer Object) activeObject
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      GridList:Create "ASSETS"
+        Custom Widget
+          AssetListContents player object activeObject
+
+    l += 
+      Components:Padding 8 8
+        Widgets:ScrollFrameV
+          Dynamic
+            Components:Expand
+              ListV 4
+                Custom Widget
+                  AssetListContents player object activeObject
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.05 0.75 1.0 16
+
+type AssetPreview
+  Player player
+  Object object
+  Object currentObject Object
+  (Pointer Object) activeObject
+
+  function List CreateChildren (Widget self)
+    var l List
+    currentObject = (deref activeObject)
+    if currentObject.IsNotNull
+      var data (cast Data (Messages:CreateObjectInfo player currentObject))
+      self.SendUp data
+      ref msg (cast Messages:CreateObjectInfo data)
+      l += msg.widget
+    l
+
+  function Void PrePosition (Widget self)
+    if currentObject.IsNotNull
+      self.greed = 1
+
+  function Void PreUpdate (Widget self)
+    if currentObject != (deref activeObject)
+      self.Rebuild
+
+type Assets
+  Player player
+  Object object
+  Object activeObject Object
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Expand
+        Components:GreedyY
+          Widgets:ListH2 8
+            Components:GreedyX
+              Components:Expand
+                ListV 4
+                  Custom Widget
+                    AssetList player object (address activeObject)
+            Components:Expand
+              Stack
+                Custom Widget
+                  AssetPreview player object (address activeObject)
+    l
+
+function Widget Create (Player player Object object)
+  Components:Expand
+    ListV 8
+      Custom Widget
+        Assets player object

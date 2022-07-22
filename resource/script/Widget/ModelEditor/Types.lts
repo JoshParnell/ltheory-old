@@ -1,0 +1,13 @@
+type GlobalOptions
+  Bool symmetryX false
+  Bool symmetryY false
+  Bool symmetryZ false
+
+type Piece
+  Vec3 center
+  Vec3 scale
+  Float bevel
+  Model model
+
+type ModelT
+  (Array Piece) pieces (Array Piece)

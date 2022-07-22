@@ -1,0 +1,29 @@
+#include ui.jsl
+
+FRAG_IN vec4 attrib1;
+FRAG_IN vec4 attrib2;
+FRAG_IN vec4 attrib3;
+
+const float kExpansion = 16.0;
+const float kRound = 0.5;
+
+void main() {
+  vec4 color = attrib1;
+  vec2 uv = attrib2.xy;
+  float radius = attrib2.z;
+  float phase = attrib2.w;
+  float rs = attrib3.x;
+  float as = attrib3.y;
+
+  vec2 uvp = (uv * frame - 0.5) / (frame - 1.0);
+  uvp = (2.0 * uvp - 1.0);
+
+  float a = atan(uvp.y, uvp.x) / TAU + 0.5;
+  float r = ((radius + kExpansion) / radius) * length(uvp);
+  vec2 d = vec2(radius * abs(r - 0.25), TAU * (0.5 - abs(abs(a - phase) - 0.5)));
+  float dist = length(vec2(1.0, r * radius) * max(d - vec2(rs - kRound, as * TAU), 0.0)) - kRound;
+  float mult = 0;
+  mult += mix(exp(-max(0.0, dist)), exp(-1.5 * max(0.0, abs(dist) - 0.5)), 0.75);
+  mult += 0.2 * exp(-pow(0.2 * max(0.0, dist), 0.75));
+  RETURN(color * mult);
+}

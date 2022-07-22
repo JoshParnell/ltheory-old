@@ -1,0 +1,7 @@
+type TestTask
+  function Void Begin (Object self Data data)
+
+  function Void End (Object self Data data)
+
+  function Void Update (Object self Data data)
+    @ self.GetName " runnin a custom task!"

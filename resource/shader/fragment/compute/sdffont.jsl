@@ -1,0 +1,25 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+uniform sampler2D bitmap;
+uniform vec2 frame;
+uniform float radius;
+
+float getDistance(float x) {
+  return x <= 0.0 ? 1e6f : 1.0 - x;
+}
+
+void main() {
+  float d = getDistance(texture2D(bitmap, uv).x);
+  for (float y = -radius; y <= radius; y += 1.0) {
+    for (float x = -radius; x <= radius; x += 1.0) {
+      vec2 offset = vec2(x, y);
+      float sample = getDistance(texture2D(bitmap, uv + offset / frame).x);
+      d = min(d, length(offset) + sample);
+    }
+  }
+
+  d = min(d, radius);
+  RETURN(vec4(d));
+}

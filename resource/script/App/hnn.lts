@@ -1,0 +1,179 @@
+type Node
+  Vec2 pos
+  Vec2 normal
+  Float energy 0.0
+  Float angle 0.0
+  Float mass 0.0
+
+  function Vec2 GetVector ()
+    energy * (Vec2 angle.Cos angle.Sin)
+
+function Float AngleDistance (Float a Float b)
+  var diff (Abs a - b)
+  Min 2Pi - diff diff
+
+type Edge
+  Int node1
+  Int node2
+  Float w
+  Float h 0.0
+
+type HNN
+  (Array Node) nodes (Array Node)
+  (Array Edge) edges (Array Edge)
+
+  function Void CreateLine (Vec2 p1 Vec2 p2 Int count)
+    for i 0 i < count i.++
+      var t i / (count - 1)
+      var p (Mix p1 p2 t)
+      if i > 0
+        var index nodes.Size
+        edges += (Edge index - 1 index 1.0)
+      nodes += (Node p (Vec2 0 1))
+
+  function Void CreateRing (Vec2 center Float r Int count)
+    for i 0 i < count i.++
+      var t i / count
+      var angle 2Pi * t
+      var offset (Vec2 angle.Cos angle.Sin)
+      var p center + r * offset
+      if i > 0
+        var index nodes.Size
+        edges += (Edge index index - 1 1.0)
+      nodes += (Node p offset)
+
+  function Void Update (Float dt)
+    desc "Edge Forces"
+      for i 0 i < edges.Size i.++
+        ref edge (edges.Get i)
+        ref node1 (nodes.Get edge.node1)
+        ref node2 (nodes.Get edge.node2)
+        
+        var dist (AngleDistance node1.angle node2.angle)
+        dist = (Saturate dist / 2Pi) ^ 8.0
+
+        var delta dt * edge.w * (node2.energy - node1.energy)
+        node1.mass += delta
+        node2.mass -= delta
+
+        # edge.w = (Mix edge.w dist (1.0 - (ExpDecay eTotal * dt 10.0)))
+
+    desc "Velocity and Damping"
+      var dampFactor (ExpDecay dt 100.0)
+      for i 0 i < nodes.Size i.++
+        ref node (nodes.Get i)
+        node.angle += dt * node.energy
+        node.energy += dt * node.mass
+        while node.angle >= 2Pi
+          node.angle -= 2Pi
+        # node.mass *= dampFactor
+        # node.energy *= dampFactor
+
+type App
+  HNN network HNN
+  (Array Float) history (Array Float)
+  Int selected 0
+  Int speed 10
+  Float t 0.0
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += (Widgets:Text (Fonts:Heading) "Harmonic Neural Network" 16.0 1.0)
+    l
+
+  function Void PreUpdate (Widget self)
+    if network.nodes.Size == 0
+      network.CreateLine
+        Vec2 16.0 0.25 * self.size.y
+        Vec2 self.size.x - 16.0 0.25 * self.size.y
+        512
+
+      # network.CreateRing self.Center 256 512
+
+      # network.CreateLine
+        Vec2 16.0 0.75 * self.size.y
+        Vec2 self.size.x - 16.0 0.75 * self.size.y
+        256
+
+      for i 0 i < 2 i.++
+        var n1 (Mod (Int_Random.Abs) network.nodes.Size)
+        var n2 (Mod (Int_Random.Abs) network.nodes.Size)
+        network.edges += (Edge n1 n2 0.1)
+
+    desc "Selection"
+      var c Cursor_Get
+      selected = 0
+      var dist (Length (pos (network.nodes.Get 0)) - c)
+
+      for i 1 i < network.nodes.Size i.++
+        ref node (network.nodes.Get i)
+        var thisDist (Length node.pos - c)
+        if thisDist < dist
+          dist = thisDist
+          selected = i
+
+    desc "Speed"
+      if Key_Up.Pressed
+        speed *= 2
+        @ speed
+      if Key_Down.Pressed
+        speed = speed / 2
+        @ speed
+
+    desc "Impulse"
+      if Mouse_LeftPressed
+        for i 0 i < 64 i.++
+          var t i / 63
+          t = 2.0 * t - 1.0
+          var e (Exp -1.0 * (t.Abs / 0.5) ^ 2.0)
+          ref node (network.nodes.Get selected + i)
+          node.energy += e
+
+    desc "Step"
+      var dt 0.03
+      for i 0 i < speed i.++
+        network.Update dt
+        # ref node (network.nodes.Get 0)
+        # node.p = 5.0 * dt * (Sin t)
+        t += dt
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.1 1 1 0
+    Draw Icon/Cursors:Cross Cursor_Get 12 4.0 * Colors:Primary 0.3
+    # Widget/Dev/FrameInfo:Draw self
+
+    if true
+      var glyph (Glyph_Circle 0 1 1 1)
+      var bar (Glyph_Box 0.5 0.5 1 1)
+
+      for i 0 i < network.nodes.Size i.++
+        ref node (network.nodes.Get i)
+        var vec node.GetVector
+        var p1 node.pos
+        var p2 node.pos + 128.0 * vec.x * node.normal
+        var color
+          switch
+            i == selected Colors:Secondary
+            otherwise Colors:Primary
+
+        Draw glyph p1 16.0 * node.energy node.angle * color 1.0
+        Draw (Glyph_Line p1 p2 1 1) 0 1 color 1
+
+      if false
+        for i 0 i < network.edges.Size i.++
+          ref edge (network.edges.Get i)
+          ref node1 (network.nodes.Get edge.node1)
+          ref node2 (network.nodes.Get edge.node2)
+          Draw (Glyph_Line node1.pos node2.pos 1 1) 0 1 Colors:Primary edge.w
+
+    self.Rebuild
+
+function Data Main ()
+  widget:Create
+    Layer
+      Compositor_None
+      Mesh_Quad
+      1.0
+      Widget/Components:Padding 16 16
+        ListV 8.0
+          Custom Widget App

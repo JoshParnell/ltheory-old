@@ -1,0 +1,36 @@
+#include vert.jsl
+#include math.jsl
+
+uniform vec3 eye;
+uniform vec3 camUp;
+uniform float fadeIn;
+uniform float fadeOut;
+
+VERT_OUT float opacityMult;
+VERT_OUT vec3 attrib;
+
+const float zOffset = 6.0;
+
+void main() {
+  VS_PROLOGUE;
+
+  vec3 position = vertex_position;
+  vec3 toCam = eye - position;
+  float dist = length(toCam);
+  toCam /= dist;
+  vec3 right = normalize(cross(camUp, toCam));
+  vec3 up = cross(right, toCam);
+
+  float size = vertex_normal.x;
+  float age = vertex_normal.y;
+
+  opacityMult = saturate((1. - age) / fadeOut) * saturate(age / fadeIn);
+  attrib = vertex_color;
+
+  position += size * u * right;
+  position += size * v * up;
+  position += toCam * min(zOffset, dist * 0.25);
+
+  gl_Position = PROJ * (VIEW * vec4(position, 1.0));
+  gl_Position.z = LogDepth(gl_Position.z, gl_Position.w);
+}

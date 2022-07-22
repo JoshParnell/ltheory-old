@@ -1,0 +1,28 @@
+type App
+  Object universe
+  Object system
+  Float t
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.1 1 1 0
+
+  function Void PostDraw (Widget self)
+    var m Cursor_Get
+    var c 4.0 * Colors:Secondary
+    Draw Icon/Cursors:Pointer m 12 c 0.5
+    DrawText Fonts:Heading system.GetName (Vec2 16 32) 72 0.3 1 false
+    t += FrameTimer_Get
+
+function Widget Main ()
+  var self App
+  self.universe = (Object_Universe 42 0)
+  self.system = self.universe
+  self.t = 0.0
+  while (! self.system.IsSystem)
+    self.system = self.system.GetInteriorObjects.Get
+
+  Layer
+    Compositor_Basic 0.1 0.1 (Vec3 0.25 0.50 0.75)
+    Mesh_Quad
+    1.0
+    Custom Widget self

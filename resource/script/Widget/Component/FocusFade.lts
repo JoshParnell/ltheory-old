@@ -1,0 +1,14 @@
+type FocusFade
+  Float baseAlpha
+  Float alpha 0.0
+
+  function Void PreDraw (Widget self)
+    self.alpha = alpha
+
+  function Void PostUpdate (Widget self)
+    var factor 1.0 - (ExpDecay FrameTimer_Get 0.1)
+    switch
+      self.HasFocusMouseRecursive
+        alpha = (Mix alpha 1.0 factor)
+      otherwise
+        alpha = (Mix alpha baseAlpha factor)

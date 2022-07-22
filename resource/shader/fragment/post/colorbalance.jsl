@@ -1,0 +1,31 @@
+#include frag.jsl
+#include math.jsl
+
+uniform sampler2D texture;
+
+float ql(vec3 c) {
+  return (c.r + c.g + c.b) / 3.;
+}
+
+void main() {
+  vec3 c = tex2D(texture, uv).xyz;
+  float l = ql(c);
+
+  const vec3 high = vec3(1.2, .8, .6);
+  const vec3 med = vec3(1.);
+  const vec3 low = vec3(1.);
+
+  float hFactor = sqrt(sqrt(l));
+  float lFactor = saturate(mixInv(.5, 0., l));
+  float mFactor = saturate(1. - hFactor - lFactor);
+
+  const vec3 one = vec3(1.);
+  c *= mix(one, high, hFactor);
+  c *= mix(one, med, mFactor);
+  c *= mix(one, low, lFactor);
+
+  c = saturate(c);
+  float newLum = ql(c);
+  c *= (l / newLum);
+  RETURN(vec4(c, 1.));
+}

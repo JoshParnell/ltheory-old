@@ -1,0 +1,62 @@
+type PowerRouting
+  Player player
+  Object object
+
+  function String GetName () "Power Routing"
+
+  function Void PostDraw (Widget self)
+    var color 2.0 * Colors:Primary
+    var size (Vec2 (Min self.size.x self.size.y))
+    Draw object.GetIcon self.Center 0.25 * size color 1.0
+
+    for i 0 i < 6 i.++
+      var a1 2Pi * (i / 6)
+      var a2 2Pi * ((i + 1) / 6)
+      var dir1 (Vec2 a1.Cos a1.Sin)
+      var dir2 (Vec2 a2.Cos a2.Sin)
+      var p0 self.Center + 0.300 * dir1 * size
+      var p1 self.Center + 0.500 * dir1 * size
+      var p2 self.Center + 0.500 * dir1 * self.size
+      Draw (Glyph_Line p0 p1 1 1) 0 1 Colors:Primary 0.1
+      Draw (Glyph_Circle 0 1 1 1) p0 16 Colors:Primary 1.0
+      Draw (Glyph_Circle 0 1 1 1) p1 16 Colors:Primary 1.0
+
+      var value
+        switch
+          i == 0
+            object.GetHealthNormalized
+          i == 1
+            object.GetHealthNormalized
+          i == 2 0.5
+          i == 3 0.5
+            Saturate object.GetSpeed / object.GetTopSpeed
+          i == 4
+            0.5
+          otherwise 0.5
+
+      var res 8
+
+      var label
+        switch
+          i == 0 "ARMS"
+          i == 1 "PROP"
+          i == 2 "SHLD"
+          i == 3 "SCAN"
+          i == 4 "INDS"
+          otherwise "COMM"
+  
+      var dist (Length p2 - p1)
+      var n (Normalize (p2 - p1))
+
+      for j 0 j < res j.++
+        var t ((cast Float j) + 0.5) / (cast Float res)
+        var t0 j / res
+        var t1 (j + 1) / res
+        var o (Clamp (value - t0) / (1 / res) 0.1 1.0)
+        Draw (Glyph_Box 0 0.4 1 1) (Mix p1 p2 t) dist / (cast Float res) Colors:Primary o
+
+      DrawText Fonts:Default label p2 + 32.0 * n 12.0 0.5 1 true
+
+function Widget Create (Player player Object object)
+  Custom Widget
+    PowerRouting player object

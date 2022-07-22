@@ -1,0 +1,14 @@
+#include vert.jsl
+
+VERT_OUT vec3 normal;
+VERT_OUT vec3 position;
+
+void main() {
+  VS_PROLOGUE;
+  gl_Position = PROJ * (VIEW * worldPos);
+  linearDepth = gl_Position.z;
+  gl_Position.z = LogDepth(gl_Position.z, gl_Position.w);
+
+  normal = vertex_normal;
+  position = worldPos.xyz;
+}

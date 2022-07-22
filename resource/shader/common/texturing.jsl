@@ -1,0 +1,58 @@
+#ifndef common_texturing
+#define common_texturing
+
+vec4 texLod(samplerCube s, vec3 uvw, float lod) {
+#ifdef HIGHQ
+  return textureCubeLod(s, uvw, lod);
+#else
+  return textureCube(s, uvw);
+#endif
+}
+
+vec4 texLod(sampler2D s, vec2 uv, float lod) {
+#ifdef HIGHQ
+  return texture2DLod(s, uv, lod);
+#else
+  return texture2D(s, uv);
+#endif
+}
+
+vec4 sampleTriplanar(sampler2D s, vec3 pos) {
+  vec3 n = normalize(vertnormal);
+  vec3 blend = n * n;
+#ifdef HIGHQ
+  return
+    blend.x * texture2D(s, pos.yz) + 
+    blend.y * texture2D(s, pos.xz) +
+    blend.z * texture2D(s, pos.xy);
+#else
+  float maxBlend = max(blend.x, max(blend.y, blend.z));
+  vec3 mask = vec3(step(maxBlend, blend.x),
+                   step(maxBlend, blend.y),
+                   step(maxBlend, blend.z));
+  vec3 ddx = dFdx(pos);
+  vec3 ddy = dFdy(pos);
+  vec2 dx = mask.x * ddx.yz + mask.y * ddx.xz + mask.z * ddx.xy;
+  vec2 dy = mask.x * ddy.yz + mask.y * ddy.xz + mask.z * ddy.xy;
+  float lod = max(0.0, 9.0 + 0.5 * log2(max(dot(dx, dx), dot(dy, dy))));
+  vec2 coords = mask.x * pos.yz + mask.y * pos.xz + mask.z * pos.xy;
+  return texLod(s, coords, lod);
+#endif
+}
+
+vec3 sampleTriplanarBumpmap(sampler2D s, vec3 pos) {
+  vec3 texXY = 2.0 * texture2D(s, pos.xy).xyz - 1.0;
+  vec3 texXZ = 2.0 * texture2D(s, pos.xz).xyz - 1.0;
+  vec3 texYZ = 2.0 * texture2D(s, pos.yz).xyz - 1.0;
+  vec3 n = normalize(vertnormal);
+  vec3 blend = abs(n);
+  vec3 tanX = normalize(vec3( n.x, -n.z,  n.y));
+  vec3 tanY = normalize(vec3( n.z,  n.y, -n.x));
+  vec3 tanZ = normalize(vec3(-n.y,  n.x,  n.z));
+
+  return blend.z * normalize(texXY.z * n + texXY.x * tanX + texXY.y * tanY) +
+         blend.y * normalize(texXZ.z * n + texXZ.x * tanX + texXZ.y * tanZ) +
+         blend.x * normalize(texYZ.z * n + texYZ.x * tanY + texYZ.y * tanZ);
+}
+
+#endif

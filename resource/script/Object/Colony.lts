@@ -1,0 +1,29 @@
+type Culture
+  String name
+  Traits traits
+
+type ColonyUpdate
+  (Array Item) items (Array Item)
+  (Array Player) players (Array Player)
+  Int tick 0
+
+  function Bool Update (Object self)
+    tick += 1
+    var rng (RNG_MTG tick)
+
+    for i 0 i < items.Size (++ i)
+      if rng.Float < 0.01
+        ref item (items.Get i)
+        self.AddItem item 1
+
+    true
+
+  function Void Receive (Object self Data data)
+    if (data.IsType "MessageGatherWidgets")
+      ref msg (cast Widget/Messages:MessageGatherWidgets data)
+      msg.widgets += (Widgets:Text Fonts:Heading "Test it out!" 24.0 1.0)
+
+function Void Init (Object object)
+  var self ColonyUpdate
+  self.items += (Item_ProductionLabType 1 5081 1 1 1)
+  object.AddScript self

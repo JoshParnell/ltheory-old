@@ -1,0 +1,78 @@
+#include frag.jsl
+#include deferred.jsl
+#include texturing.jsl
+#include lighting.jsl
+
+uniform sampler2D normalBuffer;
+
+const int kMaxLights = 16;
+uniform vec3 color[kMaxLights];
+uniform vec3 center[kMaxLights];
+
+const float kMinDistance = 0.0001;
+
+void main() {
+  vec2 uvp = gl_FragCoord.xy * rcpFrame;
+  float depth = GetDepthNormalized();
+  if (depth >= 1.0)
+    discard;
+
+  vec4 color1 = texture2D(normalBuffer, uvp);
+  vec3 N = decodeNormal(color1.xy);
+  float R = color1.z;
+  int material = int(kMaterialCount * color1.w);
+
+  vec3 p = worldRayO + depth * worldRayD;
+  vec3 light = vec3(0.0);
+
+  /* Lambertian. */
+  if (material == MATERIAL_PHONG) {
+    for (int i = 0; i < kMaxLights; ++i) {
+      vec3 L = center[i] - p;
+      float Lmag = 1.0 / max(kMinDistance, length(L));
+      light += color[i] * Lmag *
+        saturate(dot(L * Lmag, N));
+    }
+  }
+
+  /* Ice. */
+  else if (material == MATERIAL_ICE) {
+    const vec3 specColor = vec3(1.5, 1.8, 2.0);
+    const vec3 transColor = vec3(0.5, 1.0, 1.5);
+
+    vec3 V = normalize(p - eye);
+    vec3 refl = normalize(reflect(V, N));
+    vec3 refr = normalize(refract(V, N, 1.0 / 1.15));
+    float fresnel = pow2(1.0 - saturate(dot(N, refl)));
+
+    for (int i = 0; i < kMaxLights; ++i) {
+      vec3 L = center[i] - p;
+      float Lmag = 1.0 / max(kMinDistance, length(L));
+      L *= Lmag;
+
+      float specular = exp(-256.0 * (1.0 - dot(L, refl)));
+      float transmission = 
+        0.1 * exp(-32.0 * (1.0 - dot(L, refr))) + 
+        1.0 * exp(-512.0 * (1.0 - dot(L, refr)));
+
+      light += color[i] * Lmag * mix(
+        transmission * transColor,
+        specular * specColor,
+        fresnel);
+    }
+  }
+  
+  /* Metal. */
+  else if (material == MATERIAL_COOKT) {
+    R *= R;
+    for (int i = 0; i < kMaxLights; ++i) {
+      vec3 L = center[i] - p;
+      float Lmag = 1.0 / max(kMinDistance, length(L));
+      light += color[i] * Lmag *
+        cookTorrance(L * Lmag, p, N, R, 1.0);
+    }
+  }
+  
+  light *= kDynamicLightMult;
+  RETURN(vec4(light, 1.0));
+}

@@ -1,0 +1,135 @@
+type ImagePreview
+  (Pointer Texture) pImage
+
+  function Void PreDraw (Widget self)
+    ref image (deref pImage)
+    var size (Vec2 image.GetWidth image.GetHeight)
+    var expand self.size / size
+    size *= (Min expand.x expand.y)
+    size = (Round size)
+    var p (Round self.pos + 0.5 * (self.size - size))
+    p += 8
+    size -= 16
+
+    DrawPanel p - 1 size + 2 0 1 1 0
+    Draw image p size 1
+
+type ImageEditor
+  Texture image
+  String name
+
+  function Void Create (Widget self)
+    if true
+      var tex2 (Texture_LoadFrom (Location_File "data/screenshot/10.png"))
+      var min (Texture/Filters:CircleMin 12 image)
+      var max (Texture/Filters:CircleMax 8 image)
+      image = min
+      image = (Texture/Filters:Gain 1.75 image)
+
+      switch
+        false
+          image =
+            Texture/Filters:ColorGrade
+              Vec3 0.00 0.00 0.00
+              Vec3 0.25 0.25 0.25
+              Vec3 0.50 0.75 0.50
+              Vec3 1.50 1.00 0.75
+              Vec3 2.00 1.50 1.00
+              image
+        true
+          image =
+            Texture/Filters:ColorGrade
+              Vec3 0.00 0.00 0.10
+              Vec3 0.25 0.25 0.25
+              Vec3 0.50 0.75 0.50
+              Vec3 1.25 1.00 0.75
+              Vec3 1.50 1.00 1.00
+              image
+
+
+    if false
+      # image =
+        Texture/Filters:Median 3
+          Texture/Filters:Resample 3 image
+
+      image =
+        Texture/Filters:Multiply
+          Texture/Filters:Power 0.4
+            Texture/Filters:Blur 8 image
+          Texture/Filters:Power 0.6
+            image
+
+      image = (Texture/Filters:Levels 0.05 0.75 image)
+      # image = (Texture/Filters:Levels 0.15 1.15 image)
+
+
+      image =
+        Texture/Filters:Gain 1
+          Texture/Filters:ColorGrade
+            Vec3 0.00 0.00 0.00
+            Vec3 0.25 0.25 0.25
+            Vec3 0.75 0.75 1.00
+            Vec3 1.50 1.20 0.75
+            Vec3 1.50 1.40 1.00
+            image
+
+      # image = (Texture/Filters:EdgeDetect image)
+
+      image =
+        Texture/Filters:Power 1.25
+          Texture/Filters:Saturate 0.8 image
+
+    image.SaveTo "newImage.png"
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Expand
+        Components:Backdrop 0.05 0.75 1 16
+          Components:Padding (Vec2 24 12) (Vec2 24 12)
+            Widgets:ListH4 16
+              Components:AlignCenter
+                Components:MinSize 32
+                  Widgets:Icon Icons:Person 2.0 * Colors:Primary
+              Components:AlignCenter
+                Widgets:Text Fonts:Medium "IMAGE EDITOR" 24 1
+              Widgets:EmptySpaceH
+              Components:AlignCenter
+                Widgets:Text Fonts:Light "v0.0.1" 16 0.3
+
+    l += (Widgets:SpacerH 4)
+
+    l += 
+      Components:GreedyY
+        Components:Expand
+          Widgets:ListH3 0
+            Components:Expand
+              Components:Backdrop 0.2 0.4 1 0
+                Components:MinSize (Vec2 200 0)
+                  Widget
+            Components:GreedyX
+              Components:Expand
+                Components:Backdrop 0.1 0.5 1 0
+                  Custom Widget
+                    ImagePreview (address image)
+            Components:Expand
+              Components:Backdrop 0.2 0.4 1 0
+                Components:MinSize (Vec2 320 0)
+                  Widget
+
+    l +=
+      Components:Expand
+        Components:Padding (Vec2 8 4) (Vec2 8 4)
+          Widgets:ListH2 0
+            Widgets:Text Fonts:Medium name 12 0.3
+            Widget
+        
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.08 0.95 1 16
+
+function Widget Create (Texture image String name)
+  ListV 0
+    Custom Widget
+      ImageEditor image name

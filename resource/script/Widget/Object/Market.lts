@@ -1,0 +1,103 @@
+type MarketToolbar
+  Player player
+  Object market
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:GreedyX
+        Components:Expand
+          Widget
+
+    l +=
+      Components:Padding 12 12
+        Widgets:ListH3 24
+          Components:AlignCenter
+            Components:MinSize 24
+              Widgets:Icon Icons:Person 1.5 * Colors:Primary
+          Components:AlignCenter
+            Components:MinSize 24
+              Widgets:Icon Icons:Trade 1.5 * Colors:Primary
+          Components:AlignCenter
+            Components:MinSize 24
+              Widgets:Icon Icons:Comm 1.5 * Colors:Primary
+
+    l +=
+      Components:AlignCenter
+        Widgets:Text Fonts:Default "ACCOUNT : " + player.GetCredits + " LTC" 14.0 1.0
+    l
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageRefresh")
+        self.Rebuild
+
+type MarketWidget
+  Player player
+  Object market
+  
+  function List CreateChildren (Widget self)
+    var l List
+    # Heading
+    l +=
+      Components:Backdrop 0.08 0.5 1 0
+        Components:Expand
+          ListH 8
+            Custom Widget
+              MarketToolbar player market
+
+    # Main market frame
+    l += 
+      Components:Expand
+        Components:GreedyY
+          Widgets:ListH2 16
+            Components:Expand
+              ListV 8
+                Custom Widget
+                  Market/LeftPanel:LeftPanel market
+            Components:Expand
+              Components:GreedyX
+                ListV 4
+                  Custom Widget
+                    Market/MidPanel:MidPanel player market
+    l
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "SelectItem")
+        self.SendDown data
+      (data.IsType "UnselectItem")
+        self.SendDown data
+
+type MarketFrame
+  Player player
+  Object market
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Expand
+        ListV 8
+          Custom Widget
+            MarketWidget player market
+    l
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageBuy")
+        ref msg (cast Market/RightPanel:MessageBuy data)
+        self.AddChild (Market/Transaction:Create player market msg.item true)
+      (data.IsType "MessageRefresh")
+        self.SendDown data
+      (data.IsType "MessageSell")
+        ref msg (cast Market/RightPanel:MessageSell data)
+        self.AddChild (Market/Transaction:Create player market msg.item false)
+      (data.IsType "MessageGetLabel")
+        self.SendDown data
+
+function Widget Create (Player player Object market)
+  Components:Expand
+    Components:AlignCenter
+      Stack
+        Custom Widget
+          MarketFrame player market

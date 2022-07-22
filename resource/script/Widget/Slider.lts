@@ -1,0 +1,104 @@
+type SliderDecrease
+type SliderIncrease
+type SliderMin
+type SliderMax
+type SliderSet
+  Int value
+
+type SliderBar
+  String label
+  Int minValue
+  Int maxValue
+
+  function Void PreDraw (Widget self)
+    var data (Messages:GetLabel self label)
+    var value (cast Int data)
+    var t (value - minValue) / (maxValue - minValue)
+    var sx (Max 8.0 self.size.x / (Float (maxValue - minValue + 1)))
+    var s (Vec2 self.size.x * t 1.0)
+    var p self.pos + (Vec2 0 0.5 * self.size.y)
+    var c
+      switch
+        self.focusMouse Colors:Secondary
+        otherwise Colors:Primary
+
+    Draw
+      Glyph_Box 0.5 (Vec2 0.5 1) 1 1
+      p
+      Vec2 self.size.x 1.0
+      c
+      1.0
+    Draw
+      Glyph_Triangle (Vec2 0 1) (Vec2 -0.8 0) (Vec2 0.8 0) 1 1
+      Vec2 self.pos.x + t * (self.size.x - sx) self.pos.y
+      Vec2 sx 0.5 * self.size.y
+      2.0 * c
+      1.0
+
+  function Void PostUpdate (Widget self)
+    if self.focusMouse && Mouse_LeftDown
+      var c Cursor_Get
+      var t (c.x - self.pos.x) / self.size.x
+      var value (cast Int (Mix (cast Float minValue) (cast Float maxValue + 1) t)
+      vlaue = (Clamp value minvalue maxValue)
+      self.SendUp (SliderSet value)
+
+type Slider
+  String label
+  Int minValue
+  Int maxValue
+  Int value
+
+  function List CreateChildren (Widget self)
+    var l List
+    var c (Vec3 1.0)
+    if self.focusMouse
+      c = (Vec3 0.0)
+
+    l += (Button:Create SliderMin "<<" 12)
+    l += (Button:Create SliderDecrease "<" 12)
+
+    l +=
+      Components:CaptureMouse
+        Components:Expand
+          Components:GreedyX
+            Components:MinSize (Vec2 64 0)
+              Custom Widget
+                SliderBar label minValue maxValue
+
+    l += (Button:Create SliderIncrease ">" 10.0)
+    l += (Button:Create SliderMax ">>" 10.0)
+    l
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageGetLabel")
+        ref msg (cast Widget/Messages:MessageGetLabel data)
+        if msg.label == label
+          data = (Messages:MessageGetLabel label value)
+        
+      (data.IsType "SliderDecrease")
+        value = (Clamp value - 1 minValue maxValue)
+        Sound_Play "ui/click_off.wav" 0.1
+
+      (data.IsType "SliderMin")
+        value = minValue
+        Sound_Play "ui/click_off.wav" 0.1
+
+      (data.IsType "SliderMax")
+        value = maxValue
+        Sound_Play "ui/click_off.wav" 0.1
+
+      (data.IsType "SliderIncrease")
+        value = (Clamp value + 1 minValue maxValue)
+        Sound_Play "ui/click_off.wav" 0.1
+
+      (data.IsType "SliderSet")
+        var msg (cast SliderSet data)
+        value = msg.value
+
+# CRITICAL ~ 2-passed compile
+function Widget Create (String label Int minValue Int maxValue)
+  ListH 0
+    Custom Widget
+      Slider label minValue maxValue minValue

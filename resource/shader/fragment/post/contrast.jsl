@@ -1,0 +1,9 @@
+#include frag.jsl
+#include math.jsl
+
+uniform sampler2D texture;
+uniform float amount;
+
+void main() {
+  RETURN(1.2*contrast(tex2D(texture, uv), 1.07));
+}

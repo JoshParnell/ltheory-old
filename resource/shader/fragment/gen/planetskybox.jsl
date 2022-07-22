@@ -1,0 +1,17 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+#include cube.jsl
+#include lighting.jsl
+
+uniform float seed;
+uniform vec3 position;
+
+#include scattering.jsl
+
+void main() {
+  vec3 rd = GetCubePosition(uv, false);
+  vec3 ro = vec3(0., kPlanetRadius, 0.);
+  vec4 c = getScatteringInside(ro, rd, farPlane, 0.);
+  RETURN(c);
+}

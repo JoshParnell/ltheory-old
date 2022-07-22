@@ -1,0 +1,6 @@
+type MaxSize
+  Vec2 size
+
+  function Void PostPosition (Widget self)
+    self.maxSize = (Min self.maxSize size)
+    self.size = (Min self.size size)

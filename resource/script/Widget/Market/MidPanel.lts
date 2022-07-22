@@ -1,0 +1,228 @@
+type Element
+  Player player
+  Object market
+  Item item
+  Bool selected false
+
+  function Void Destroy (Widget self)
+    if selected
+      self.SendUp (Messages:UnselectItem item)
+
+  function List CreateChildren (Widget self)
+    var l List
+    var font Fonts:Default
+    var data (market.GetMarketData item)
+    var bids data.bids
+    var asks data.asks
+
+    var c1 (Vec3 1.0)
+    var c2 1.5 * Colors:Primary
+    var c3 Colors:Primary
+    if selected
+      c1 = (Vec3 0.1)
+      c2 = (Vec3 0.1)
+      c3 = -1.0 * c3
+
+    var buyPrice " - " 
+    var sellPrice " - "
+    var supply " - "
+    var demand " - "
+
+    desc "Compute demand"
+      if bids.Size > 0
+        var order (bids.Get 0)
+        var price (cast Int order.price)
+        var volume (cast Int order.volume)
+        for i 1 i < bids.Size i.++
+          var order (bids.Get i)
+          price = (Max price order.price)
+          volume += order.volume
+        sellPrice = price
+        demand = volume
+
+    desc "Compute supply"
+      if asks.Size > 0
+        var order (asks.Get 0)
+        var price (cast Int order.price)
+        var volume (cast Int order.volume)
+        for i 1 i < asks.Size i.++
+          var order (asks.Get i)
+          price = (Min price order.price)
+          volume += order.volume
+        buyPrice = price
+        supply = volume
+
+    var name item.GetName
+    l +=
+      Components:Margin (Vec2 4 0) (Vec2 8 0)
+        Components:MinSize 24
+          Widgets:Icon item.GetIcon c3
+
+    l +=
+      Components:MinSize (Vec2 200 0)
+        Components:AlignCenter
+          Widgets:Text font name 16.0 c1
+
+    l +=
+      Components:MinSize (Vec2 96 0)
+        Components:AlignCenter
+          Widgets:Text font buyPrice 14 c2
+
+    l +=
+      Components:MinSize (Vec2 96 0)
+        Components:AlignCenter
+          Widgets:Text font sellPrice 14 c2
+
+    l +=
+      Components:MinSize (Vec2 96 0)
+        Components:AlignCenter
+          Widgets:Text font supply + " / " + demand 14 c2
+
+    var storage (market.GetStorageLocker player)
+    var owned ""
+    if (storage.GetItemCount item) > 0
+      owned = (storage.GetItemCount item)
+    l +=
+      Components:AlignCenter
+        Widgets:Text font owned 14 c2
+
+    l
+
+  function HashT GetHash () item.GetHash
+
+  function Void PreDraw (Widget self)
+    var c (? (selected 2.0 * Colors:Primary) (otherwise (Vec3 0.1)))
+    DrawPanel self.pos self.size c 0.5 1 0
+
+  function Void PostUpdate (Widget self)
+    if Mouse_LeftPressed
+      if self.focusMouse && selected
+        if Key_LShift.Down
+          selected = false
+          self.Rebuild
+          self.SendUp (Messages:UnselectItem item)
+
+      if self.focusMouse && (! selected)
+        selected = true
+        self.Rebuild
+        self.SendUp (SelectItem item)
+        Sound_Play "ui/elementselect.wav" 0.2
+        if (! Key_LShift.Down)
+          self.SendUp (Messages:MessageSelected self)
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageSelected")
+        ref message (cast Messages:MessageSelected data)
+        if (message.widget != self) && selected
+          selected = false
+          self.Rebuild
+          self.SendUp (Messages:UnselectItem item)
+
+function Widget CreateElement (Player player Object market Item item)
+  Components:FocusGlow
+    Components:Expand
+      Components:AlignCenter
+        Components:Padding 8 8
+          ListH 8
+            Custom Widget
+              Element player market item
+
+type ContentList
+  Player player
+  Object market
+  (Pointer String) pFilter
+
+  function List CreateChildren (Widget self)
+    var l List
+    var category (LowerCase (String (Messages:GetLabel self "category")))
+    var filter (LowerCase (deref pFilter))
+    for it market.GetMarketListings it.HasMore it.Advance
+      var element it.Get
+      var name element.item.GetName
+      var ts element.item.GetTypeString
+      if (name.LowerCase.Contains filter)
+        if (category == "all" || (ts.LowerCase.Contains category))
+          l += (CreateElement player market element.item)
+    l
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageRefresh")
+        self.Rebuild
+      (data.IsType "MessageSelected")
+        self.SendDown data
+
+type AttributeBar
+  function List CreateChildren (Widget self)
+    var l List
+    var font Fonts:Subheading
+    l +=
+      Components:MinSize (Vec2 40 0) Widget
+
+    l +=
+      Components:MinSize (Vec2 200 0)
+        Components:AlignCenter
+          Widgets:Text Fonts:Subheading "ITEM" 15.0 0.3
+
+    l +=
+      Components:MinSize (Vec2 96 0)
+        Components:AlignLeftCenter
+          Widgets:Text Fonts:Subheading "BUY PRICE" 15.0 0.3
+
+    l +=
+      Components:MinSize (Vec2 96 0)
+        Components:AlignLeftCenter
+          Widgets:Text Fonts:Subheading "SELL PRICE" 15.0 0.3
+
+    l +=
+      Components:MinSize (Vec2 96 0)
+        Components:AlignLeftCenter
+          Widgets:Text Fonts:Subheading "SUPPLY / DEMAND" 14.0 0.3
+    l
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size 0.1 0.5 1.0 0.0
+
+type MidPanel
+  Player player
+  Object market
+  String filter ""
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Expand
+        Components:Padding (Vec2 12 8) 8
+          ListH 8
+            Custom Widget AttributeBar
+
+    l +=
+      Components:Expand
+        Components:GreedyY
+          Widgets:ListH2 8
+            Components:GreedyX
+              Widgets:ScrollFrameV
+                Components:Expand
+                  Dynamic
+                    Components:Padding 4 4
+                      ListV 8
+                        Custom Widget
+                          ContentList player market (address filter)
+            Components:Expand
+              ListH 8
+                Custom Widget
+                  RightPanel:RightPanel player market
+
+    # Search Bar
+    l +=
+      Components:Expand
+        Components:Padding (Vec2 12 4) (Vec2 12 4)
+          Components:Backdrop 0.1 0.5 1 0
+            Widgets:ListH2 8
+              Components:AlignCenter
+                Widgets:Text Fonts:Subheading "SEARCH" 16.0 0.4
+              Components:AlignCenter
+                TextField:Create "filter" 16.0 (address filter)
+    l
+    l

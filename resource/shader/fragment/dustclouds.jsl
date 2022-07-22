@@ -1,0 +1,53 @@
+#include frag.jsl
+#include noise.jsl
+#include quat.jsl
+#include raytracing.jsl
+
+FRAG_IN vec3 worldRayO;
+FRAG_IN vec3 worldRayD;
+
+uniform sampler2D texture;
+uniform sampler2D depthBuffer;
+uniform samplerCube envMap;
+uniform float fogDensity;
+uniform vec3 starColor;
+uniform vec3 starPos;
+
+const int kMaxClouds = 4;
+
+uniform vec4 positions[kMaxClouds];
+uniform vec4 orientations[kMaxClouds];
+uniform float alphas[kMaxClouds];
+
+float cubic(float t) {
+  return t * t * (3.0 - 2.0 * t);
+}
+
+const float kOpacityMult = 0.20;
+
+void main() {
+  vec2 uvp = uv;
+  vec3 c = texture2D(texture, uv).xyz;
+  float depthScale = length(worldRayD);
+  float sceneDepth = texture2D(depthBuffer, uv).x;
+  vec3 dir = worldRayD / depthScale;
+  depthScale /= farPlane;
+
+  for (int i = kMaxClouds - 1; i >= 0; --i) {
+    vec4 o = positions[i];
+    float t = interSphere(o, worldRayO, dir).y;
+    vec3 p = worldRayO + t * dir - o.xyz;
+    p = quatMul(orientations[i], p);
+    float d = length(o.xyz) / o.w;
+    float opacity = kOpacityMult * cubic(1.0 - saturate(abs(d - 0.25) / 0.25));
+    opacity *= fogDensity;
+    opacity *= min(sceneDepth, t * depthScale) / o.w;
+    opacity *= alphas[i];
+    vec3 cloud = textureCube(envMap, p).xyz;
+    cloud *= 1.0 + 0.1 * toLinear(starColor) *
+      exp(-sqrt(128.0 * (1.0 - dot(dir, normalize(starPos - p)))));
+    c = mix(c, cloud, opacity);
+  }
+
+  RETURN(vec4(c, 1.0));
+}

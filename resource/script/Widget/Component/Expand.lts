@@ -1,0 +1,6 @@
+type Expand
+  Vec2 scale
+
+  function Void PostPosition (Widget self)
+    self.size.x = (Mix self.minSize.x self.maxSize.x scale.x)
+    self.size.y = (Mix self.minSize.y self.maxSize.y scale.y)

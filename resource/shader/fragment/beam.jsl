@@ -1,0 +1,48 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+FRAG_IN vec3 position;
+FRAG_IN vec3 normal;
+
+uniform vec3 eye;
+uniform vec3 baseColor;
+uniform vec2 size;
+uniform float t;
+uniform float thinness;
+
+void main() {
+  float u = uv.x;
+  float v = uv.y;
+
+  float normV = v;
+  v *= size.y / 10.0;
+
+  float uClamp = saturate(1.0 - abs(u));
+  float vClamp = saturate(1.0 - normV);
+
+  float alpha = 0.25 * exp(-abs(uv.x) * thinness);
+
+  const float pulseFactor = 0.3;
+  alpha *= (1.0 - pulseFactor) + pulseFactor * sin(v - 15.0 * t) * sin(v / 2.0 - 5.0 * t + 1.0);
+
+  alpha +=
+    0.25 * exp(-abs(uv.x) * thinness / 4.0) +
+    0.125 * exp(-abs(uv.x) * thinness / 8.0);
+
+  /* Head fade. */
+  alpha *= (1.0 - exp(-5.0 * v));
+
+  /* Head pulse. */
+  alpha *= 1.0 + 2.0 * exp(-v);
+
+  alpha *= 1.0 - exp(-10.0 * (1.0 - abs(uv.x)));
+
+  /* Tail fade. */
+  alpha *= (1.0 - exp(40.0 * (normV - 1.0)));
+  alpha = saturate(alpha);
+  alpha *= alpha;
+  vec3 color = baseColor;
+  color += vec3(1.0) * exp(-abs(u*4.0));
+  RETURN(vec4(color, 1.0) * alpha);
+}

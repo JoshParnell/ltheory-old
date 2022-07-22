@@ -1,0 +1,11 @@
+#ifndef common_raytracing
+#define common_raytracing
+
+vec2 interSphere(vec4 sphere, vec3 ro, vec3 rd) {
+  vec3 v = sphere.xyz - ro;
+  float b = dot(rd, v);
+  float d = b*b - dot(v, v) + sphere.w * sphere.w;
+  return d >= 0.0 ? vec2(b - sqrt(d), b + sqrt(d)) : vec2(1.0e30);
+}
+
+#endif

@@ -1,0 +1,9 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+
+void main() {
+  vec2 uvp = uv * 4;
+  float alpha = gain(fsnoise(uvp, 8, 1.6), 2.);
+  RETURN(vec4(1.0, 1.0, 1.0, alpha));
+}

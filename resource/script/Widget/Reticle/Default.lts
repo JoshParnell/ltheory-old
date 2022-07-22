@@ -1,0 +1,113 @@
+type Reticle
+  Player player
+  Object object
+  Float angle 0
+
+  function String GetName () "Reticle"
+
+  function Void PostDraw (Widget self)
+    var circle (Glyph_Circle 0 1 1 1)
+    var pos self.Center
+    var color 2.0 * Colors:Primary
+    var r1 (Min self.size.x self.size.y) / 2.0
+    var offset 0.5 * (Vec2 (Max 0.0 self.size.x - self.size.y) 0)
+    var opacity 0.5 * self.alpha
+
+    # desc "Center Reticle"
+      var k 2
+      for i 0 i < k i.++
+        Draw (Glyph_Arc 0 1 0.20 1 1 i / k 0.001) pos 36 color self.alpha
+      Draw circle pos 24 color self.alpha
+
+    desc "Center 2"
+      var k 3
+      for i 0 i < k i.++
+        Draw (Glyph_Arc 0 1 0.20 1 1 (Fract i / k + 0.25) 0.001) pos 24 color opacity
+
+    desc "Side"
+      # Draw (Glyph_Arc 0 1 0.001 1 1 0.00 0.10) pos - offset (r1 - 16.0) color opacity
+      # Draw (Glyph_Arc 0 1 0.001 1 1 0.50 0.10) pos + offset (r1 - 16.0) color opacity
+
+    desc "Velocity"
+      var v (Saturate 2.0 * object.GetSpeed / object.GetTopSpeed)
+      Draw (Glyph_Arc 0 1 0.001 1 1 0.90 + 0.10 * v 0.10 * v) pos - offset r1 color v * opacity
+      DrawText Fonts:Default (Round object.GetSpeed) + "m/s" pos - offset - (Vec2 (64.0 + r1) 0) 12 1 v false
+
+      for i 0 i < 5 i.++
+        var angle 2Pi * (Mix -0.1 0.1 i / 4)
+        var p pos - offset - r1 * (Vec2 angle.Cos angle.Sin)
+        Draw (Glyph_LineFade p p - (Vec2 8 0) 1 1) 0 1 color self.alpha
+
+    desc "Integrity"
+      var h object.GetHealthNormalized
+      var color 2.0 * (Mix Colors:Bad Colors:Good h * h)
+      Draw
+        Glyph_Arc 0 1 0.001 1 1 0.6 - 0.1 * h 0.1 * h
+        pos + offset
+        r1
+        color
+        opacity
+
+      for i 0 i < 5 i.++
+        var angle 2Pi * (Mix 0.1 -0.1 i / 4)
+        var p pos + offset + r1 * (Vec2 angle.Cos angle.Sin)
+        Draw (Glyph_LineFade p p + (Vec2 8 0) 1 1) 0 1 color self.alpha
+        var percent (Round 100.0 * (i / 4))
+        DrawText Fonts:Heading percent + "%" p + (Vec2 24 0) 12 1.0 0.5 * self.alpha false
+
+    desc "Angular Velocity"
+      var vax 1.0 - (ExpDecay (Abs object.GetVelocityAngular.x) 1.0)
+      var vay 1.0 - (ExpDecay (Abs object.GetVelocityAngular.y) 1.0)
+      var vazn 1.0 - (ExpDecay (Max 0.0 object.GetVelocityAngular.z) 2.0)
+      var vazp 1.0 - (ExpDecay (Max 0.0 -1.0 * object.GetVelocityAngular.z) 2.0)
+      Draw (Glyph_Arc 0 1 0.001 1 1 0.0 0.1 * vazp) pos - offset 112 color vazp * opacity
+      Draw (Glyph_Arc 0 1 0.001 1 1 0.5 0.1 * vazn) pos + offset 112 color vazn * opacity
+
+    var cam Camera_Get
+    if cam.IsNotNull
+      var speed 1000.0
+      for it object.GetSockets it.HasMore it.Advance
+        var socket it.Get
+        if socket.IsTurret && socket.GetSockets.HasMore
+          var mount socket.GetSockets.Get
+          var st mount.GetSupertype
+          if st.HasSpeed
+            speed = st.GetSpeed
+
+      for it object.GetTargets it.HasMore it.Advance
+        var target it.Get
+        var color 2.0 * Colors:Secondary
+        var to (Normalize target.GetPos - cam.GetPos)
+        var relative (Vec2 (Dot to cam.GetRight) (Dot to cam.GetUp))
+        relative.y *= -1.0
+        var n relative.Normalize
+
+        var ortho (Vec2 -1.0 * n.y n.x)
+        var p0 pos + n * 164.0
+        var p1 p0 - 16.0 * n
+        var p2 p0 - 8.0 * ortho - 16.0 * n
+
+        var alpha 1.0 - (ExpDecay (Max 0.0 relative.Length - 0.15) 0.1)
+        Draw (Glyph_LineFade p0 p1 1 1) 0 1 color alpha
+        # Draw (Glyph_LineFade p0 p2 1 1) 0 1 color alpha
+        Draw target.GetIcon pos + n * 132.0 12 color alpha
+
+        var impact
+          GetImpact
+            object.GetPos
+            target.GetPos
+            object.GetVelocity
+            target.GetVelocity
+            speed
+        if impact.t > 0.0
+          var proj (cam.Project impact.position)
+          if proj.z > 0.0
+            var ss (Position_Frame proj)
+            Draw Icons:Cancel ss 8.0 Colors:Hostile 1.0
+
+  function Void PreUpdate (Widget self)
+    angle += FrameTimer_Get
+
+function Widget Create (Player player Object object)
+  Components:Expand
+    Custom Widget (Reticle player object)

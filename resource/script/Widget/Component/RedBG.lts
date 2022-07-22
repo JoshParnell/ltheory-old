@@ -1,0 +1,3 @@
+type RedBG
+  function Void PreDraw (Widget self)
+    DrawPanel self.pos self.size (Vec3 1.0 0.0 0.0) 1.0 1.0 0

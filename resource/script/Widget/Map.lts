@@ -1,0 +1,93 @@
+type MapObjects
+  Player player
+  Object container
+  Object target Object
+  Vec2 center 0
+  Vec2 centerTarget 0
+  Float zoom 1000000
+  Float zoomTarget 1000000
+
+  function List CreateChildren (Widget self)
+    var l List
+    for it container.GetInteriorObjects it.HasMore it.Advance
+      var object it.Get
+      if
+        object.HasComponentInterior ||
+          object.HasComponentNavigable ||
+            object.HasComponentPilotable ||
+              object.HasComponentResources ||
+                object.IsCustom
+
+        l += (HUD/WorldObject:Create player object)
+        if object.IsPlanet
+          for it object.GetChildren it.HasMore it.Advance
+            l += (HUD/WorldObject:Create player it.Get)
+    l
+
+  function Void PreDraw (Widget self)
+    var c center / 5000.0
+    var s zoom / 1000000.0
+    Draw (Glyph_Grid self.TopLeft self.BottomRight 1 1 c s) 0 1 Colors:Primary 0.1
+
+  function Void PostDraw (Widget self)
+
+  function Void PostPosition (Widget self)
+    for it self.GetChildren it.HasMore it.Advance
+      var widget it.Get
+      var object (Messages:GetObject widget)
+      var pos object.GetPos
+      var ss ((Vec2 pos.x pos.z) - center) / zoom
+      ss /= (self.size / (Min self.size.x self.size.y))
+      ss = self.Center + 0.5 * self.size * ss
+      var size object.GetScale.Length * (10000.0 / zoom)
+      size = (Clamp size 12.0 64.0)
+      widget.pos = ss - size / 2.0
+      widget.size = size
+
+  function Void PostUpdate (Widget self)
+    var dt FrameTimer_Get
+    var mult 4.0 * zoom * dt
+    if Key_W.Down
+      centerTarget.y -= mult
+    if Key_S.Down
+      centerTarget.y += mult
+    if Key_A.Down
+      centerTarget.x -= mult
+    if Key_D.Down
+      centerTarget.x += mult
+
+    if Mouse_DoubleClicked
+      for it self.GetChildren it.HasMore it.Advance
+        var widget it.Get
+        if widget.focusMouse
+          target = (Messages:GetObject widget)
+
+    if target.IsNotNull
+      var pos target.GetPos
+      centerTarget = (Vec2 pos.x pos.z)
+
+    zoomTarget *= (1.0 - 0.1 * Mouse_GetScrollDelta)
+
+    zoom = (Mix zoom zoomTarget 1.0 - (ExpDecay dt 0.125))
+    center = (Mix center centerTarget 1.0 - (ExpDecay dt 0.125))
+
+type Map
+  Player player
+  Object container
+
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Expand
+        Dynamic
+          Custom
+            Widget
+            MapObjects player container
+    l
+
+function Widget Create (Player player Object container)
+  Components:Expand
+    Stack
+      Custom
+        Widget
+        Map player container

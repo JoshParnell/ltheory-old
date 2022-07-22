@@ -1,0 +1,11 @@
+type Positioned
+  Vec2 pos
+
+  function Void PrePosition (Widget self)
+    self.pos += pos
+
+  function Void Receive (Widget self Data data)
+    switch
+      (data.IsType "MessageSetPos")
+        ref message (cast Messages:MessageSetPos data)
+        pos = message.pos

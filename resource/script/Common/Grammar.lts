@@ -1,0 +1,58 @@
+type RuleOutput
+  (Array String) value
+  Float weight
+
+type Rule
+  String input ""
+  (Array RuleOutput) outputs (Array RuleOutput)
+  Float total 0.0
+
+type Grammar
+  (Array Rule) rules (Array Rule)
+
+  function Void AddRule (StringList rule)
+    var self Rule
+    self.input = (GetValue (rule.Get 0))
+    for i 1 i < rule.Size i.++
+      var output (rule.Get i)
+      var weight (ToFloat (GetValue (output.Get 0)))
+      var value (Array String)
+      for j 1 j < output.Size j.++
+        value += (GetValue (output.Get j))
+      self.outputs += (RuleOutput value weight)
+      self.total += weight
+    rules += self
+
+  function (Array String) Produce ((Array String) input RNG rng)
+    var result (Array String)
+    var changed true
+
+    while changed
+      changed = false
+      for i 0 i < input.Size i.++
+        ref str (input.Get i)
+        var thisChanged false
+
+        for j 0 j < rules.Size j.++
+          ref rule (rules.Get j)
+
+          if str == rule.input
+            changed = true
+            thisChanged = true
+            var w (rng.Float 0.0 rule.total)
+            var tw 0.0
+
+            for k 0 k < rule.outputs.Size k.++
+              ref output (rule.outputs.Get k)
+              tw += output.weight
+              if w <= tw
+                w = rule.total + 1.0
+                result += output.value
+
+        if (! thisChanged)
+          result += str
+
+      input = result
+      result.Clear
+
+    input

@@ -1,0 +1,51 @@
+#include frag.jsl
+
+#include deferred.jsl
+#include lighting.jsl
+#include math.jsl
+#include noise.jsl
+#include scattering.jsl
+
+uniform float enableGodRays;
+uniform float enableScattering;
+uniform vec2 lightPosSS;
+uniform vec2 frame;
+uniform sampler2D noiseBuffer;
+
+void main() {
+  vec4 gi = vec4(0.);
+  const int samples = 16;
+
+  float occlusion = 0.;
+  
+#if 0
+  if (enableGodRays > 0. && atmoDensity > 0.001) {
+    vec2 sourcePos = lightPosSS;
+    vec2 samplePos = sourcePos;
+    float noise = texture2D(noiseBuffer, uv * 17.).x;
+    vec2 delta = .25 * mix(0.5, 2.0, noise) * (uv - sourcePos) / (samples);
+    float weight = 1.;
+    float totalWeight = 0.;
+
+    for (int i = 0; i < samples; ++i) {
+      occlusion += weight * saturate(1. - texture2D(depthBuffer, samplePos).x);
+      totalWeight += weight;
+      weight *= 0.9;
+      samplePos += delta;
+    }
+
+    occlusion /= totalWeight;
+  }
+#endif
+
+  float blend = 0.;
+  float depth = texture2D(depthBuffer, uv).x;
+  if (false && atmoDensity > 0.01) {
+    gi = getScatteringInside(worldRayO, normalize(worldRayD), depth, occlusion);
+  } else {
+    gi.w = getFoginess(depth);
+    gi.xyz = getFog(worldRayO, normalize(worldRayD), depth, occlusion);
+  }
+    
+  RETURN(mix(GetAlbedoGlow(), vec4(gi.xyz, 0.), gi.w));
+}

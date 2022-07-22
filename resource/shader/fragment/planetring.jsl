@@ -1,0 +1,46 @@
+#include frag.jsl
+#include math.jsl
+#include noise.jsl
+#include lighting.jsl
+#include scattering.jsl
+
+FRAG_IN vec3 normal;
+FRAG_IN vec3 position;
+FRAG_IN vec3 origin;
+
+uniform sampler2D rings;
+
+void main() {
+  float r = length(2.0 * (uv - 0.5));
+  float d = texture2D(rings, vec2(r, 0.5)).x;
+  vec3 V = eye - position;
+
+  /* Alpha. */
+  float alpha = 1.0;
+  alpha *= 0.5;
+  alpha *= 1.0 - exp(-64.0 * max(0.0, r - 0.5));
+  alpha *= d * exp(-64.0 * max(0.0, r - 0.8));
+  alpha *= 1.0 - exp(-pow2(1.5 * length(V) / scale.x));
+  alpha = saturate(alpha);
+  alpha *= 1.0 - getFoginess(length(V));
+
+  vec3 c = mix(vec3(0.5, 0.8, 0.9), vec3(1.0, 1.0, 1.0), d);
+
+  /* Lighting. */
+  vec3 L = normalize(starPos);
+  vec3 n = normalize(normal);
+  n *= sign(dot(n, V));
+  float l = 10000.0 * cookTorrance(L, position, n, 0.10, 1.0);
+  c *= 1.0 + l;
+
+  /* Shadow. */
+  vec3 toOrigin = (origin - position);
+  vec3 toStar = normalize(starPos - position);
+  float OS = dot(toOrigin, toStar);
+  float rshadow = max(0.0, length(toOrigin - toStar * OS) / scale.x - 1.0);
+  if (OS > 0.0)
+    c *= 1.0 - exp(-32.0 / max(0.0, length(toOrigin) / scale.x - 1.0) * pow2(rshadow));
+  alpha *= sqrt(abs(dot(normal, normalize(V))));
+
+  RETURN(vec4(c, alpha));
+}

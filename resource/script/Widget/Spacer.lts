@@ -1,0 +1,25 @@
+type SpacerH
+  Float size
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.LeftCenter (Vec2 self.size.x 2) 0.2 1 0.5 4
+    #
+      Draw (Glyph_Circle 0 1 1 1) self.TopLeft 16 Colors:Primary 0.5
+      Draw (Glyph_Circle 0 1 1 1) self.TopRight 16 Colors:Primary 0.5
+      Draw (Glyph_Line self.TopLeft self.TopRight 1 1) 0 1 Colors:Primary 0.1
+
+  function Void PrePosition (Widget self)
+    self.minSize.y = size
+
+type SpacerV
+  Float size
+
+  function Void PreDraw (Widget self)
+    DrawPanel self.TopCenter (Vec2 2 self.size.y) 0.2 1 0.5 4
+    #
+      Draw (Glyph_Circle 0 1 1 1) self.TopLeft 16 Colors:Primary 0.5
+      Draw (Glyph_Circle 0 1 1 1) self.TopRight 16 Colors:Primary 0.5
+      Draw (Glyph_Line self.TopLeft self.TopRight 1 1) 0 1 Colors:Primary 0.1
+
+  function Void PrePosition (Widget self)
+    self.minSize.x = size

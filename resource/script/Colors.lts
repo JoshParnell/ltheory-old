@@ -1,0 +1,29 @@
+function Color Bad ()
+  Vec3 1.0 0.1 0.1
+
+function Color Good ()
+  Vec3 0.25 1.0 0.25
+  
+function Color Friendly ()
+  Vec3 0.25 1.0 0.25
+  
+function Color Hostile ()
+  Vec3 1.0 0.1 0.01
+
+function Color Primary ()
+  Vec3 0.2 0.7 1.0
+  # Vec3 0.2 0.7 1.0
+  # Vec3 1.0 0.3 0.1
+
+function Color Secondary ()
+  Vec3 1.0 0.3 0.1
+  # Vec3 0.3 0.5 1.0
+
+function Color White ()
+  Vec3 1.0 1.0 1.0
+
+function Color DGray ()
+  Vec3 0.25 0.25 0.25
+
+function Color Gray ()
+  Vec3 0.5 0.5 0.5

@@ -1,0 +1,223 @@
+type CircleIcon
+  Icon icon
+  function Void PreDraw (Widget self)
+    var c 2.0 * Colors:Primary
+    Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.500 * self.size c 0.0250
+    Draw (Glyph_Arc 0 1 0.01 1 1 0 1) self.Center 0.625 * self.size c 0.0125
+    Draw icon self.Center 0.4 * self.size c 1.0
+
+type Ribbon
+  Player player
+  Object object
+  (Pointer String) activeTab
+
+  function List CreateChildren (Widget self)
+    var l List
+    var size 64.0
+    var isOwner object.GetOwner == player
+    var c1 Colors:Primary
+    var c2 Colors:Secondary
+
+    l +=
+      Components:AlignCenter
+        Components:MinSize size
+          Widgets:TabIcon "objectinfo" "Overview" Icons:MagnifyingGlass c1 c2 true true true
+
+    if object.HasComponentAssets
+      l +=
+        Components:AlignCenter
+          Components:MinSize size
+            Widgets:TabIcon "objectinfo" "Assets" Icons:Assets c1 c2 true true false
+
+    if object.HasComponentCargo
+      l +=
+        Components:AlignCenter
+          Components:MinSize size
+            Widgets:TabIcon "objectinfo" "Cargo" Icons:Cargo c1 c2 true true false
+
+    if object.HasComponentCrew
+      l +=
+        Components:AlignCenter
+          Components:MinSize size
+            Widgets:TabIcon "objectinfo" "Crew" Icons:Assets c1 c2 true true false
+
+    if object.HasComponentAccount
+      l +=
+        Components:AlignCenter
+          Components:MinSize size
+            Widgets:TabIcon "objectinfo" "Account" Icons:Credits c1 c2 true true false
+
+    if object.HasComponentMarket
+      l +=
+        Components:AlignCenter
+          Components:MinSize size
+            Widgets:TabIcon "objectinfo" "Market" Icons:Trade c1 c2 true true false
+
+    if object.HasComponentProjects
+      l +=
+        Components:AlignCenter
+          Components:MinSize size
+            Widgets:TabIcon "objectinfo" "Projects" Icons:Refresh c1 c2 true true false
+
+    if object.IsPlayer
+      l +=
+        Components:AlignCenter
+          Components:MinSize size
+            Widgets:TabIcon "objectinfo" "Messages" Icons:Mail c1 c2 true true false
+
+    if object == player
+      l +=
+        Components:AlignCenter
+          Components:MinSize size
+            Widgets:TabIcon "objectinfo" "Notes" Icons:Log c1 c2 true true false
+
+    # Contacts
+
+    if object.HasComponentProjects
+      # Projects
+
+    if object.HasComponentSockets
+      l +=
+        Components:AlignCenter
+          Components:MinSize size
+            Widgets:TabIcon "objectinfo" "Hardpoints" Icons:Hardpoints c1 c2 true true false
+
+    # Database
+    if object.HasComponentDatabase
+      l +=
+        Components:AlignCenter
+          Components:MinSize size
+            Widgets:TabIcon "objectinfo" "Database" Icons:Database c1 c2 true true false
+
+    if object.HasComponentTasks
+      l +=
+        Components:AlignCenter
+          Components:MinSize size
+            Widgets:TabIcon "objectinfo" "Tasks" Icons:Gear c1 c2 true true false
+
+    if object.HasComponentStorage
+      # Storage
+
+    l +=
+      Components:GreedyX
+        Components:Expand
+          Widget
+
+    l +=
+      Components:AlignCenter
+        Widgets:ListH3 8.0
+          Components:AlignCenter
+            Widgets:Text Fonts:Medium object.GetName.UpperCase 24.0 1
+          Components:AlignCenter
+            Components:MinSize 64
+              Custom Widget
+                CircleIcon object.GetIcon
+          Components:AlignCenter
+            Widgets:Text Fonts:Heading object.GetType.UpperCase 14 Colors:Primary
+    l
+
+  function Void PreDraw (Widget self)
+    # DrawPanel self.pos self.size 0.1 0.3 1 0
+
+  function Void Receive (Widget self Data data)
+    if (data.IsType "TabSelect")
+      self.SendDown data
+      ref msg (cast Tab:TabSelect data)
+      (deref activeTab) = msg.label
+
+type ContentPanel
+  Player player
+  Object object
+  Float opacity 0.0
+  String currentTab ""
+  (Pointer String) activeTab
+
+  function List CreateChildren (Widget self)
+    var l List
+    currentTab = (deref activeTab)
+    var widget
+      switch
+        currentTab == "Overview"
+          opacity = 1.0
+          Widget/Object/Overview:Create player object
+        currentTab == "Assets"
+          opacity = 1.0
+          Widget/Object/Assets:Create player object
+        currentTab == "Cargo"
+          opacity = 1.0
+          Widget/Object/Cargo:Create player object
+        currentTab == "Database"
+          opacity = 0.1
+          Widget/Object/Database:Create player object
+        currentTab == "Market"
+          opacity = 0.4
+          Widget/Object/Market:Create player object
+        currentTab == "Hardpoints"
+          opacity = 0.1
+          Widget/Object/Sockets:Create player object
+        currentTab == "Tasks"
+          opacity = 0.1
+          Widget/Object/Tasks:Create player object
+        otherwise
+          Widget
+    l += (Components:Padding 8 8 widget)
+    l
+
+  function Void PreDraw (Widget self)
+    Draw (Glyph_Grid self.TopLeft self.BottomRight Colors:Primary 1.0 0.0 0.25) 0 1 1 opacity * 0.1
+    ClipRegion_Push self.pos self.size
+
+  function Void PostDraw (Widget self)
+    ClipRegion_Pop
+
+  function Void PreUpdate (Widget self)
+    if (currentTab != (deref activeTab))
+      self.Rebuild
+    ClipRegion_Push self.pos self.size
+
+  function Void PostUpdate (Widget self)
+    ClipRegion_Pop
+
+type ObjectInfo
+  Player player
+  Object object
+  String activeTab "Overview"
+  Widget contents Widget
+
+  function List CreateChildren (Widget self)
+    var l List
+    l += 
+      Components:Expand
+        Components:Padding (Vec2 24 12) (Vec2 24 12)
+          ListH 24
+            Custom Widget
+              Ribbon player object (address activeTab)
+    l +=
+      Components:GreedyY
+        Components:Expand
+          Stack
+            Custom Widget
+              ContentPanel player object (address activeTab)
+    l
+
+  function Void Receive (Widget self Data data)
+    # TODO -- All this is hackery
+    if (data.IsType "CreateObjectInfo")
+      ref msg (cast Messages:CreateObjectInfo data)
+      msg.widget = 
+        Components:Expand
+          Components:Named msg.object.GetName
+            ListV 0
+              Custom Widget
+                ObjectInfo msg.player msg.object
+
+function Widget Create (Player player Object object)
+  Components:Backdrop 0.075 0.95 1 0
+    Components:Expand
+      Components:Named object.GetName
+        ListV 0
+          Custom Widget
+            ObjectInfo player object
+
+function Widget CreateWindow (Player player Object object)
+  Create player object

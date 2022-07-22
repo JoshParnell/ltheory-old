@@ -1,0 +1,16 @@
+#include vert.jsl
+
+VERT_OUT vec3 position;
+
+uniform vec3 eye;
+
+void main() {
+  VS_PROLOGUE;
+  vec4 origin = vec4(vp.xyz * farPlane, 0.0);
+  position = origin.xyz;
+  gl_Position = PROJ * (VIEW * origin);
+  gl_Position.z = gl_Position.w * (1.0 - 1e-6);
+  linearDepth = farPlane;
+  vertpos = vertex_position.xyz;
+  vertnormal = vertex_normal.xyz;
+}

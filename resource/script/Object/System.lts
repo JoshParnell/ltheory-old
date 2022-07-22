@@ -1,0 +1,221 @@
+function Quantity PlayerCredits () 1500000
+
+type POI
+  Position pos
+  Float radius
+
+function Void Init (Object self)
+  var origin (Vec3 0)
+  var rng (RNG_MTG self.GetSeed)
+  var systemScale 100000.0
+  var planetCount 1
+  var playerCount 2
+  var zoneCount 2
+  var pois (Array POI)
+  var zoneSeed 1000
+
+  self.SetName (CapitalCase (Grammar_Get "$system" rng))
+  var planetPos (Vec3 0.0)
+
+  desc "Planets"
+    for planetIndex 0 planetIndex < planetCount planetIndex.++
+      var radius systemScale * (1.0 + 0.1 * rng.Exp)
+      var pos origin + 0.5 * systemScale * (Vec3_Cylinder 0 rng.Angle 0.001 * rng.Gaussian)
+      planetPos = pos
+
+      var planet (Object_Planet (Item_PlanetType rng.Int + 8))
+      planet.SetPos pos
+      planet.SetScale radius
+      planet.SetName "Melian Prime" 
+      self.AddInterior planet
+      pois += (POI pos 2.0 * radius)
+
+      desc "Colonies"
+        var colonyCount (rng.Int 1 3)
+        for colonyIndex 0 colonyIndex < colonyCount colonyIndex.++
+          var kScale 0.001
+          var item (Item_WeaponType 53)
+          var traits Traits
+          var k 1.0
+          traits.Aggressive = (Saturate k * rng.Exp)
+          traits.Creative = (Saturate k * rng.Exp)
+          traits.Explorative = (Saturate k * rng.Exp)
+          traits.Greedy = (Saturate k * rng.Exp)
+          traits.Intellectual = (Saturate k * rng.Exp)
+          traits.Lawless = (Saturate k * rng.Exp)
+          traits.Sociable = (Saturate k * rng.Exp)
+
+          var colonyType
+            Item_ColonyType "Colony" Icons:City
+              Task_Spawn
+                item
+                1.0
+              traits
+
+          var colony (Object_Colony rng.Int colonyType planet 100)
+          colony.SetName (CapitalCase (Grammar_Get "$station_midfix" rng))
+
+          var governor (Player_AI Traits)
+          governor.SetName colony.GetName + " Governor"
+          governor.AddAsset colony
+          governor.AddCredits 1000000
+
+          var orientation rng.Direction
+          var transform (Transform_Look orientation * (1.0 - kScale) orientation)
+          transform.scale = kScale
+          planet.Attach colony transform
+
+      desc "Orbital belt"
+        var belt
+          Object_Zone
+            self
+            rng.Int
+            planet.GetPos
+            planet.GetScale 
+            SDF_Scale (SDF_Torus 0 2 0.4) (Vec3 1 0.05 1)
+            0
+            1
+            0
+            0
+            0
+
+        belt.SetName planet.GetName + " Belt"
+        self.AddInterior belt
+
+      desc "Orbital rail"
+        WarpNode:BuildRailRadial
+          self
+          pos + (Vec3 0 -0.02 * radius 0)
+          radius * 2.0
+          0.0
+          0.25 - 0.05
+
+        WarpNode:BuildRailRadial
+          self
+          pos + (Vec3 0 -0.02 * radius 0)
+          radius * 2.0
+          0.25
+          0.50 - 0.05
+
+        WarpNode:BuildRailRadial
+          self
+          pos + (Vec3 0 -0.02 * radius 0)
+          radius * 2.0
+          0.50
+          0.75 - 0.05
+
+        WarpNode:BuildRailRadial
+          self
+          pos + (Vec3 0 -0.02 * radius 0)
+          radius * 2.0
+          0.75
+          1.00 - 0.05
+
+  var spawnZones List
+  var commonItems List
+  for i 0 i < 32 i.++
+    commonItems += (Item_WeaponType rng.Int)
+  commonItems += (Item_DroneBayType 1500 1 1 1)
+  commonItems += (Item_ProductionLabType 10000 1 1 1 1)
+  commonItems += (Item_TechLabType 50000 1 1 1 1)
+  commonItems += (Item_TransferUnitType 100 1 1 1 1 1)
+
+  var patrolShip (Item_ShipType 10000000 rng.Int 1 1 1 1 1 1)
+  var pirateShip (Item_ShipType 100000 rng.Int 1 1 1 1 1 1)
+  var pirateWeapon (Item_WeaponType rng.Int + 4)
+
+  for i 0 i < zoneSeed i.++
+    rng.Int
+
+  desc "Zones"
+    for zoneIndex 0 zoneIndex < zoneCount zoneIndex.++
+      var angle
+        switch
+          zoneIndex == 0 2Pi * 0.950
+          otherwise 2Pi * 0.675
+
+      var pos
+        planetPos + systemScale *
+          Vec3_Cylinder (rng.Float 3.5 3.5) angle 0.2 + (rng.Gaussian 0.5)
+
+      var scale 0.4 * systemScale
+      var seed rng.Int
+      var shape (SDF_Sphere 0 1) * (rng.Vec3 1.0 2.0)
+      var zone (Object_Zone self seed pos scale shape 96 1.0 0.0 0.0 0.0)
+
+      desc "Outpost"
+        var stationType (Item_StationType 1000000000.0 rng.Int 1.0 1.0 1.0 1.0)
+        var station stationType.Instantiate
+        station.SetPos pos + rng.Sphere * scale
+        station.SetName (CapitalCase (Grammar_Get "$station" rng))
+        self.AddInterior station
+
+        var manager (Player_AI Traits)
+        manager.SetName station.GetName + " Manager"
+        manager.AddAsset station
+        manager.AddCredits 1000000
+
+        var storage (station.GetStorageLocker manager)
+        for listingIndex 0 listingIndex < 32 listingIndex.++
+          var item (cast Item (commonItems.GetRandom rng))
+          var volume (rng.Int 1 8)
+          var price item.GetValue + (Int 1.0 + 10.0 * rng.Exp)
+          storage.AddItem item volume
+          station.AddMarketSellOrder manager item volume price
+
+      zone.SetName self.GetName + " Field #" + (zoneIndex + 1)
+      self.AddInterior zone
+      pois += (POI pos scale)
+      spawnZones += zone
+
+      desc "Pirates"
+        for patrolIndex 0 patrolIndex < 2 patrolIndex.++
+          var patrol patrolShip.Instantiate
+          patrol.SetPos pos + rng.Sphere * scale
+          while (patrol.Plug pirateWeapon) 0
+          patrol.SetName zone.GetName + " Patrol Unit"
+          patrol.SetHealth 1000000000
+          self.AddInterior patrol
+
+          for pirateIndex 0 pirateIndex < 3 pirateIndex.++
+            var pirate pirateShip.Instantiate
+            for i 0 i < 2 i.++
+              pirate.Plug pirateWeapon
+            pirate.SetPos patrol.GetPos + patrol.GetRadius * rng.Direction
+            pirate.SetName "Pirate"
+            pirate.SetHealth 1000000000
+            pirate.PushTask (Task_Destroy patrol)
+            patrol.PushTask (Task_Destroy pirate)
+            self.AddInterior pirate
+
+  desc "POI Rails"
+    for poiIndex 1 poiIndex < pois.Size poiIndex.++
+      ref a (pois.Get 0)
+      ref b (pois.Get poiIndex)
+      var ab (Normalize b.pos - a.pos)
+      var p1 (a.pos + a.radius * ab)
+      var p2 (b.pos - b.radius * ab)
+      WarpNode:BuildRail self p1 p2
+
+  desc "Players"
+    var shipTypeBoss (Item_ShipType 100000000 rng.Int 1 1 1 1 1 1)
+    var transferUnit (Item_TransferUnitType 1 rng.Int 1 1 1 1)
+    
+    for playerIndex 0 playerIndex < playerCount playerIndex.++
+      var weapon rng.Int.Item_WeaponType
+      var traits Traits
+      var spawnZone (cast Object (spawnZones.GetRandom rng))
+      var player (Player_AI traits)
+      var playerShip shipTypeBoss.Instantiate
+
+      player.AddAsset playerShip
+      player.AddCredits PlayerCredits
+      player.Pilot playerShip
+      player.PushTask (Task_Play player)
+      playerShip.SetPos spawnZone.GetPos + (rng.Sphere * spawnZone.GetScale)
+
+      for j 0 j < 4 (++ j)
+        playerShip.Plug transferUnit
+      while (playerShip.Plug weapon) 0
+
+      self.AddInterior playerShip

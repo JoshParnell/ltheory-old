@@ -1,0 +1,26 @@
+#include frag.jsl
+#include color.jsl
+#include math.jsl
+
+uniform sampler2D texture;
+uniform int radius;
+uniform vec2 rcpFrame;
+
+void main() {
+  vec4 c = vec4(0.0);
+  float tw = 0.0;
+
+  for (int y = -radius; y <= radius; ++y) {
+    for (int x = -radius; x <= radius; ++x) {
+      vec2 offset = vec2(x, y);
+      vec4 s = texture2D(texture, uv + offset * rcpFrame);
+      float l = 0.25 * avg(s.xyz);
+      float variance = 0.1 + l;
+      float w = exp(-sqrt(length(offset) / variance));
+      c += w * s;
+      tw += w;
+    }
+  }
+
+  RETURN(c);
+}

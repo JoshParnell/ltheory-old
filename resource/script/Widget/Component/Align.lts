@@ -1,0 +1,5 @@
+type Align
+  Vec2 scale
+
+  function Void PostPosition (Widget self)
+    self.pos += (self.maxSize - self.size) * scale

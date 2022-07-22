@@ -1,0 +1,73 @@
+type DevPanel
+  function List CreateChildren (Widget self)
+    var l List
+    l +=
+      Components:Expand
+        Components:Padding (Vec2 24 16) (Vec2 24 16)
+          Components:MinSize (Vec2 400.0 0)
+            Components:AlignCenter
+              Widgets:ListH3 16
+                Components:AlignCenter
+                  Widgets:ListH2 2
+                    Components:AlignCenter
+                      Widgets:Text Fonts:Medium "LT" 32 1
+                    Components:AlignCenter
+                      Widgets:Text Fonts:Default "DEVELOPER" 32 Colors:Primary
+                Components:AlignCenter
+                  Widgets:EmptySpaceH
+                Components:AlignCenter
+                  DevPanel/Clock:Create
+
+    l +=
+      Components:Expand
+        Components:GreedyY
+          Widgets:ListV2 0
+            Widget
+            Components:Expand
+              Components:GreedyY
+                Components:MinSize (Vec2 128 420)
+                  DevPanel/Tasks:Create
+
+    l +=
+      Components:Expand
+        Components:GreedyY
+          Widgets:ListV2 0
+            Widget
+            Components:Expand
+              Components:GreedyY
+                Components:MinSize (Vec2 128 120)
+                  DevPanel/Apps:Create
+
+    l +=
+      Components:Expand
+        Components:GreedyY
+          Widgets:ListV2 0
+            Widget
+            Components:Expand
+              Components:GreedyY
+                DevPanel/Performance:Create
+
+    l +=
+      Components:Expand
+        DevPanel/Status:Create
+    l
+
+  function Void PostDraw (Widget self)
+    var c Cursor_Get
+    if self.pos < c && c <= (self.pos + self.size)
+      Draw Icon/Cursors:Pointer Cursor_Get 12 Colors:Primary 1
+
+function Widget Create ()
+  static bg Texture/RandomScreenshot:Get
+  Components:Backdrop 0.01 0.5 1 0
+    Widgets:ListH2 0
+      Components:CaptureKey
+        Components:CaptureMouse
+          Components:CaptureScroll
+            Components:Backdrop 0.1 0.75 1 0
+              Components:BackdropTexture bg 0.0
+                Components:Expand
+                  ListV 2
+                    Custom Widget
+                      DevPanel
+      Widgets:EmptySpaceH

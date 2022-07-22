@@ -1,0 +1,50 @@
+#include frag.jsl
+#include deferred.jsl
+#include lighting.jsl
+#include noise.jsl
+
+uniform sampler2D albedoBuffer;
+uniform sampler2D lightBuffer;
+uniform sampler2D noiseBuffer;
+uniform vec2 lightPosSS;
+
+void main() {
+  vec4 albedo = texture2D(albedoBuffer, uv);
+  vec3 fg = albedo.xyz * texture2D(lightBuffer, uv).xyz;
+  float depth = GetDepthNormalized() * length(worldRayD);
+  float fog = getFoginess(depth);
+
+  vec3 ro = worldRayO;
+  vec3 rd = normalize(worldRayD);
+  float occlusion = 0.0;
+  
+#if 0
+  const int samples = 16;
+  //vec2 sourcePos = lightPosSS;
+  vec2 sourcePos = vec2(0.5);
+  vec2 samplePos = uv;
+  vec2 delta = mix(0.7, 1.3, noise(17.0 * uv)) * (sourcePos - samplePos) / float(samples);
+  float w = 1.0;
+  float tw = 0.0;
+
+  for (int i = 0; i < samples; ++i) {
+    occlusion += w * exp(-texture2D(depthBuffer, samplePos).x / farPlane);
+    tw += w;
+    w *= 0.99;
+    samplePos += delta;
+  }
+
+  occlusion /= tw;
+#endif
+
+  vec3 fogColor = getFog(ro, rd, depth, occlusion);
+  // fg = mix(fg, vec3(fg), fog);
+  fg = mix(fg, fogColor, fog);
+
+  vec3 bg = mix(
+    toLinear(textureCube(envMap, rd).xyz),
+    getFog(ro, rd, farPlane, occlusion),
+    getFoginess(farPlane));
+
+  RETURN(vec4(toGamma(mix(bg, fg, albedo.w)), 1.0));
+}
