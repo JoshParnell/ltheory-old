@@ -26,6 +26,8 @@ struct Launcher : public Program {
   Module soundEngine;
 
   Launcher(String const& appName) : appName(appName) {
+    if (!OS_IsDir("resource"))
+      OS_ChangeDir("../");
     window = Window_Create("App Launcher", V2U(1920, 1080), true, false);
     window->SetSync(false);
     Renderer_Initialize();

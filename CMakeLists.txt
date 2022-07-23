@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 3.0)
 project(LTheory)
 
 find_package(OpenGL REQUIRED)
+add_subdirectory(ext/SFML)
 
 function (configure_output_dir target)
   set_target_properties (${target} PROPERTIES
@@ -50,13 +51,21 @@ else()
 endif()
 
 # Get ext includes
-include_directories(src/liblt include include/FreeType)
+include_directories(src/liblt
+  include
+  include/FreeType
+  ext/SFML/include)
 
 # Get ext libraries
 if(WINDOWS)
-  
+
   file(GLOB_RECURSE EXTLIB extlib/win32/*.lib)
-  set(LINK_LIBRARIES ${GLEW_GLEW_LIBRARY})
+  set(LINK_LIBRARIES
+      ${GLEW_GLEW_LIBRARY}
+      sfml-graphics
+      sfml-network
+      sfml-system
+      sfml-window)
 
 elseif(MAC)
 
@@ -89,13 +98,11 @@ elseif(LINUX)
   if(ARCH_32)
 
     set(LINK_LIBRARIES ${LINK_LIBRARIES} fmodex fmodevent)
-    set(LINK_LIBRARIES ${LINK_LIBRARIES} TelemetryX86.link)
     link_directories(${PROJECT_SOURCE_DIR}/extbin/linux32)
 
   elseif(ARCH_64)
 
     set(LINK_LIBRARIES ${LINK_LIBRARIES} fmodex64 fmodevent64)
-    set(LINK_LIBRARIES ${LINK_LIBRARIES} TelemetryX64.link)
     link_directories(${PROJECT_SOURCE_DIR}/extbin/linux64)
 
   endif()
@@ -112,14 +119,12 @@ configure_output_dir(lt)
 
 # Post-build step to copy DLLs to bin folder
 if (MSVC)
-
   file(GLOB_RECURSE RUNTIME_BINARIES extbin/win32/*.dll)
   foreach(X ${RUNTIME_BINARIES})
     add_custom_command (TARGET lt POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
       ${X} $<TARGET_FILE_DIR:lt>)
   endforeach(X)
-
 endif()
 
 # Build binaries
