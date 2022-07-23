@@ -164,7 +164,7 @@ namespace {
       }
 
       /* Create the FT face. */ {
-        String realPath = "../lt/resource/font/" + path;
+        String realPath = "resource/font/" + path;
         if (FT_New_Face(ft, realPath.c_str(), 0, &face)) {
           Log_Error("FreeType -- Failed to load font " + realPath);
           return;

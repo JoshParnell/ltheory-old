@@ -343,7 +343,7 @@ namespace {
         FMOD_EVENT_INIT_USE_GUIDS
       ));
 
-      CheckError(eventSystem->setMediaPath("../lt/resource/music/"));
+      CheckError(eventSystem->setMediaPath("resource/music/"));
     }
 
     ~SoundEngineFmodImpl() {
