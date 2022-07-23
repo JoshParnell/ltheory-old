@@ -76,7 +76,7 @@ FreeFunction(char, String_Get,
   String, s,
   int, i)
 {
-  return s[i];
+  return s[size_t(i)];
 } FunctionAlias(String_Get, Get);
 
 FreeFunction(HashT, String_GetHash,

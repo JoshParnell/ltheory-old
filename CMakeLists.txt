@@ -1,7 +1,22 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0)
 project(LTheory)
 
 find_package(OpenGL REQUIRED)
+
+function (configure_output_dir target)
+  set_target_properties (${target} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
+
+  foreach (config ${CMAKE_CONFIGURATION_TYPES})
+    string (TOUPPER ${config} config)
+    set_target_properties (${target} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY_${config} "${CMAKE_SOURCE_DIR}/bin"
+      LIBRARY_OUTPUT_DIRECTORY_${config} "${CMAKE_SOURCE_DIR}/bin"
+      ARCHIVE_OUTPUT_DIRECTORY_${config} "${CMAKE_SOURCE_DIR}/bin")
+  endforeach (config)
+endfunction ()
 
 # Set build path
 set(BUILD_DIR ${CMAKE_BINARY_DIR})
@@ -93,9 +108,18 @@ set(LINK_LIBRARIES ${LINK_LIBRARIES} ${OPENGL_LIBRARIES})
 file(GLOB_RECURSE LIBLT_SRC src/liblt/*.cpp)
 add_library(lt SHARED ${LIBLT_SRC})
 target_link_libraries(lt ${LINK_LIBRARIES} ${EXTLIB})
+configure_output_dir(lt)
 
+# Post-build step to copy DLLs to bin folder
 if (MSVC)
-  set_target_properties(lt PROPERTIES PREFIX "../")
+
+  file(GLOB_RECURSE RUNTIME_BINARIES extbin/win32/*.dll)
+  foreach(X ${RUNTIME_BINARIES})
+    add_custom_command (TARGET lt POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${X} $<TARGET_FILE_DIR:lt>)
+  endforeach(X)
+
 endif()
 
 # Build binaries
@@ -106,11 +130,7 @@ foreach(TARGET ${TARGETS})
   
   add_executable(${TARGET} ${PROJECT_SOURCE_DIR}/src/${TARGET}/${TARGET}.cpp src/resources.rc)
   target_link_libraries(${TARGET} ${LINK_LIBRARIES})
-
-  # If we're on MSVC, build in the build dir instead of /Release /Debug, etc.
-  if (MSVC)
-    set_target_properties(${TARGET} PROPERTIES PREFIX "../")
-  endif()
+  configure_output_dir(${TARGET})
 
 endforeach(TARGET)
 
