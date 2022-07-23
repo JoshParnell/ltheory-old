@@ -2,6 +2,9 @@ cmake_minimum_required (VERSION 3.0)
 project(LTheory)
 
 find_package(OpenGL REQUIRED)
+
+# force SFML to build as a static lib to minimize pain
+set(BUILD_SHARED_LIBS FALSE CACHE BOOL "" FORCE)
 add_subdirectory(ext/SFML)
 
 function (configure_output_dir target)

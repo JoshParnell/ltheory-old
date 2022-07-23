@@ -59,7 +59,12 @@ struct Launcher : public Program {
       return;
     }
 
-    ScriptType app = main->returnType->GetAux().Convert<ScriptType>();
+    /* NOTE : We have to raw cast here due to issues with the usual
+              .Convert<ScriptType>. Due to a major design flaw in the Type
+              system, Type_Get<T> returns different static storage in the exe
+              vs the dll, so type equality comparisons fail when they shouldn't.
+              I am not going to fix this right now. */
+    ScriptType app = *(ScriptType*)main->returnType->GetAux().data;
     initialize = app->GetFunction("Initialize");
     update = app->GetFunction("Update");
     instance.Construct(app->type);
