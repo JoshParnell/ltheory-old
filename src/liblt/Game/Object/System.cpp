@@ -33,7 +33,7 @@ const uint kBaseStarCount = 100000;
 
 const int kColorIterations = 4;
 const int kColorPoints = 256;
-const float kColorVariation = 0.1f;
+const float kColorVariation = 0.02f;
 const float kColorLacunarity = 0.6f;
 
 namespace {

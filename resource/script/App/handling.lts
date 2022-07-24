@@ -11,7 +11,7 @@ type App
     camera.Push
 
     # Create the system
-    system = (Object_System (Vec3 15.012) 1440)
+    system = (Object_System (Vec3 14.019) 841)
 
     var oreType (Item_OreType 10.0 13)
     oreType.SetName "Mercoxit"

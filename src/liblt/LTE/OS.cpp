@@ -124,9 +124,9 @@ String OS_GetUserDataPath() {
   static bool created = false;
   if (!created) {
     created = true;
-    OS_CreateDir("./data/");
+    OS_CreateDir("./cache/");
   }
-  return "./data/";
+  return "./cache/";
 }
 
 String OS_GetWorkingDir() {

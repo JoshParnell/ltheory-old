@@ -30,7 +30,7 @@ type App
     gameView.Add (Widget_Rendered passes)
 
     # Create the system
-    system = (Object_System (Vec3 15.012) 25)
+    system = (Object_System (Vec3 15.012) 33)
 
     # Create the player ship
     var shipType (Item_ShipType 10000 20 1 1 1 1 1 1)
