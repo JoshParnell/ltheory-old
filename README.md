@@ -16,8 +16,6 @@ To build Limit Theory, you'll need a few standard developer tools. All of them a
 - Visual Studio Community: https://visualstudio.microsoft.com/vs/
 - CMake: https://cmake.org/download/
 
-**Important**: if you forget to install and initialize Git LFS, most of the resources will probably be broken, and the whole process will likely fail in strange and mysterious ways. This is a common gotcha with projects that use LFS. Make sure you do so!
-
 # Building
 
 With the above prerequisites installed, open a **Git Bash terminal**.
@@ -30,7 +28,9 @@ First, use `cd` to change directories to the place where you want to download LT
 Before doing any other `git` commands, make sure LFS is installed:
 - `git lfs install`
 
-You should see `Git LFS initialized` or a similar message. Now, you can download the repository:
+You should see `Git LFS initialized` or a similar message. **Important**: if you forget to install and initialize Git LFS, most of the resources will probably be broken, and the whole process will likely fail in strange and mysterious ways. This is a common gotcha with projects that use LFS. Make sure you do the above step!
+
+Now, you can download the repository:
 
 - `git clone --recursive https://github.com/JoshParnell/ltheory-old.git ltheory-old`
 
