@@ -3,6 +3,10 @@ project(LTheory)
 
 find_package(OpenGL REQUIRED)
 
+find_package(libpng12)
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # force SFML to build as a static lib to minimize pain
 set(BUILD_SHARED_LIBS FALSE CACHE BOOL "" FORCE)
 add_subdirectory(ext/SFML)
@@ -185,7 +189,7 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g")
 
   # Enable lots of warnings
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Werror")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-const-variable")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
