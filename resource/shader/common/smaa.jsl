@@ -21,7 +21,7 @@
  *
  * The shader has three passes, chained together as follows:
  *
- *                           |input|------------------·
+ *                           |input|------------------ï¿½
  *                              v                     |
  *                    [ SMAA*EdgeDetection ]          |
  *                              v                     |
@@ -31,7 +31,7 @@
  *                              v                     |
  *                          |blendTex|                |
  *                              v                     |
- *                [ SMAANeighborhoodBlending ] <------·
+ *                [ SMAANeighborhoodBlending ] <------ï¿½
  *                              v
  *                           |output|
  *
@@ -832,7 +832,7 @@ float2 SMAAArea(
   float offset)
 {
   // Rounding prevents precision errors of bilinear filtering:
-  float2 uv = float(SMAA_AREATEX_MAX_DISTANCE) * round(4.0 * float2(e1, e2)) + dist;
+  float2 uv = float(SMAA_AREATEX_MAX_DISTANCE) * floor((4.0 * float2(e1, e2)) + 0.5) + dist;
   
   // We do a scale and bias for mapping to texel space:
   uv = SMAA_AREATEX_PIXEL_SIZE * uv + (0.5 * SMAA_AREATEX_PIXEL_SIZE);
